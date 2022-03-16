@@ -51,6 +51,8 @@ public:
 		size_t len = 0;
 		ssize_t nread;
 
+        id = atoi(argv[2]);
+
 		fptr = fopen(argv[1], "r");
 		if (fptr == NULL) {
 		   perror("fopen");
@@ -127,7 +129,7 @@ public:
         snprintf(fname, sizeof(fname), "result_bench");
         FILE *fp;
         fp = fopen(fname, "a");
-        fprintf(fp, "armcl,%d,%d,%d,%d,%f\n",M,K,N,nz,diff_t);
+        fprintf(fp, "armcl,%d,%d,%d,%d,%d,%f\n",M,K,N,nz,id,diff_t);
         fclose(fp);
 
     }
@@ -148,6 +150,7 @@ private:
     size_t      K;
     int         p;
     int 		nz;
+    int id;
     bool        is_fortran{};
     std::string output_filename{};
 };

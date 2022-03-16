@@ -6,8 +6,8 @@
 gcc -I/opt/arm/armpl_21.1_gcc-9.3/include -fopenmp  arm_test.c -o test.o  /opt/arm/armpl_21.1_gcc-9.3/lib/libarmpl_lp64_mp.a  -L{ARMPL_DIR}/lib -lm -o arm_test;
 
 # compile ARMCL sgemm test (NEON)
-ARMCL_PATH=/home/ubuntu/ComputeLibrary;
-LD_LIBRARY_PATH=$ARMCL_PATH/build:$LD_LIBRARY_PATH
+export ARMCL_PATH=/home/ubuntu/ComputeLibrary;
+export LD_LIBRARY_PATH=$ARMCL_PATH/build:$LD_LIBRARY_PATH
 
 aarch64-linux-gnu-g++ -o neon_sgemm.o -c -Wall -DARCH_ARM -Wextra -pedantic \
 -Wdisabled-optimization -Wformat=2 -Winit-self -Wstrict-overflow=2 -Wswitch-default \
@@ -28,12 +28,28 @@ neon_sgemm.o $ARMCL_PATH/build/utils/Utils.o -L$ARMCL_PATH/build \
 # compile rop_sgemm_test
 make;
 
+# mkdir reports_arm_trans
+i=388;
 
-for file in magnitude_pruning/**/*.smtx; 
+for file in random_pruning/**/*.smtx; 
 do
-	./rop_sgemm_test $file; 
-	./arm_test $file; 
-	./neon_sgemm  $file;
+
+
+
+	./rop_sgemm_test $file $i; 
+	./arm_test $file $i; 
+	./neon_sgemm  $file $i;
+	# perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
+	# -o reports_arm_trans/report_rop_$i ./rop_sgemm_test $file $i;
+
+	# perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
+	# -o reports_arm_trans/report_armpl_$i ./arm_test $file $i; 
+
+	# perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
+	# -o reports_arm_trans/report_armcl_$i ./neon_sgemm $file $i;
+
+	((i++));
+
 done
 # run matmul bench
 

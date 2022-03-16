@@ -19,6 +19,8 @@ int main( int argc, char** argv ) {
 	N = 2048; // fix N dimension for now (batch size = 8, seq len = 256)
 	p = 4; // 4 cores on rasbpi 4
 
+	int id = atoi(argv[2]);
+
 	// read in sparse matrix A from google DNN benchmark
 	FILE *fptr;
 	char *line = NULL;
@@ -90,7 +92,7 @@ int main( int argc, char** argv ) {
     snprintf(fname, sizeof(fname), "result_bench");
     FILE *fp;
     fp = fopen(fname, "a");
-    fprintf(fp, "ROP,%d,%d,%d,%d,%f\n",M,K,N,nz,ret);
+    fprintf(fp, "ROP,%d,%d,%d,%d,%d,%f\n",M,K,N,nz,id,ret);
     fclose(fp);
 
 

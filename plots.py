@@ -5,7 +5,7 @@ import numpy as np
 import os
 import re
 import sys
-
+from matplotlib import ticker as mticker
 
 pip install ssgetpy
 
@@ -27,117 +27,166 @@ intel_color = '#0071c5'
 
 
 
-def plot_cake_vs_arm_dnn():
-	plt.rcParams.update({'font.size': 12})
-	markers = ['o','v','s','d','^']
-	colors = ['b','g','aqua','k','m','r']
-	labels = ['ARMPL','ARMCL', 'ROP']
-	#
-	df1 = pandas.read_csv('result_bench')
-	rop = ((df1[df1['algo'] == 'ROP']['N']*df1[df1['algo'] == 'ROP']['nz']) / df1[df1['algo'] == 'ROP']['time'])._values
-	armpl = ((df1[df1['algo'] == 'armpl']['N']*df1[df1['algo'] == 'armpl']['nz']) / df1[df1['algo'] == 'armpl']['time'])._values
-	armcl = ((df1[df1['algo'] == 'armcl']['N']*df1[df1['algo'] == 'armcl']['nz']) / df1[df1['algo'] == 'armcl']['time'])._values
-	flops = df1[df1['algo'] == 'ROP']['N']*df1[df1['algo'] == 'ROP']['nz']._values 
-	#
-	# plt.scatter(flops, rop / 1e9, label = labels[0],  marker = markers[0], color = colors[0])
-	# plt.scatter(flops, armpl / 1e9, label = labels[1],  marker = markers[0], color = colors[1])
-	# plt.scatter(flops, armcl / 1e9, label = labels[2],  marker = markers[0], color = colors[2])
-	#
-	rop=[]; armpl=[]; armcl=[];
-	N = 2048.0
-	flops = np.log10(np.array(list(set(df1[df1['algo'] == 'ROP']['nz']*N))))
-	#
-	for i in set(df1[df1['algo'] == 'ROP']['nz']):
-		rop.append((i*N / 1e9) / df1[(df1['algo']=='ROP') & (df1['nz']==i)]['time'].mean())
-		armpl.append((i*N / 1e9) / df1[(df1['algo']=='armpl') & (df1['nz']==i)]['time'].mean())
-		armcl.append((i*N / 1e9) / df1[(df1['algo']=='armcl') & (df1['nz']==i)]['time'].mean())
-	#
-	plt.figure(figsize = (6,4))
-	#
-	plt.bar(flops + 0, armpl, color = 'g', width = 0.05)
-	plt.bar(flops + 0.04, armcl, color = intel_color, width = 0.05)
-	plt.bar(flops + 0.08, rop, color = colors[-1], width = 0.05)
-	plt.title('Throughput for spMM in Transformer Layers')
-	plt.xlabel("number of ops (MFLOPs)", fontsize = 18)
-	plt.ylabel("Throughput (GLOPs/sec)", fontsize = 18)
-	plt.xscale("log")
-	# plt.xticks(f)
-	plt.legend(labels = labels, loc = "upper left", prop={'size': 12})
-	plt.savefig("rop_vs_arm_dnn_bar.pdf" , bbox_inches='tight')
-	plt.show()
-	plt.clf()
-	plt.close('all')
 
-
-plot_cake_vs_arm_dnn()
-
-
-
-def plot_cake_vs_arm_dnn():
+def plot_rop_vs_arm_dnn(fname = 'rop_vs_arm'):
 	plt.rcParams.update({'font.size': 12})
 	markers = ['o','v','s','d','^']
 	colors = ['b','g','aqua','k','m','r']
 	labels = ['ROP', 'ARMPL','ARMCL']
+	gflops_armpl=[0]*776;gflops_rop=[0]*776;dram_io_rop=[0]*776;dram_io_armpl=[0]*776;
+	gflops_armcl=[0]*776; dram_io_armcl=[0]*776; dram_bw_rop=[0]*776;dram_bw_armpl=[0]*776;
+	dram_bw_armcl=[0]*776;
 	#
 	df1 = pandas.read_csv('result_bench')
-	rop = ((df1[df1['algo'] == 'ROP']['N']*df1[df1['algo'] == 'ROP']['nz']) / df1[df1['algo'] == 'ROP']['time'])._values
-	armpl = ((df1[df1['algo'] == 'armpl']['N']*df1[df1['algo'] == 'armpl']['nz']) / df1[df1['algo'] == 'armpl']['time'])._values
-	armcl = ((df1[df1['algo'] == 'armcl']['N']*df1[df1['algo'] == 'armcl']['nz']) / df1[df1['algo'] == 'armcl']['time'])._values
-	flops = df1[df1['algo'] == 'ROP']['N']*df1[df1['algo'] == 'ROP']['nz']._values 
+	flops = []
 	#
-	# plt.scatter(flops, rop / 1e9, label = labels[0],  marker = markers[0], color = colors[0])
-	# plt.scatter(flops, armpl / 1e9, label = labels[1],  marker = markers[0], color = colors[1])
-	# plt.scatter(flops, armcl / 1e9, label = labels[2],  marker = markers[0], color = colors[2])
+	for i in range(776):
+		# multiply by 64 bytes since external memory request non-cacheable 
+		# and L2-data cache refills/writeback PMUs
+		# in ARM are expressed in terms of number of cache lines
+		nz = df1[(df1['algo'] == 'armpl') & (df1['id'] == i)]['nz']._values[0]
+		N = df1[(df1['algo'] == 'armpl') & (df1['id'] == i)]['N']._values[0]
+		flops.append(nz*N)
+		#
+		a = open('reports_arm_trans/report_armpl_%d' % i,'r').read().split('\n')
+		# cpu_time1 = float(re.search(r'\d+\.\d+', a[8]).group())
+		cpu_time = df1[(df1['algo'] == 'armpl') & (df1['id'] == i)]['time']._values[0]
+		dram_io_armpl[i] = (((int(re.search(r'\d+', a[5]).group())*64.0))) / 1e9
+		dram_io_armpl[i] += (((int(re.search(r'\d+', a[6]).group())*64.0))) / 1e9
+		dram_bw_armpl[i] = dram_io_armpl[i] / cpu_time
+		gflops_armpl[i] = (float(nz*N) / cpu_time) / (1e9)
+		#
+		a = open('reports_arm_trans/report_armcl_%d' % i,'r').read().split('\n')
+		# cpu_time1 = float(re.search(r'\d+\.\d+', a[8]).group())
+		cpu_time = df1[(df1['algo'] == 'armcl') & (df1['id'] == i)]['time']._values[0]
+		dram_io_armcl[i] = (((int(re.search(r'\d+', a[5]).group())*64.0))) / 1e9
+		dram_io_armcl[i] += (((int(re.search(r'\d+', a[6]).group())*64.0))) / 1e9
+		dram_bw_armcl[i] = dram_io_armcl[i] / cpu_time
+		gflops_armcl[i] = (float(nz*N) / cpu_time) / (1e9)
+		#
+		a = open('reports_arm_trans/report_rop_%d' % i,'r').read().split('\n')
+		# cpu_time1 = float(re.search(r'\d+\.\d+', a[8]).group())
+		cpu_time = df1[(df1['algo'] == 'ROP') & (df1['id'] == i)]['time']._values[0]
+		dram_io_rop[i] = (((int(re.search(r'\d+', a[5]).group())*64.0))) / 1e9
+		dram_io_rop[i] += (((int(re.search(r'\d+', a[6]).group())*64.0))) / 1e9
+		dram_bw_rop[i] = dram_io_rop[i] / cpu_time
+		gflops_rop[i] = (float(nz*N) / cpu_time) / (1e9)
+		#
+		# if (dram_io_rop[i] < dram_io_armpl[i]) and (dram_io_rop[i] < dram_io_armcl[i]) \
+		# and (gflops_rop[i] > gflops_armpl[i]) and (gflops_rop[i] > gflops_armcl[i]):
+		# 	print(i)
+		# #
+	# plt.subplot(1, 2, 1)
+	flops = np.log10(np.array(flops))
 	#
 	plt.figure(figsize = (6,4))
-	plt.stem(flops, rop / 1e9, markerfmt=' ', basefmt=" ", linefmt = 'r')
-	plt.title('ROP')
-	plt.xlabel("number of ops (MFLOPs)", fontsize = 18)
+	plt.scatter(flops, gflops_rop, label = labels[0],  marker = markers[0], color = colors[5])
+	plt.scatter(flops, gflops_armpl, label = labels[1],  marker = markers[1], color = colors[4])
+	plt.scatter(flops, gflops_armcl, label = labels[2],  marker = markers[3], color = colors[3])
+	#
+	plt.title('(a) Throughput for spMM in Transformer Layers')
+	plt.xlabel("number of ops (log10 scale)", fontsize = 18)
+	plt.xticks(range(7,11))
 	plt.ylabel("Throughput (GLOPs/sec)", fontsize = 18)
-	plt.xscale("log")
-	plt.yticks(range(6))
-	plt.savefig("rop_dnn.pdf" , bbox_inches='tight')
+	plt.legend(loc = "upper left", prop={'size': 12})
+	plt.savefig("%s_tput.pdf" % fname, bbox_inches='tight')
 	plt.show()
 	plt.clf()
 	plt.close('all')
 	#
+	#
 	plt.figure(figsize = (6,4))
-	plt.stem(flops, armpl / 1e9, markerfmt=' ', basefmt=" ", linefmt = colors[1])
-	plt.title('ARMPL')
-	plt.xlabel("number of ops (MFLOPs)", fontsize = 18)
-	plt.ylabel("Throughput (GLOPs/sec)", fontsize = 18)
-	plt.xscale("log")
-	plt.yticks(range(6))
-	plt.savefig("armpl_dnn.pdf" , bbox_inches='tight')
+	plt.scatter(flops, dram_io_rop, label = labels[0],  marker = markers[0], color = colors[5])
+	plt.scatter(flops, dram_io_armpl, label = labels[1],  marker = markers[1], color = colors[4])
+	plt.scatter(flops, dram_io_armcl, label = labels[2],  marker = markers[3], color = colors[3])
+	#
+	plt.title('(b) DRAM IO for spMM in Transformer Layers')
+	plt.xlabel("number of ops (log10 scale)", fontsize = 18)
+	plt.xticks(range(7,11))
+	plt.ylabel("DRAM IO (GB)", fontsize = 18)
+	plt.legend(loc = "upper left", prop={'size': 12})
+	plt.savefig("%s_io.pdf" % fname, bbox_inches='tight')
 	plt.show()
 	plt.clf()
 	plt.close('all')
 	#
+	#
 	plt.figure(figsize = (6,4))
-	plt.stem(flops, armcl / 1e9, markerfmt=' ', basefmt=" ", linefmt = colors[0])
-	plt.title('ARMCL')
-	plt.xlabel("number of ops (MFLOPs)", fontsize = 18)
-	plt.ylabel("Throughput (GLOPs/sec)", fontsize = 18)
-	plt.xscale("log")
-	plt.yticks(range(6))
-	plt.savefig("armcl_dnn.pdf" , bbox_inches='tight')
+	plt.scatter(flops, dram_bw_rop, label = labels[0],  marker = markers[0], color = colors[5])
+	plt.scatter(flops, dram_bw_armpl, label = labels[1],  marker = markers[1], color = colors[4])
+	plt.scatter(flops, dram_bw_armcl, label = labels[2],  marker = markers[3], color = colors[3])
+	#
+	plt.title('(c) DRAM BW for spMM in Transformer Layers')
+	plt.xlabel("number of ops (log10 scale)", fontsize = 18)
+	plt.xticks(range(7,11))
+	plt.ylabel("DRAM Bandwidth (GB/sec)", fontsize = 18)
+	plt.legend(loc = "upper right", prop={'size': 12})
+	plt.savefig("%s_bw.pdf" % fname, bbox_inches='tight')
+	plt.show()
+	plt.clf()
+	plt.close('all')
+	#
+	#
+	plt.figure(figsize = (6,4))
+	plt.scatter(gflops_rop, dram_bw_rop, label = labels[0],  marker = markers[0], color = colors[5])
+	plt.scatter(gflops_armpl, dram_bw_armpl, label = labels[1],  marker = markers[1], color = colors[4])
+	plt.scatter(gflops_armcl, dram_bw_armcl, label = labels[2],  marker = markers[3], color = colors[3])
+	#
+	plt.title('(d) BW Required to Attain Target Throughputs')
+	plt.xlabel("Throughput (GFLOPs/sec)", fontsize = 18)
+	# plt.xticks(range(7,11))
+	plt.ylabel("DRAM Bandwidth (GB/sec)", fontsize = 18)
+	plt.legend(loc = "upper right", prop={'size': 12})
+	plt.savefig("%s_bw_tput.pdf" % fname, bbox_inches='tight')
 	plt.show()
 	plt.clf()
 	plt.close('all')
 
-plot_cake_vs_arm_dnn()
+
+plot_rop_vs_arm_dnn()
 
 
 
 
 
+# def plot_cake_vs_arm_dnn_tput(fname = 'rop_vs_arm'):
+# 	plt.rcParams.update({'font.size': 12})
+# 	markers = ['o','v','s','d','^']
+# 	colors = ['b','g','aqua','k','m','r']
+# 	labels = ['ROP', 'ARMPL','ARMCL']
+# 	#
+# 	df1 = pandas.read_csv('result_bench')
+# 	rop = ((df1[df1['algo'] == 'ROP']['N']*df1[df1['algo'] == 'ROP']['nz']) / df1[df1['algo'] == 'ROP']['time'])._values
+# 	armpl = ((df1[df1['algo'] == 'armpl']['N']*df1[df1['algo'] == 'armpl']['nz']) / df1[df1['algo'] == 'armpl']['time'])._values
+# 	armcl = ((df1[df1['algo'] == 'armcl']['N']*df1[df1['algo'] == 'armcl']['nz']) / df1[df1['algo'] == 'armcl']['time'])._values
+# 	# flops = df1[df1['algo'] == 'ROP']['N']*df1[df1['algo'] == 'ROP']['nz']._values 	
+# 	# rop=[]; armpl=[]; armcl=[];
+# 	plt.figure(figsize = (6,4))
+# 	N = 2048.0
+# 	flops = np.log10(np.array(list(df1[df1['algo'] == 'ROP']['nz']*N)))
+# 	plt.scatter(flops, rop / 1e9, label = labels[0],  marker = markers[0], color = colors[5])
+# 	plt.scatter(flops, armpl / 1e9, label = labels[1],  marker = markers[1], color = colors[4])
+# 	plt.scatter(flops, armcl / 1e9, label = labels[2],  marker = markers[3], color = colors[3])
+# 	plt.title('Throughput for spMM in Transformer Layers')
+# 	plt.xlabel("number of ops (log10 scale)", fontsize = 18)
+# 	plt.ylabel("Throughput (GLOPs/sec)", fontsize = 18)
+# 	# plt.xscale("log")
+# 	# q = np.log10(np.array(list(set(df1[df1['algo'] == 'ROP']['nz']*N)))).astype(int)
+# 	plt.xticks(range(7,11))
+# 	plt.legend(labels = labels, loc = "upper left", prop={'size': 12})
+# 	plt.savefig("%s_tput.pdf" % fname, bbox_inches='tight')
+# 	plt.show()
+# 	plt.clf()
+# 	plt.close('all')
 
+
+# plot_cake_vs_arm_dnn_tput()
 
 
 def plot_cake_vs_mkl_sparse(fname = 'cake_vs_mkl_sp'):
 	plt.rcParams.update({'font.size': 12})
 	# all matrices used are 99.87-99.97% sparse
-	labels = ['Fashion_mnist', \
+	labels = ['Fash_mnist', \
 	'har','indianpines','J_VowelsSmall', \
 	'kmnist','mnist_test','optdigits',\
 	'usps','worms20']
@@ -149,12 +198,12 @@ def plot_cake_vs_mkl_sparse(fname = 'cake_vs_mkl_sp'):
 	X = np.arange(len(labels))
 	# 
 	plt.figure(figsize = (6,4))
-	plt.title('DRAM Bandwidth of SpMM in CAKE vs MKL', fontsize = 18)
+	plt.title('(a) DRAM BW of SpMM in ROP vs MKL', fontsize = 18)
 	plt.tick_params(labelbottom=False)   
 	plt.bar(X + 0.00, cake_bw, color = 'r', width = 0.25)
 	plt.bar(X + 0.25, mkl_bw, color = intel_color, width = 0.25)
 	plt.ylabel("DRAM Bandwidth (GB/sec)", fontsize = 16)
-	plt.legend(labels=['CAKE', 'MKL'])
+	plt.legend(labels=['ROP', 'MKL'])
 	plt.tight_layout()
 	plt.savefig("%s_dram.pdf" % fname , bbox_inches='tight')
 	plt.show()
@@ -162,13 +211,14 @@ def plot_cake_vs_mkl_sparse(fname = 'cake_vs_mkl_sp'):
 	plt.close('all')
 	#
 	plt.figure(figsize = (6,5))
+	plt.title('(b) Throughput of SpMM in ROP vs MKL', fontsize = 18)
 	plt.bar(X + 0.00, rel_tput, color = 'r', width = 0.25)
 	plt.bar(X + 0.25, 9*[1], color = intel_color, width = 0.25)
 	plt.xticks(X, labels)
 	plt.xticks(rotation=60)
 	plt.ylabel("Throughput relative to MKL", fontsize = 16)
 	plt.yticks(np.arange(0, 5, 1))
-	plt.legend(labels=['CAKE', 'MKL'])
+	plt.legend(labels=['ROP', 'MKL'])
 	plt.tight_layout()
 	plt.savefig("%s_perf.pdf" % fname , bbox_inches='tight')
 	plt.show()
@@ -261,7 +311,7 @@ def plot_cake_vs_mkl_sparse(M,N,K,mc,kc,alpha,fname = 'cake_vs_mkl_sp', ntrials=
 	plt.rcParams.update({'font.size': 12})
 	markers = ['o','v','s','d','^']
 	colors = ['b','g','aqua','k','m','r']
-	labels = ['CAKE SpMM', 'MKL Dense MM','MKL SpMM']
+	labels = ['ROP SpMM', 'MKL Dense MM','MKL SpMM']
 	#
 	sparsity = [0.8, 0.85, 0.9, 0.95, 0.99]
 	cake_sp = [0.257055 / i for i in [0.278515, 0.228560, 0.173513, 0.113896, 0.061715]]

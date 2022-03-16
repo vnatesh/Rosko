@@ -33,6 +33,8 @@ int main(int argc, char* argv[])  {
         exit(1);
     }
 
+    int id = atoi(argv[2]);
+
     n = 2048; // fix N dimension for now (batch size = 8, seq len = 256)
     p = 4; // 4 cores on rasbpi 4
 
@@ -94,7 +96,7 @@ int main(int argc, char* argv[])  {
     snprintf(fname, sizeof(fname), "result_bench");
     FILE *fp;
     fp = fopen(fname, "a");
-    fprintf(fp, "armpl,%d,%d,%d,%d,%f\n",m,k,n,nz,diff_t);
+    fprintf(fp, "armpl,%d,%d,%d,%d,%d,%f\n",m,k,n,nz,id,diff_t);
     fclose(fp);
 
 
