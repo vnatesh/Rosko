@@ -28,6 +28,61 @@ intel_color = '#0071c5'
 
 
 
+
+
+
+
+
+def plot_rop_vs_arm_end_to_end(fname = 'rop_vs_arm'):
+	plt.rcParams.update({'font.size': 12})
+	markers = ['o','v','s','d','^']
+	colors = ['b','g','aqua','k','m','r']
+	labels = ['ROP', 'ARMPL','ARMCL']
+	gflops_armpl=[0]*776;gflops_rop=[0]*776;dram_io_rop=[0]*776;dram_io_armpl=[0]*776;
+	gflops_armcl=[0]*776; dram_io_armcl=[0]*776; dram_bw_rop=[0]*776;dram_bw_armpl=[0]*776;
+	dram_bw_armcl=[0]*776;
+	#
+	df1 = pandas.read_csv('result_end_to_end')
+	flops = []
+	#
+	# multiply by 64 bytes since external memory request non-cacheable 
+	# and L2-data cache refills/writeback PMUs
+	# in ARM are expressed in terms of number of cache lines
+	nz = df1[(df1['algo'] == 'ROP_sp')]['nz']._values
+	N = df1[(df1['algo'] == 'ROP_sp')]['N']._values
+	flops = nz*N
+	t_sp = df1[(df1['algo'] == 'ROP_sp')]['time']._values
+	t_dense = df1[(df1['algo'] == 'ROP_dense')]['time']._values
+	flops_sp = sum(flops) / sum(t_sp)
+	flops_dense = sum(flops) / sum(t_dense)
+		#
+		#
+		# if (dram_io_rop[i] < dram_io_armpl[i]) and (dram_io_rop[i] < dram_io_armcl[i]) \
+		# and (gflops_rop[i] > gflops_armpl[i]) and (gflops_rop[i] > gflops_armcl[i]):
+		# 	print(i)
+		# #
+	# plt.subplot(1, 2, 1)
+	# flops = np.log10(np.array(flops))
+	#
+	plt.figure(figsize = (6,4))
+	plt.scatter(flops, gflops_rop, label = labels[0],  marker = markers[0], color = colors[5])
+	plt.scatter(flops, gflops_armpl, label = labels[1],  marker = markers[1], color = colors[4])
+	plt.scatter(flops, gflops_armcl, label = labels[2],  marker = markers[3], color = colors[3])
+	#
+	plt.title('(a) Throughput for spMM in Transformer Layers')
+	plt.xlabel("number of ops (log10 scale)", fontsize = 18)
+	plt.xticks(range(7,11))
+	plt.ylabel("Throughput (GLOPs/sec)", fontsize = 18)
+	plt.legend(loc = "upper left", prop={'size': 12})
+	plt.savefig("%s_tput.pdf" % fname, bbox_inches='tight')
+	plt.show()
+	plt.clf()
+	plt.close('all')
+	
+
+
+
+
 def plot_rop_vs_arm_dnn(fname = 'rop_vs_arm'):
 	plt.rcParams.update({'font.size': 12})
 	markers = ['o','v','s','d','^']
@@ -46,6 +101,12 @@ def plot_rop_vs_arm_dnn(fname = 'rop_vs_arm'):
 		# in ARM are expressed in terms of number of cache lines
 		nz = df1[(df1['algo'] == 'armpl') & (df1['id'] == i)]['nz']._values[0]
 		N = df1[(df1['algo'] == 'armpl') & (df1['id'] == i)]['N']._values[0]
+		M = df1[(df1['algo'] == 'armpl') & (df1['id'] == i)]['M']._values[0]
+		K = df1[(df1['algo'] == 'armpl') & (df1['id'] == i)]['K']._values[0]
+		#
+		if (float(nz) / (M*K)) >= 0.8:
+			continue
+		#
 		flops.append(nz*N)
 		#
 		a = open('reports_arm_trans/report_armpl_%d' % i,'r').read().split('\n')
@@ -307,26 +368,34 @@ plot_cake_vs_arm_sparse(23040,23040,23040,144,144,1,ntrials=1)
 
 
 
-def plot_cake_vs_mkl_sparse(M,N,K,mc,kc,alpha,fname = 'cake_vs_mkl_sp', ntrials=10):
+def plot_cake_vs_mkl_sparse(M,N,K,mc,kc,alpha,fname = 'rop', ntrials=10):
 	plt.rcParams.update({'font.size': 12})
 	markers = ['o','v','s','d','^']
 	colors = ['b','g','aqua','k','m','r']
 	labels = ['ROP SpMM', 'MKL Dense MM','MKL SpMM']
 	#
-	sparsity = [0.8, 0.85, 0.9, 0.95, 0.99]
-	cake_sp = [0.257055 / i for i in [0.278515, 0.228560, 0.173513, 0.113896, 0.061715]]
-	intel_dense = [0.257055 / i for i in [0.257055, 0.256688, 0.255590, 0.251398, 0.251183]]
-	intel_sp = [0.257055 / i for i in [0.937217, 0.853224, 0.816171, 0.676243, 0.221147]]
+	sparsity = [0.8, 0.85, 0.9, 0.95, 0.99, 0.995, 0.999, 0.9995, 0.9999]
+	flops = [(((1-i)*10000*10000*10000) / 1e9) for i in sparsity]
+	cake_sp = [2.096601, 1.704533, 1.280577, 0.827174, 0.417649, 0.363949, 0.291033, 0.269158, 0.219173]
+	intel_sp = [7.265694, 6.943313, 6.024098, 5.401255, 1.139998, 0.583468, 0.133928, 0.078719, 0.041962]
+	intel_dense = [1.689468 for i in sparsity]
+	# cake_sp = [flops[i] / cake_sp[i] for i in range(len(sparsity))]
+	# intel_sp = [flops[i] / intel_sp[i] for i in range(len(sparsity))]
+	# intel_dense = [(10000*10000*10000 / 1e9) / intel_dense[i] for i in range(len(sparsity))]
+	# cake_sp = [0.257055 / i for i in [0.278515, 0.228560, 0.173513, 0.113896, 0.061715]]
+	# intel_dense = [0.257055 / i for i in [0.257055, 0.256688, 0.255590, 0.251398, 0.251183]]
+	# intel_sp = [0.257055 / i for i in [0.937217, 0.853224, 0.816171, 0.676243, 0.221147]]
 	plt.figure(figsize = (6,4))
 	plt.plot(sparsity, cake_sp, label = labels[0],  marker = markers[0], color = colors[0])
 	plt.plot(sparsity, intel_dense, label = labels[1],  marker = markers[0], color = colors[1])
 	plt.plot(sparsity, intel_sp, label = labels[2],  marker = markers[0], color = intel_color)
+	# plt.fill_between(sparsity[1:] + [0.9846], intel_dense[1:] + [(10000*10000*10000 / 1e9)/1.689468], cake_sp[1:] + [0.44], color=colors[1])
 	#
-	plt.title('Speedup Over Dense MM For Different Sparsities')
+	plt.title('Runtime vs Sparsity for Different GEMM Libraries')
 	plt.xlabel("Sparsity", fontsize = 18)
-	plt.ylabel("Speedup", fontsize = 18)
-	plt.xticks(sparsity)
-	plt.legend(loc = "upper left", prop={'size': 12})
+	plt.ylabel("Runtime (sec)", fontsize = 18)
+	# plt.xticks(sparsity)
+	plt.legend(loc = "center left", prop={'size': 12})
 	plt.savefig("%s_perf.pdf" % fname, bbox_inches='tight')
 	plt.show()
 	plt.clf()
