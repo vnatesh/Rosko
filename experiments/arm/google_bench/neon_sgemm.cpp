@@ -117,7 +117,9 @@ public:
 
         // use p cores for experiment
         NEScheduler::get().set_num_threads(p);
-        sgemm.run();
+        for(int i = 0; i < 10; i++) {
+            sgemm.run();
+        }
 
         clock_gettime(CLOCK_REALTIME, &end);
         long seconds = end.tv_sec - start.tv_sec;
@@ -125,12 +127,12 @@ public:
         diff_t = seconds + nanoseconds*1e-9;
         printf("sgemm time: %f \n", diff_t); 
 
-        char fname[50];
-        snprintf(fname, sizeof(fname), "result_bench");
-        FILE *fp;
-        fp = fopen(fname, "a");
-        fprintf(fp, "armcl,%d,%d,%d,%d,%d,%f\n",M,K,N,nz,id,diff_t);
-        fclose(fp);
+        // char fname[50];
+        // snprintf(fname, sizeof(fname), "result_bench");
+        // FILE *fp;
+        // fp = fopen(fname, "a");
+        // fprintf(fp, "armcl,%d,%d,%d,%d,%d,%f\n",M,K,N,nz,id,diff_t);
+        // fclose(fp);
 
     }
     void do_teardown() override

@@ -28,25 +28,37 @@ neon_sgemm.o $ARMCL_PATH/build/utils/Utils.o -L$ARMCL_PATH/build \
 # compile rop_sgemm_test
 make;
 
-# mkdir reports_arm_trans
-i=388;
+mkdir reports_arm_trans
+i=0;
 
 for file in random_pruning/**/*.smtx; 
 do
 
 
 
-	./rop_sgemm_test $file $i; 
-	./arm_test $file $i; 
-	./neon_sgemm  $file $i;
-	# perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
-	# -o reports_arm_trans/report_rop_$i ./rop_sgemm_test $file $i;
+	# ./rop_sgemm_test $file $i; 
+	# ./arm_test $file $i; 
+	# ./neon_sgemm  $file $i;
+	perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
+	-o reports_arm_trans/report_rop_$i ./rop_sgemm_test $file $i;
+
+	perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
+	-o reports_arm_trans/report_cake_$i ./cake_sgemm_test $file $i;
 
 	# perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
-	# -o reports_arm_trans/report_armpl_$i ./arm_test $file $i; 
+	# -o reports_arm_trans/report_setup_cake_$i ./rop_sgemm_test $file $i;
+
+	perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
+	-o reports_arm_trans/report_armpl_$i ./arm_test $file $i; 
 
 	# perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
-	# -o reports_arm_trans/report_armcl_$i ./neon_sgemm $file $i;
+	# -o reports_arm_trans/report_setup_armpl_$i ./arm_test $file $i; 
+
+	perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
+	-o reports_arm_trans/report_armcl_$i ./neon_sgemm $file $i;
+
+	# perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
+	# -o reports_arm_trans/report_setup_armcl_$i ./neon_sgemm $file $i;
 
 	((i++));
 

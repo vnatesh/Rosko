@@ -81,8 +81,10 @@ int main(int argc, char* argv[])  {
 
     clock_gettime(CLOCK_REALTIME, &start);
 
-    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+    for(int i = 0; i < 10; i++) {
+        cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
                 m, n, k, alpha, A, k, B, n, beta, C, n);
+    }
 
 
     clock_gettime(CLOCK_REALTIME, &end);
@@ -92,12 +94,12 @@ int main(int argc, char* argv[])  {
     printf("sgemm time: %f \n", diff_t); 
 
 
-    char fname[50];
-    snprintf(fname, sizeof(fname), "result_bench");
-    FILE *fp;
-    fp = fopen(fname, "a");
-    fprintf(fp, "armpl,%d,%d,%d,%d,%d,%f\n",m,k,n,nz,id,diff_t);
-    fclose(fp);
+    // char fname[50];
+    // snprintf(fname, sizeof(fname), "result_bench");
+    // FILE *fp;
+    // fp = fopen(fname, "a");
+    // fprintf(fp, "armpl,%d,%d,%d,%d,%d,%f\n",m,k,n,nz,id,diff_t);
+    // fclose(fp);
 
 
     free(A);
