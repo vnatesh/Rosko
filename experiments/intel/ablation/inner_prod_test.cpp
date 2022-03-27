@@ -1,6 +1,7 @@
 #include "cake.h"
-
-
+// #include <stdio.h>
+// #include <stdlib.h>
+// #include <time.h>
 
 
 int main( int argc, char** argv ) {
@@ -29,20 +30,36 @@ int main( int argc, char** argv ) {
 	// initialize A and B
     srand(time(NULL));
 	rand_sparse(A, M, K, 0.95);
-	// rand_sparse_gaussian(A, M, K, 0, 1);
-	// rand_init(A, M, K);
-	// print_array(A, M*K);
-	// exit(1);
+	// // rand_sparse_gaussian(A, M, K, 0, 1);
+	// // rand_init(A, M, K);
+	// // print_array(A, M*K);
+	// // exit(1);
 	rand_init(B, K, N);
 	
-	
+	float sum;
 	clock_gettime(CLOCK_REALTIME, &start);
 
 	for(int i = 0; i < M; i++) {
 		for(int j = 0; j < N; j++) {
+			// #pragma omp parallel for simd schedule (static,16)
+			sum = 0.0; 
+
+			// #pragma omp for simd reduction(+:sum) //schedule(simd: static, 16)
+			#pragma omp parallel for simd schedule (static,16)
 			for(int k = 0; k < K; k++) {
-				C[i*N + j] += A[i*K + k]*B[k*N + j]
+				sum += A[i*K + k]*B[k*N + j];
+				// int q = k*8;
+				// sum += A[i*K + q++]*B[q*N + j];
+				// sum += A[i*K + q++]*B[q*N + j];
+				// sum += A[i*K + q++]*B[q*N + j];
+				// sum += A[i*K + q++]*B[q*N + j];
+				// sum += A[i*K + q++]*B[q*N + j];
+				// sum += A[i*K + q++]*B[q*N + j];
+				// sum += A[i*K + q++]*B[q*N + j];
+				// sum += A[i*K + q++]*B[q*N + j];
 			}
+
+			C[i*N + j] = sum;
 		}
 	}
 
@@ -52,7 +69,7 @@ int main( int argc, char** argv ) {
     diff_t = seconds + nanoseconds*1e-9;
 	printf("inner product time: %f \n", diff_t); 
 
-	cake_sgemm_checker(A, B, C, N, M, K);
+	// cake_sgemm_checker(A, B, C, N, M, K);
 	
 	free(A);
 	free(B);

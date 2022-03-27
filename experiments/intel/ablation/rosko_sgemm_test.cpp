@@ -40,13 +40,13 @@ int main( int argc, char** argv ) {
 	
 	clock_gettime(CLOCK_REALTIME, &start);
 
-	cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx);
+	double ret = cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx);
 
     clock_gettime(CLOCK_REALTIME, &end);
     long seconds = end.tv_sec - start.tv_sec;
     long nanoseconds = end.tv_nsec - start.tv_nsec;
     diff_t = seconds + nanoseconds*1e-9;
-	printf("sp_sgemm time: %f \n", diff_t); 
+	printf("sp_sgemm time: %f \n", ret); 
 
 	// cake_sgemm_checker(A, B, C, N, M, K);
 	
