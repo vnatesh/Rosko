@@ -7,6 +7,10 @@ This repository contains performance experiments of row-skipping outer product k
 git clone https://github.com/vnatesh/Rosko.git
 cd Rosko
 make install
+cd CAKE_on_CPU
+source env.sh
+sudo ldconfig $CAKE_HOME
+cd ..
 ```
 
 Installation automatically downloads and installs the following tool/dependency verions:
