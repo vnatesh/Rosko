@@ -22,8 +22,7 @@ int main( int argc, char** argv ) {
 	sp = atoi(argv[5]);
 	write_result = atoi(argv[6]);
 
-	printf("M = %d, K = %d, N = %d, cores = %d, 
-		sparsity = %f\n", M,K,N,p, ((float) sp) / 100.0);
+	printf("M = %d, K = %d, N = %d, cores = %d, sparsity = %f\n", M,K,N,p, ((float) sp) / 100.0);
 
 	float* A = (float*) malloc(M * K * sizeof( float ));
 	float* B = (float*) malloc(K * N * sizeof( float ));

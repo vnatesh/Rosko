@@ -47,10 +47,10 @@ do
 
 	# rosko 
 	perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
-	-o reports_arm_ablate/report_rosko_$i ./rosko_sgemm_test 5000 5000 5000 4 $i 1;
+	-o reports_arm_ablate/report_rosko_$i ./rosko_sgemm_test 5000 5000 5000 4 $i 0;
 
 	# get runtimes
-	./rosko_sgemm_test 5000 5000 5000 4 $i
+	./rosko_sgemm_test 5000 5000 5000 4 $i 1
 
 done
 
