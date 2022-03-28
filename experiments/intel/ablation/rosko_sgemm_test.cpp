@@ -11,7 +11,7 @@ int main( int argc, char** argv ) {
         exit(1);
     }
 
-	int M, K, N, p;
+	int M, K, N, p, sp;
 	struct timespec start, end;
 	double diff_t;
 
@@ -19,8 +19,10 @@ int main( int argc, char** argv ) {
 	K = atoi(argv[2]);
 	N = atoi(argv[3]);
 	p = atoi(argv[4]);
+	sp = atoi(argv[5]);
 
-	printf("M = %d, K = %d, N = %d, cores = %d\n", M,K,N,p);
+	printf("M = %d, K = %d, N = %d, cores = %d, 
+		sparsity = %f\n", M,K,N,p, ((float) sp) / 100.0);
 
 	float* A = (float*) malloc(M * K * sizeof( float ));
 	float* B = (float*) malloc(K * N * sizeof( float ));
@@ -28,7 +30,7 @@ int main( int argc, char** argv ) {
 
 	// initialize A and B
     srand(time(NULL));
-	rand_sparse(A, M, K, 0.95);
+	rand_sparse(A, M, K, ((float) sp) / 100.0);
 	// rand_sparse_gaussian(A, M, K, 0, 1);
 	// rand_init(A, M, K);
 	// print_array(A, M*K);
