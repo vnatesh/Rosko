@@ -32,10 +32,11 @@ int main(int argc, char* argv[])  {
     mkl_set_num_threads(p);
 
     float *A, *B, *C;
-    int m, n, k, i, j;
+    int m, n, k, i, j, write_result;
     float alpha, beta;
 
     m = atoi(argv[1]), k = atoi(argv[2]), n = atoi(argv[3]);
+    write_result = atoi(argv[5]);
     //m = atoi(argv[2]);
     //k = m;
     //n = m;
@@ -105,98 +106,14 @@ int main(int argc, char* argv[])  {
     diff_t = seconds + nanoseconds*1e-9;
     printf("GEMM time: %f \n", diff_t); 
 
-    // char fname[50];
-    // snprintf(fname, sizeof(fname), "results_sq");
-    // FILE *fp;
-    // fp = fopen(fname, "a");
-    // fprintf(fp, "mkl,%d,%d,%f\n",p,m,diff_t);
-    // fclose(fp);
-
-
-    // printf ("\n Computations completed.\n\n");
-
-    // printf (" Top left corner of matrix A: \n");
-    // for (i=0; i<min(m,6); i++) {
-    //   for (j=0; j<min(k,6); j++) {
-    //     printf ("%12.0f", A[j+i*k]);
-    //   }
-    //   printf ("\n");
-    // }
-
-    // printf ("\n Top left corner of matrix B: \n");
-    // for (i=0; i<min(k,6); i++) {
-    //   for (j=0; j<min(n,6); j++) {
-    //     printf ("%12.0f", B[j+i*n]);
-    //   }
-    //   printf ("\n");
-    // }
-   
-    // printf ("\n Top left corner of matrix C: \n");
-    // for (i=0; i<min(m,6); i++) {
-    //   for (j=0; j<min(n,6); j++) {
-    //     printf ("%12.5G", C[j+i*n]);
-    //   }
-    //   printf ("\n");
-    // }
-
-
-
-    // double* C_check = malloc(m * n * sizeof( double ));
-    // for (int n1 = 0; n1 < n; n1++) {
-    //   for (int m1 = 0; m1 < m; m1++) {
-    //     C_check[m1*n + n1] = 0.0;
-    //     for (int k1 = 0; k1 < k; k1++) {
-    //       C_check[m1*n + n1] += A[m1*k + k1] * B[k1*n + n1];
-    //     }
-    //   }
-    // }
-
-
-    // int CORRECT = 1;
-    // int cnt = 0;
-    // int* wrong = (int*) malloc(m*n*sizeof(int));
-    // int* corrects = (int*) malloc(m*n*sizeof(int));
-
-    // for (int n1 = 0; n1 < n; n1++) {
-    //   for (int m1 = 0; m1 < m; m1++) {
-    //     // printf("%f ", C_check[m*N + n]);
-    //     if(C_check[m1*n + n1] != C[m1*n + n1]) {
-    //         wrong[cnt] = m1*n + n1;
-    //         cnt++;
-    //         CORRECT = 0;
-    //     } 
-    //   }
-    // }
-
-    // printf("\n\n");
-
-    // // printf("wrongs:");
-    // // for(int i = 0; i < 100; i++) {
-    // //     printf(" %d ", wrong[i]);
-    // // }
-    // // printf("\n\n");
-
-    // printf("wrongs:");
-    // for(int i = 0; i < 100; i++) {
-    //     printf(" %f ", C_check[wrong[i]]);
-    // }
-    // printf("\n\n");
-
-    // printf("corrects:");
-    // for(int i = 0; i < 100; i++) {
-    //     printf(" %f ", C[wrong[i]]);
-    // }
-    // printf("\n\n");
-
-
-    // if(CORRECT) {
-    //   printf("CORRECT!\n");
-    // } else {
-    //   printf("WRONG!\n");
-    //     printf("%d\n", cnt);
-    // }
-
-
+    if(write_result) {
+        char fname[50];
+        snprintf(fname, sizeof(fname), "result_ablate");
+        FILE *fp;
+        fp = fopen(fname, "a");
+        fprintf(fp, "mkl,%d,%d,%d,%d,%f\n",M,K,N,1,diff_t);
+        fclose(fp);
+    }
 
     // printf ("\n Deallocating memory \n\n");
     mkl_free(A);
