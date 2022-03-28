@@ -27,24 +27,30 @@ neon_sgemm.o $ARMCL_PATH/build/utils/Utils.o -L$ARMCL_PATH/build \
 make;
 
 
-for s in 70 72 75 77 80 82 85 87 90 92 95 97 99
+# armcl dense MM
+perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
+-o reports_arm_ablate/report_armcl ./neon_sgemm 5000 5000 5000 4 0;
+
+# CAKE dense MM
+perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
+-o reports_arm_ablate/report_cake ./cake_sgemm_test 5000 5000 5000 4 0;
+
+# get runtimes
+./neon_sgemm 5000 5000 5000 4 1
+./cake_sgemm_test 5000 5000 5000 4 1
+
+for i in 70 72 75 77 80 82 85 87 90 92 95 97 99
 do
-
-	# armcl dense MM
-	perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
-	-o reports_arm_ablate/report_armcl_$i ./neon_sgemm $file $i;
-
-	# CAKE dense MM
-	perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
-	-o reports_arm_ablate/report_cake_$i ./cake_sgemm_test $file $i;
-
 	# # rosko without density-based reordering
 	# perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
-	# -o reports_arm_ablate/report_rop_$i ./rop_sgemm_test $file $i;
+	# -o reports_arm_ablate/report_rop_$i ./rosko_sgemm_test $file $i;
 
 	# rosko 
 	perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
-	-o reports_arm_ablate/report_rop_$i ./rop_sgemm_test $file $i;
+	-o reports_arm_ablate/report_rosko_$i ./rosko_sgemm_test 5000 5000 5000 4 $i 1;
+
+	# get runtimes
+	./rosko_sgemm_test 5000 5000 5000 4 $i
 
 done
 

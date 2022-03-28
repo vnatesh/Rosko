@@ -11,7 +11,7 @@ int main( int argc, char** argv ) {
         exit(1);
     }
 
-	int M, K, N, p, sp;
+	int M, K, N, p, sp, write_result;
 	struct timespec start, end;
 	double diff_t;
 
@@ -20,6 +20,7 @@ int main( int argc, char** argv ) {
 	N = atoi(argv[3]);
 	p = atoi(argv[4]);
 	sp = atoi(argv[5]);
+	write_result = atoi(argv[6]);
 
 	printf("M = %d, K = %d, N = %d, cores = %d, 
 		sparsity = %f\n", M,K,N,p, ((float) sp) / 100.0);
@@ -50,6 +51,14 @@ int main( int argc, char** argv ) {
     diff_t = seconds + nanoseconds*1e-9;
 	printf("sp_sgemm time: %f \n", ret); 
 
+	if(write_result) {
+	    char fname[50];
+	    snprintf(fname, sizeof(fname), "result_ablate");
+	    FILE *fp;
+	    fp = fopen(fname, "a");
+	    fprintf(fp, "rosko,%d,%d,%d,%d,%f\n",M,K,N,sp,diff_t);
+	    fclose(fp);
+	}
 	// cake_sgemm_checker(A, B, C, N, M, K);
 	
 	free(A);
