@@ -501,26 +501,33 @@ def plot_rosko_vs_mkl_sparse(M,N,K,mc,kc,alpha,fname = 'rosko_vs_intel_sp', ntri
 	# intel_dense = [0.257055 / i for i in [0.257055, 0.256688, 0.255590, 0.251398, 0.251183]]
 	# intel_sp = [0.257055 / i for i in [0.937217, 0.853224, 0.816171, 0.676243, 0.221147]]
 	plt.figure(figsize = (6,6))
-	plt.plot(sparsity, rosko_sp, label = labels[0], color = colors[-1], linestyle= 'dashed')
-	# intel_sp1 = [None, None, None, None, 1.139998, 0.583468, 0.133928, 0.078719, 0.041962]
-	qq = [98,98.5,99, 99.5, 99.9, 99.95, 99.99]
+	qq = [97.8,98,98.5,99, 99.5, 99.9, 99.95, 99.99]
 	plt.plot(qq, [f(i) for i in qq], label = labels[2],  color = colors[1], linestyle= 'dashed')
+	sparsity = [65, 70, 75, 80, 85, 90, 95, 99, 99.5, 99.9, 99.95, 99.99]
+	rosko_sp = [None, None, 2.475765] + rosko_sp 
+	intel_sp = [None, None, None] + intel_sp
+	intel_dense = [1.689468 for i in sparsity]
+	plt.plot(sparsity, rosko_sp, label = labels[0], color = colors[-1], linestyle= 'dashed')
 	plt.plot(sparsity, intel_dense, label = labels[1], color = intel_color)
-	plt.contourf(sparsity[1:], rosko_sp[1:], [[z] * len(rosko_sp[1:]) for z in range(len(rosko_sp[1:]))], 500, cmap = 'Blues') #color=colors[1])
-	plt.fill_between(sparsity[1:], rosko_sp[1:], [0]*len(sparsity[1:]),  color='w')
+	plt.contourf(sparsity[4:], rosko_sp[4:], [[z] * len(rosko_sp[4:]) for z in range(len(rosko_sp[4:]))], 500, cmap = 'Blues') #color=colors[1])
+	plt.fill_between(sparsity[4:], rosko_sp[4:], [0]*len(sparsity[4:]),  color='w')
 	plt.fill_between(sparsity[-5:], intel_dense[-5:], intel_sp[-5:],  color='w')
+	# plt.plot(sparsity, intel_dense, label = labels[1], color = intel_color)
+	# plt.contourf(sparsity[1:], rosko_sp[1:], [[z] * len(rosko_sp[1:]) for z in range(len(rosko_sp[1:]))], 500, cmap = 'Blues') #color=colors[1])
+	# plt.fill_between(sparsity[1:], rosko_sp[1:], [0]*len(sparsity[1:]),  color='w')
+	# plt.fill_between(sparsity[-5:], intel_dense[-5:], intel_sp[-5:],  color='w')
 	plt.plot([(1.689468 - intb1) / slope1], [1.689468], marker = markers[0], color = colors[3])
-	plt.annotate('85.9%', (83.5, 1.5), fontsize = 15)
+	plt.annotate('85.9%', (81, 1.5), fontsize = 15)
 	plt.plot([98.5], [1.689468], marker = markers[0], color = colors[3])
-	plt.annotate('98.5%', (94.5, 1.8), fontsize = 15)
+	plt.annotate('98.5%', (92, 1.8), fontsize = 15)
 	plt.plot([99.75], [0.33], marker = markers[0], color = colors[3])
-	plt.annotate('99.8%', (96, 0.3), fontsize = 15)
+	plt.annotate('99.8%', (93, 0.3), fontsize = 15)
 	#
 	plt.title('(a) Runtime vs Sparsity on Intel CPU', fontsize = 20)
 	plt.xlabel("Sparsity (%)", fontsize = 18)
 	plt.ylabel("Runtime (sec)", fontsize = 18)
-	sparsity = [80,85,90,95,100]
-	plt.xticks(sparsity)
+	plt.xticks([65, 70, 75, 80, 85, 90, 95, 100])
+	plt.yticks(np.arange(0,2.51,0.5))
 	plt.legend(loc = "lower left", prop={'size': 16})
 	plt.savefig("%s_perf.pdf" % fname, bbox_inches='tight')
 	plt.show()
