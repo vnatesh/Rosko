@@ -28,6 +28,193 @@ intel_color = '#0071c5'
 
 
 
+
+def plot_rosko_vs_intel_ablate(fname = 'rosko_vs_intel_ablate'):
+	plt.rcParams.update({'font.size': 12})
+	markers = ['o','v','s','d','^']
+	colors = ['k','g','m','r','r']
+	labels = ['MKL', 'CAKE','Rosko w/o Reordering', 'Rosko']
+	sparsity = [80, 82, 85, 87, 90, 92, 95, 97, 99]
+	dft = pandas.read_csv('result_ablate_intel')
+	runtime_mkl = [dft[(dft['algo'] == 'mkl') & (dft['sp'] == 1)]['time'].mean()]*len(sparsity)
+	runtime_cake = [dft[(dft['algo'] == 'cake') & (dft['sp'] == 1)]['time'].mean()]*len(sparsity)
+	#
+	df1 = pandas.read_csv('reports_intel_ablate/report_mkl.csv' ,skiprows=17,skipfooter=16)
+	df2 = pandas.read_csv('reports_intel_ablate/report_mkl.csv' ,skipfooter=20)
+	x = (df1['Average']._values[0])
+	dram_bw_mkl = [x]*len(sparsity)
+	#
+	df1 = pandas.read_csv('reports_intel_ablate/report_cake.csv' ,skiprows=17,skipfooter=16)
+	df2 = pandas.read_csv('reports_intel_ablate/report_cake.csv' ,skipfooter=20)
+	x = (df1['Average']._values[0])
+	dram_bw_cake = [x]*len(sparsity)
+	#
+	df1 = pandas.read_csv('reports_intel_ablate/report_mkl_spec.csv')
+	spec_mkl = [float(df1[(df1['Metric Name'] == 'Bad Speculation')]['Metric Value']._values[0])]*len(sparsity)
+	#
+	df1 = pandas.read_csv('reports_intel_ablate/report_cake_spec.csv' )
+	spec_cake = [float(df1[(df1['Metric Name'] == 'Bad Speculation')]['Metric Value']._values[0])]*len(sparsity)
+	#
+	dram_bw_rosko_nr=[]; dram_bw_rosko=[]; runtime_rosko = []; runtime_rosko_nr	= []
+	spec_rosko = []; spec_rosko_nr = []
+	#	
+	for i in range(len(sparsity)):
+		# multiply by 64 bytes since external memory request non-cacheable 
+		# and L2-data cache refills/writeback PMUs
+		# in ARM are expressed in terms of number of cache lines
+		cpu_time = dft[(dft['algo'] == 'rosko') & (dft['sp'] == sparsity[i])]['time'].mean()
+		df1 = pandas.read_csv('reports_intel_ablate/report_rosko_%d.csv' % (sparsity[i]) ,skiprows=17,skipfooter=16)
+		x = (df1['Average']._values[0])
+		dram_bw_rosko.append(x)
+		runtime_rosko.append(cpu_time)
+		#
+		cpu_time = dft[(dft['algo'] == 'rosko_nr') & (dft['sp'] == sparsity[i])]['time'].mean()
+		df1 = pandas.read_csv('reports_intel_ablate/report_rosko_nr_%d.csv' % (sparsity[i]) ,skiprows=17,skipfooter=16)
+		x = (df1['Average']._values[0])
+		dram_bw_rosko_nr.append(x)
+		runtime_rosko_nr.append(cpu_time)
+		#
+		df1 = pandas.read_csv('reports_intel_ablate/report_rosko_spec_%d.csv' % (sparsity[i]))
+		spec_rosko.append(float(df1[(df1['Metric Name'] == 'Bad Speculation')]['Metric Value']._values[0]))
+		#
+		df1 = pandas.read_csv('reports_intel_ablate/report_rosko_nr_spec_%d.csv' % (sparsity[i]))
+		spec_rosko_nr.append(float(df1[(df1['Metric Name'] == 'Bad Speculation')]['Metric Value']._values[0]))
+	#
+	# plt.subplot(1, 2, 1)
+	plt.figure(figsize = (6,4))
+	plt.plot(sparsity, dram_bw_mkl, label = labels[0], color = colors[0])
+	plt.plot(sparsity, dram_bw_cake, label = labels[1], color = colors[1])
+	plt.plot(sparsity, dram_bw_rosko_nr, label = labels[2], color = colors[2])
+	plt.plot(sparsity, dram_bw_rosko, label = labels[3], color = colors[3])
+	#
+	plt.title('(b) DRAM Bandwidth for Different Kernels on Intel CPU')
+	plt.xlabel("Sparsity (%)", fontsize = 18)
+	# plt.xticks(NUM_CPUs)
+	plt.ylabel("DRAM Bw (GB/s)", fontsize = 18)
+	plt.legend(loc = "center left", prop={'size': 10})
+	plt.savefig("%s_dram.pdf" % fname, bbox_inches='tight')
+	plt.show()
+	plt.clf()
+	plt.close('all')
+	#
+	plt.figure(figsize = (6,4))
+	plt.plot(sparsity, runtime_armcl, label = labels[0], color = colors[0])
+	plt.plot(sparsity, runtime_cake, label = labels[1], color = colors[1])
+	plt.plot(sparsity, runtime_rosko_nr, label = labels[2], color = colors[2])
+	plt.plot(sparsity, runtime_rosko, label = labels[3],  color = colors[3])
+	#
+	plt.ticklabel_format(useOffset=False, style='plain')
+	plt.title('(d) Runtime for Different Kernels on Intel CPU')
+	plt.xlabel("Sparsity (%)", fontsize = 18)
+	plt.ylabel("Runtime (sec)", fontsize = 18)
+	plt.legend(loc = "lower left", prop={'size': 10})
+	plt.savefig("%s_perf.pdf" % fname, bbox_inches='tight')
+	plt.show()
+	plt.clf()
+	plt.close('all')
+	#
+	plt.figure(figsize = (6,4))
+	plt.plot(sparsity, spec_mkl, label = labels[0], color = colors[0])
+	plt.plot(sparsity, spec_cake, label = labels[1], color = colors[1])
+	plt.plot(sparsity, spec_rosko_nr, label = labels[2], color = colors[2])
+	plt.plot(sparsity, spec_rosko, label = labels[3],  color = colors[3])
+	#
+	plt.ticklabel_format(useOffset=False, style='plain')
+	plt.title('(e) Misspeculation for Different Kernels on Intel CPU')
+	plt.xlabel("Sparsity (%)", fontsize = 18)
+	plt.ylabel("Pipeline Slots (%)", fontsize = 18)
+	plt.legend(loc = "center left", prop={'size': 10})
+	plt.savefig("%s_spec.pdf" % fname, bbox_inches='tight')
+	plt.show()
+	plt.clf()
+	plt.close('all')
+
+
+plot_rosko_vs_intel_ablate()
+
+
+
+
+def plot_rosko_vs_arm_ablate(fname = 'rosko_vs_arm_ablate'):
+	plt.rcParams.update({'font.size': 12})
+	markers = ['o','v','s','d','^']
+	colors = ['k','g','m','r','r']
+	labels = ['ARMCL', 'CAKE','Rosko w/o Reordering', 'Rosko']
+	sparsity = [70, 72, 75, 77, 80, 82, 85, 87, 90, 92, 95, 97, 99]
+	df1 = pandas.read_csv('result_ablate_arm')
+	runtime_armcl = [df1[(df1['algo'] == 'armcl') & (df1['sp'] == 1)]['time'].mean()]*len(sparsity)
+	runtime_cake = [df1[(df1['algo'] == 'cake') & (df1['sp'] == 1)]['time'].mean()]*len(sparsity)
+	a = open('reports_arm_ablate/report_armcl','r').read().split('\n')
+	x = (((int(re.search(r'\d+', a[5]).group())*64.0) / runtime_armcl[0]) / 1e9)
+	x += (((int(re.search(r'\d+', a[6]).group())*64.0) / runtime_armcl[0]) / 1e9)
+	dram_bw_armcl = [x]*len(sparsity)
+	#
+	a = open('reports_arm_ablate/report_cake','r').read().split('\n')
+	x = (((int(re.search(r'\d+', a[5]).group())*64.0) / runtime_cake[0]) / 1e9)
+	x += (((int(re.search(r'\d+', a[6]).group())*64.0) / runtime_cake[0]) / 1e9)
+	dram_bw_cake = [x]*len(sparsity)
+	dram_bw_rosko_nr=[]; dram_bw_rosko=[]; runtime_rosko = []; runtime_rosko_nr	= []
+	#	
+	for i in range(len(sparsity)):
+		# multiply by 64 bytes since external memory request non-cacheable 
+		# and L2-data cache refills/writeback PMUs
+		# in ARM are expressed in terms of number of cache lines
+		a = open('reports_arm_ablate/report_rosko_%d' % (sparsity[i]),'r').read().split('\n')
+		# cpu_time1 = float(re.search(r'\d+\.\d+', a[8]).group())
+		cpu_time = df1[(df1['algo'] == 'rosko') & (df1['sp'] == sparsity[i])]['time'].mean()
+		x = ((int(re.search(r'\d+', a[5]).group())*64.0) / cpu_time) / 1e9
+		x += ((int(re.search(r'\d+', a[6]).group())*64.0) / cpu_time) / 1e9
+		dram_bw_rosko.append(x)
+		runtime_rosko.append(cpu_time)
+		#
+		a = open('reports_arm_ablate/report_rosko_nr_%d' % (sparsity[i]),'r').read().split('\n')
+		# cpu_time1 = float(re.search(r'\d+\.\d+', a[8]).group())
+		cpu_time = df1[(df1['algo'] == 'rosko_nr') & (df1['sp'] == sparsity[i])]['time'].mean()
+		x = ((int(re.search(r'\d+', a[5]).group())*64.0) / cpu_time) / 1e9
+		x += ((int(re.search(r'\d+', a[6]).group())*64.0) / cpu_time) / 1e9
+		dram_bw_rosko_nr.append(x)
+		runtime_rosko_nr.append(cpu_time)
+		#
+	# plt.subplot(1, 2, 1)
+	plt.figure(figsize = (6,4))
+	plt.plot(sparsity, dram_bw_armcl, label = labels[0], color = colors[0])
+	plt.plot(sparsity, dram_bw_cake, label = labels[1], color = colors[1])
+	plt.plot(sparsity, dram_bw_rosko_nr, label = labels[2], color = colors[2])
+	plt.plot(sparsity, dram_bw_rosko, label = labels[3], color = colors[3])
+	#
+	plt.title('(a) DRAM Bandwidth for Different Kernels on ARM CPU')
+	plt.xlabel("Sparsity (%)", fontsize = 18)
+	# plt.xticks(NUM_CPUs)
+	plt.ylabel("DRAM Bw (GB/s)", fontsize = 18)
+	plt.legend(loc = "center left", prop={'size': 10})
+	plt.savefig("%s_dram.pdf" % fname, bbox_inches='tight')
+	plt.show()
+	plt.clf()
+	plt.close('all')
+	#
+	plt.figure(figsize = (6,4))
+	plt.plot(sparsity, runtime_armcl, label = labels[0], color = colors[0])
+	plt.plot(sparsity, runtime_cake, label = labels[1], color = colors[1])
+	plt.plot(sparsity, runtime_rosko_nr, label = labels[2], color = colors[2])
+	plt.plot(sparsity, runtime_rosko, label = labels[3],  color = colors[3])
+	#
+	plt.ticklabel_format(useOffset=False, style='plain')
+	plt.title('(c) Runtime for Different Kernels on ARM CPU')
+	plt.xlabel("Sparsity (%)", fontsize = 18)
+	plt.ylabel("Runtime (sec)", fontsize = 18)
+	plt.legend(loc = "lower left", prop={'size': 10})
+	plt.savefig("%s_perf.pdf" % fname, bbox_inches='tight')
+	plt.show()
+	plt.clf()
+	plt.close('all')
+
+
+plot_rosko_vs_arm_ablate()
+
+
+
+
+
 def plot_rosko_vs_arm_end_to_end(fname = 'rosko_vs_arm_end_to_end'):
 	plt.rcParams.update({'font.size': 12})
 	markers = ['o','v','s','d','^']
