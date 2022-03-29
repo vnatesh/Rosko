@@ -51,7 +51,7 @@ int main( int argc, char** argv ) {
 
 	if(write_result) {
 	    char fname[50];
-	    snprintf(fname, sizeof(fname), "result_ablate");
+	    snprintf(fname, sizeof(fname), "result_ablate_intel");
 	    FILE *fp;
 	    fp = fopen(fname, "a");
 	    fprintf(fp, "cake,%d,%d,%d,%d,%f\n",M,K,N,1,diff_t);

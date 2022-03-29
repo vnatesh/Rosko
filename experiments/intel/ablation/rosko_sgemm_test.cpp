@@ -52,7 +52,7 @@ int main( int argc, char** argv ) {
 
 	if(write_result) {
 	    char fname[50];
-	    snprintf(fname, sizeof(fname), "result_ablate");
+	    snprintf(fname, sizeof(fname), "result_ablate_intel");
 	    FILE *fp;
 	    fp = fopen(fname, "a");
 	    fprintf(fp, "rosko,%d,%d,%d,%d,%f\n",M,K,N,sp,diff_t);

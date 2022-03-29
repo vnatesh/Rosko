@@ -109,7 +109,7 @@ public:
 
         if(write_result) {
             char fname[50];
-            snprintf(fname, sizeof(fname), "result_ablate");
+            snprintf(fname, sizeof(fname), "result_ablate_arm");
             FILE *fp;
             fp = fopen(fname, "a");
             fprintf(fp, "armcl,%d,%d,%d,%d,%f\n",M,K,N,1,diff_t);

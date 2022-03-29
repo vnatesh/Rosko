@@ -22,6 +22,7 @@ $PWD/mkl_sgemm_test 10000 10000 10000 10 0;
 vtune -report summary -r mkl_sgemm_result -format csv \
 -report-output reports_intel_ablate/report_mkl.csv -csv-delimiter comma;
 
+rm -rf mkl_sgemm_result;
 
 
 # cake dense MM
@@ -31,6 +32,32 @@ $PWD/cake_sgemm_test 10000 10000 10000 10 0;
 
 vtune -report summary -r cake_sgemm_result -format csv \
 -report-output reports_intel_ablate/report_cake.csv -csv-delimiter comma;
+
+rm -rf cake_sgemm_result;
+
+
+
+vtune --collect uarch-exploration -data-limit=0 \
+-result-dir=$PWD/mkl_sgemm_result \
+$PWD/mkl_sgemm_test 10000 10000 10000 10 0;
+
+vtune -report summary -r mkl_sgemm_result -format csv \
+-report-output reports_intel_ablate/report_mkl_spec.csv -csv-delimiter comma;
+
+rm -rf mkl_sgemm_result;
+
+
+# cake dense MM
+vtune --collect uarch-exploration -data-limit=0 \
+-result-dir=$PWD/cake_sgemm_result \
+$PWD/cake_sgemm_test 10000 10000 10000 10 0;
+
+vtune -report summary -r cake_sgemm_result -format csv \
+-report-output reports_intel_ablate/report_cake_spec.csv -csv-delimiter comma;
+
+rm -rf cake_sgemm_result;
+
+
 
 ./mkl_sgemm_test 10000 10000 10000 10 1;
 ./cake_sgemm_test 10000 10000 10000 10 1;
@@ -47,6 +74,18 @@ do
 	-report-output reports_intel_ablate/report_rosko_$i.csv -csv-delimiter comma;
 
 	rm -rf rosko_sgemm_result;
+
+
+	vtune --collect uarch-exploration -data-limit=0 \
+	-result-dir=$PWD/rosko_sgemm_result \
+	$PWD/rosko_sgemm_test 10000 10000 10000 10 $i 0;
+
+	vtune -report summary -r rosko_sgemm_result -format csv \
+	-report-output reports_intel_ablate/report_rosko_spec_$i.csv -csv-delimiter comma;
+
+	rm -rf rosko_sgemm_result;
+
+	./rosko_sgemm_test 10000 10000 10000 10 $i 1;
 done
 
 
