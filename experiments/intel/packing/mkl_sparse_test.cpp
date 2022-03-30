@@ -105,7 +105,19 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
 
     // sparse matrix A
     srand(time(NULL));
+
+    clock_gettime(CLOCK_REALTIME, &start);
+
     generate_random_sparse_matrix<fp, intType>(nrows, ncols, density_val, ia, ja, a);
+
+    clock_gettime(CLOCK_REALTIME, &end);
+    seconds = end.tv_sec - start.tv_sec;
+    nanoseconds = end.tv_nsec - start.tv_nsec;
+    double a2 = seconds + nanoseconds*1e-9;
+    printf("sp gen time: %f \n", a2 ); 
+
+
+
 
     // Matrices b and c
     std::vector<fp, mkl_allocator<fp, 64>> b;
@@ -163,6 +175,10 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
     // create execution queue and buffers of matrix data
     cl::sycl::queue main_queue(dev, exception_handler);
 
+
+
+    clock_gettime(CLOCK_REALTIME, &start);
+
     cl::sycl::buffer<intType, 1> ia_buffer(ia.data(), (nrows + 1));
     cl::sycl::buffer<intType, 1> ja_buffer(ja.data(), (ia[nrows]));
     cl::sycl::buffer<fp, 1> a_buffer(a.data(), (ia[nrows]));
@@ -171,6 +187,13 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
 
     // create and initialize handle for a Sparse Matrix in CSR format
     oneapi::mkl::sparse::matrix_handle_t handle;
+
+    clock_gettime(CLOCK_REALTIME, &end);
+    seconds = end.tv_sec - start.tv_sec;
+    nanoseconds = end.tv_nsec - start.tv_nsec;
+    double a1 = seconds + nanoseconds*1e-9;
+    printf("buffer time: %f \n", a1 ); 
+
 
     try {
 
@@ -185,7 +208,7 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
         seconds = end.tv_sec - start.tv_sec;
         nanoseconds = end.tv_nsec - start.tv_nsec;
         diff_t = seconds + nanoseconds*1e-9;
-        printf("csr pack time: %f \n", diff_t ); 
+        printf("csr set time: %f \n", diff_t ); 
 
         // clock_gettime(CLOCK_REALTIME, &start);
 
@@ -193,7 +216,7 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
         // oneapi::mkl::sparse::gemm(main_queue, transpose_val, alpha, handle, b_buffer, columns, ldb,
         //                           beta, c_buffer, ldc);
 
-        // oneapi::mkl::sparse::release_matrix_handle(&handle);
+        oneapi::mkl::sparse::release_matrix_handle(&handle);
 
         // clock_gettime(CLOCK_REALTIME, &end);
         // seconds = end.tv_sec - start.tv_sec;
@@ -204,10 +227,10 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
         if(write_result) {
             char fname[50];
             snprintf(fname, sizeof(fname), "result_pack");
-            FILE *fp;
-            fp = fopen(fname, "a");
-            fprintf(fp, "mkl,%d,%d,%d,%d,%f\n",M,K,N,(float) (100*(1-density_val)),diff_t);
-            fclose(fp);
+            FILE *fp1;
+            fp1 = fopen(fname, "a");
+            fprintf(fp1, "mkl,%d,%d,%d,%d,%f\n",M,K,N,(int) (100*(1-density_val)), a1+a2+diff_t);
+            fclose(fp1);
         }
 
 
