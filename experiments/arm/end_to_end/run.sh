@@ -28,15 +28,17 @@ neon_sgemm.o $ARMCL_PATH/build/utils/Utils.o -L$ARMCL_PATH/build \
 # compile rop_sgemm_test
 make;
 
-
-for file in matrices_93/*.mtx; 
-do
-
-	./rop_sgemm_test $file; 
-	./arm_test $file; 
-	./neon_sgemm  $file;
-
+for dir in matrices/* 
+do 
+	for file in $dir/* 
+	do 
+		./rop_sgemm_test $file; 
+		./arm_test $file; 
+		./neon_sgemm  $file;
+	done 
 done
+
+
 # run matmul bench
 
 
