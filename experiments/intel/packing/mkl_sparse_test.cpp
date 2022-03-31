@@ -106,17 +106,24 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
     // sparse matrix A
     srand(time(NULL));
 
+    int iters = 100;
+    // if(nrows < 1792) {
+    //     iters = 20;
+    // }
+    
     clock_gettime(CLOCK_REALTIME, &start);
 
-    generate_random_sparse_matrix<fp, intType>(nrows, ncols, density_val, ia, ja, a);
+    clock_gettime(CLOCK_REALTIME, &start);
+
+    for(int i = 0; i < iters; i++) {
+        generate_random_sparse_matrix<fp, intType>(nrows, ncols, density_val, ia, ja, a);
+    }
 
     clock_gettime(CLOCK_REALTIME, &end);
     seconds = end.tv_sec - start.tv_sec;
     nanoseconds = end.tv_nsec - start.tv_nsec;
     double a2 = seconds + nanoseconds*1e-9;
     printf("sp gen time: %f \n", a2 ); 
-
-
 
 
     // Matrices b and c

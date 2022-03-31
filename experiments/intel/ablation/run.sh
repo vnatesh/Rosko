@@ -62,32 +62,35 @@ rm -rf cake_sgemm_result;
 ./mkl_sgemm_test 10000 10000 10000 10 1;
 ./cake_sgemm_test 10000 10000 10000 10 1;
 
+NTRIALS=10;
 
-for i in 80 82 85 87 90 92 95 97 99
+for ((n=1; n <= $NTRIALS; n++));
 do
-	# rosko with no ablation
-	vtune --collect memory-access -data-limit=0 \
-	-result-dir=$PWD/rosko_sgemm_result \
-	$PWD/rosko_sgemm_test 10000 10000 10000 10 $i 0;
+	for i in 80 82 85 87 90 92 95 97 99
+	do
+		# rosko with no ablation
+		vtune --collect memory-access -data-limit=0 \
+		-result-dir=$PWD/rosko_sgemm_result \
+		$PWD/rosko_sgemm_test 10000 10000 10000 10 $i 0;
 
-	vtune -report summary -r rosko_sgemm_result -format csv \
-	-report-output reports_intel_ablate/report_rosko_$i.csv -csv-delimiter comma;
+		vtune -report summary -r rosko_sgemm_result -format csv \
+		-report-output reports_intel_ablate/report_rosko_$i-$n.csv -csv-delimiter comma;
 
-	rm -rf rosko_sgemm_result;
+		rm -rf rosko_sgemm_result;
 
 
-	vtune --collect uarch-exploration -data-limit=0 \
-	-result-dir=$PWD/rosko_sgemm_result \
-	$PWD/rosko_sgemm_test 10000 10000 10000 10 $i 0;
+		vtune --collect uarch-exploration -data-limit=0 \
+		-result-dir=$PWD/rosko_sgemm_result \
+		$PWD/rosko_sgemm_test 10000 10000 10000 10 $i 0;
 
-	vtune -report summary -r rosko_sgemm_result -format csv \
-	-report-output reports_intel_ablate/report_rosko_spec_$i.csv -csv-delimiter comma;
+		vtune -report summary -r rosko_sgemm_result -format csv \
+		-report-output reports_intel_ablate/report_rosko_spec_$i-$n.csv -csv-delimiter comma;
 
-	rm -rf rosko_sgemm_result;
+		rm -rf rosko_sgemm_result;
 
-	./rosko_sgemm_test 10000 10000 10000 10 $i 1;
+		./rosko_sgemm_test 10000 10000 10000 10 $i 1;
+	done
 done
-
 
 # # inner product
 # vtune --collect memory-access -data-limit=0 \

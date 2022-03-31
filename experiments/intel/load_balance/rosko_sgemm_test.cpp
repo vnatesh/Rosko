@@ -39,7 +39,7 @@ int main( int argc, char** argv ) {
 
 	cake_cntx_t* cake_cntx = cake_query_cntx();
 	
-	int iters = 20;
+	int iters = 1;
 	// if(M < 1792) {
 	// 	iters = 20;
 	// }
@@ -58,10 +58,10 @@ int main( int argc, char** argv ) {
 
 	if(write_result) {
 	    char fname[50];
-	    snprintf(fname, sizeof(fname), "result_pack");
+	    snprintf(fname, sizeof(fname), "result_load");
 	    FILE *fp;
 	    fp = fopen(fname, "a");
-	    fprintf(fp, "rosko,%d,%d,%d,%d,%f\n",M,K,N,sp,diff_t/iters);
+	    fprintf(fp, "rosko,%d,%d,%d,%d,%d,%f\n",M,K,N,p,sp,diff_t/iters);
 	    fclose(fp);
 	}
 	// cake_sgemm_checker(A, B, C, N, M, K);

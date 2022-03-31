@@ -111,7 +111,7 @@ int main(int argc, char* argv[])  {
         snprintf(fname, sizeof(fname), "result_ablate_intel");
         FILE *fp;
         fp = fopen(fname, "a");
-        fprintf(fp, "mkl,%d,%d,%d,%d,%f\n",M,K,N,1,diff_t);
+        fprintf(fp, "mkl,%d,%d,%d,%d,%f\n",m,k,n,1,diff_t);
         fclose(fp);
     }
 

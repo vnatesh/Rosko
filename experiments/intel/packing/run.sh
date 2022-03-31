@@ -13,35 +13,38 @@ cd $x
 # compile inner product, rosko, and cake
 make;
 
+mkdir reports_pack
 
-
-for i in 80 82 85 87 90 92 95 97 99
+# for i in 80 82 85 87 90 92 95 97 99
+for i in 80 87 95
 do
+	for n in {256..10240..512}
+	do
 
-	vtune --collect memory-access -data-limit=0 \
-	-result-dir=$PWD/mkl_prof \
-	$PWD/sparse_gemm.out 10000 10000 10000 $i 0;
+		vtune --collect memory-access -data-limit=0 \
+		-result-dir=$PWD/mkl_prof \
+		$PWD/sparse_gemm.out $n $n $n $i 0;
 
-	vtune -report summary -r mkl_prof -format csv \
-	-report-output reports_pack/report_mkl.csv -csv-delimiter comma;
+		vtune -report summary -r mkl_prof -format csv \
+		-report-output reports_pack/report_mkl_$i-$n.csv -csv-delimiter comma;
 
-	rm -rf mkl_prof;
+		rm -rf mkl_prof;
 
-	# single-core rosko
-	vtune --collect memory-access -data-limit=0 \
-	-result-dir=$PWD/rosko_prof \
-	$PWD/rosko_sgemm_test 10000 10000 10000 1 $i 0;
+		# single-core rosko
+		vtune --collect memory-access -data-limit=0 \
+		-result-dir=$PWD/rosko_prof \
+		$PWD/rosko_sgemm_test $n $n $n 1 $i 0;
 
-	vtune -report summary -r rosko_prof -format csv \
-	-report-output reports_pack/report_rosko.csv -csv-delimiter comma;
+		vtune -report summary -r rosko_prof -format csv \
+		-report-output reports_pack/report_rosko_$i-$n.csv -csv-delimiter comma;
 
-	rm -rf rosko_prof;
+		rm -rf rosko_prof;
 
 
-	./sparse_gemm.out 10000 10000 10000 $i 1
-	./rosko_sgemm_test 10000 10000 10000 1 $i 1;
+		./sparse_gemm.out $n $n $n $i 1
+		./rosko_sgemm_test $n $n $n 1 $i 1;
+	done
 done
-
 
 # # inner product
 # vtune --collect memory-access -data-limit=0 \
