@@ -25,32 +25,114 @@ intel_color = '#0071c5'
 
 
 
+def plot_rosko_vs_intel_load(fname = 'rosko_vs_intel_load'):
+	plt.rcParams.update({'font.size': 12})
+	markers = ['o','v','s','d','^']
+	colors = ['b','g','k','r','r']
+	labels = ['80%','87%','95%', 'Ideal']
+	sparsity = [80,87,95]
+	p = range(1,11)
+	df1 = pandas.read_csv('result_load')
+	#
+	plt.figure(figsize = (6,4))
+	plt.plot(p, p, label = labels[-1], color = colors[2], linestyle = 'dashed', linewidth=5.0)
+	for i in range(len(sparsity)):
+		single_core = df1[(df1['sp'] == sparsity[i]) & (df1['p'] == 1)]['time'].mean()
+		plt.plot(p, single_core / df1[(df1['sp'] == sparsity[i])]['time']._values, label = labels[i], marker = markers[i], color = colors[3])
+	#
+	#
+	plt.ticklabel_format(useOffset=False, style='plain')
+	plt.title('(a) Speedup in Computation\nThroughput in Rosko', fontsize = 24)
+	plt.xlabel("number of cores", fontsize = 24)
+	plt.ylabel("Speedup", fontsize = 24)
+	plt.xticks(p, fontsize = 18)
+	plt.yticks( fontsize = 20)
+	plt.legend(loc = "upper left", prop={'size': 16})
+	plt.savefig("%s.pdf" % fname, bbox_inches='tight')
+	plt.show()
+	plt.clf()
+	plt.close('all')
+	#
+
+
+plot_rosko_vs_intel_load()
+
+
+
+
+
 
 def plot_rosko_vs_intel_pack(fname = 'rosko_vs_intel_pack'):
 	plt.rcParams.update({'font.size': 12})
 	markers = ['o','v','s','d','^']
 	colors = ['b','g','k','r','r']
-	labels = ['MKL', 'Rosko']
-	sparsity = [80, 82, 85, 87, 90, 92, 95, 97, 99]
-	runtime_mkl = []; runtime_rosko = []
+	labels = ['CSR 80%', 'Rosko 80%', 'CSR 87%', 'Rosko 87%', 'CSR 95%', 'Rosko 95%']
+	sparsity = [80, 87,95]
+	# N = range(768+1024,9985,512)
+	N = range(256,9985,512)
+	dram_bw_mkl = {i : [] for i in sparsity}
+	runtime_mkl = {i : [] for i in sparsity}
+	dram_bw_rosko = {i : [] for i in sparsity}
+	runtime_rosko = {i : [] for i in sparsity}
+	# runtime_mkl = []; runtime_rosko = []; dram_bw_mkl = []; dram_bw_rosko = []
 	dft = pandas.read_csv('result_pack')
 	#
-	for i in sparsity:
-		runtime_mkl.append(dft[(dft['algo'] == 'mkl') & (dft['sp'] == i)]['time'].mean())
-		runtime_rosko.append(dft[(dft['algo'] == 'rosko') & (dft['sp'] == i)]['time'].mean())
+	for s in sparsity:
+		for i in N:
+			print(s,i)
+			# runtime_mkl.append(dft[(dft['algo'] == 'mkl') & (dft['sp'] == i)]['time'].mean())
+			# runtime_rosko.append(dft[(dft['algo'] == 'rosko') & (dft['sp'] == i)]['time'].mean())
+			cpu_time = dft[(dft['algo'] == 'mkl') & (dft['N'] == i) & (dft['sp'] == s)]['time'].mean()
+			try:
+				df1 = pandas.read_csv('reports_pack/report_mkl_%d-%d.csv' % (s,i) ,skiprows=17,skipfooter=16)
+				x = (df1['Average']._values[0])
+			except KeyError:
+				df1 = pandas.read_csv('reports_pack/report_mkl_%d-%d.csv' % (s,i) ,skiprows=16,skipfooter=16)
+				x = (df1['Average']._values[0])
+				#
+			dram_bw_mkl[s].append(float(x))
+			runtime_mkl[s].append(cpu_time)
+			#
+			cpu_time = dft[(dft['algo'] == 'rosko') & (dft['N'] == i) & (dft['sp'] == s)]['time'].mean()
+			try:
+				df1 = pandas.read_csv('reports_pack/report_rosko_%d-%d.csv' % (s,i) ,skiprows=17,skipfooter=16)
+				x = (df1['Average']._values[0])
+			except KeyError:
+				df1 = pandas.read_csv('reports_pack/report_rosko_%d-%d.csv' % (s,i) ,skiprows=16,skipfooter=16)
+				x = (df1['Average']._values[0])
+			dram_bw_rosko[s].append(float(x))
+			runtime_rosko[s].append(cpu_time)
+	#
 	#
 	plt.figure(figsize = (6,4))
-	plt.plot(sparsity, runtime_mkl, label = labels[0], color = colors[0])
-	plt.plot(sparsity, runtime_rosko, label = labels[1],  color = colors[3])
+	for i in range(len(sparsity)):
+		plt.plot(N, runtime_mkl[sparsity[i]], label = labels[i*2], marker = markers[i], color = colors[0])
+		plt.plot(N, runtime_rosko[sparsity[i]], label = labels[i*2+1],  marker = markers[i], color = colors[3])
 	#
 	plt.ticklabel_format(useOffset=False, style='plain')
-	plt.title('Packing Overhead of \nRosko vs MKL\'s CSR Format', fontsize = 24)
-	plt.xlabel("Sparsity (%)", fontsize = 24)
+	plt.title('(a) Packing Runtime in \nRosko vs MKL\'s CSR Format', fontsize = 24)
+	plt.xlabel("N", fontsize = 24)
 	plt.ylabel("Runtime (sec)", fontsize = 24)
-	plt.xticks(range(80,101,5), fontsize = 20)
-	plt.yticks(np.arange(0,1.1,0.2), fontsize = 20)
-	plt.legend(loc = "upper right", prop={'size': 16})
-	plt.savefig("%s.pdf" % fname, bbox_inches='tight')
+	plt.xticks(range(0,10001,2000), fontsize = 18)
+	plt.yticks( fontsize = 20)
+	plt.legend(loc = "upper left", prop={'size': 16})
+	plt.savefig("%s_perf.pdf" % fname, bbox_inches='tight')
+	plt.show()
+	plt.clf()
+	plt.close('all')
+	#
+	plt.figure(figsize = (6,4))
+	for i in range(len(sparsity)):
+		plt.plot(N, dram_bw_mkl[sparsity[i]], label = labels[i*2], marker = markers[i], color = colors[0])
+		plt.plot(N, dram_bw_rosko[sparsity[i]], label = labels[i*2+1], marker = markers[i], color = colors[3])
+	#
+	plt.title('(b) DRAM Bandwidth Usage of Packing\n in Rosko vs MKL\'s CSR Format', fontsize = 24)
+	plt.xlabel("N", fontsize = 24)
+	plt.xticks(range(0,10001,2000), fontsize = 18)
+	plt.yticks(np.arange(0,2.1,0.5), fontsize = 20)
+	plt.ylabel("DRAM Bw (GB/s)", fontsize = 24)
+	plt.legend(loc = "lower right", prop={'size': 16})
+	plt.savefig("%s_dram.pdf" % fname, bbox_inches='tight')
 	plt.show()
 	plt.clf()
 	plt.close('all')
@@ -62,7 +144,7 @@ plot_rosko_vs_intel_pack()
 
 
 
-def plot_rosko_vs_intel_ablate(fname = 'rosko_vs_intel_ablate'):
+def plot_rosko_vs_intel_ablate(fname = 'rosko_vs_intel_ablate', ntrials = 10):
 	plt.rcParams.update({'font.size': 12})
 	markers = ['o','v','s','d','^']
 	colors = ['b','g','k','r','r']
@@ -111,11 +193,24 @@ def plot_rosko_vs_intel_ablate(fname = 'rosko_vs_intel_ablate'):
 		dram_io_rosko_nr.append(x*cpu_time)
 		runtime_rosko_nr.append(cpu_time)
 		#
-		df1 = pandas.read_csv('reports_intel_ablate/report_rosko_spec_%d.csv' % (sparsity[i]))
-		spec_rosko.append(float(df1[(df1['Metric Name'] == 'Bad Speculation')]['Metric Value']._values[0]))
+		# df1 = pandas.read_csv('reports_intel_ablate/report_rosko_spec_%d-%d.csv' % (sparsity[i], ))
+		# spec_rosko.append(float(df1[(df1['Metric Name'] == 'Bad Speculation')]['Metric Value']._values[0]))
+		# #
+		# df1 = pandas.read_csv('reports_intel_ablate/report_rosko_nr_spec_%d-%d.csv' % (sparsity[i]))
+		# spec_rosko_nr.append(float(df1[(df1['Metric Name'] == 'Bad Speculation')]['Metric Value']._values[0]))
+	#
+	#
+	for i in range(len(sparsity)):
+		s1 = 0; s2 = 0;
+		for j in range(1,ntrials+1):
+			df1 = pandas.read_csv('reports_intel_ablate/report_rosko_spec_%d-%d.csv' % (sparsity[i], j))
+			s1 += float(df1[(df1['Metric Name'] == 'Bad Speculation')]['Metric Value']._values[0])
+			#
+			df1 = pandas.read_csv('reports_intel_ablate/report_rosko_nr_spec_%d-%d.csv' % (sparsity[i], j))
+			s2 += float(df1[(df1['Metric Name'] == 'Bad Speculation')]['Metric Value']._values[0])
 		#
-		df1 = pandas.read_csv('reports_intel_ablate/report_rosko_nr_spec_%d.csv' % (sparsity[i]))
-		spec_rosko_nr.append(float(df1[(df1['Metric Name'] == 'Bad Speculation')]['Metric Value']._values[0]))
+		spec_rosko.append(s1 / ntrials)
+		spec_rosko_nr.append(s2 / ntrials)
 	#
 	# plt.subplot(1, 2, 1)
 	plt.figure(figsize = (6,4))
@@ -164,7 +259,7 @@ def plot_rosko_vs_intel_ablate(fname = 'rosko_vs_intel_ablate'):
 	plt.xlabel("Sparsity (%)", fontsize = 24)
 	plt.ylabel("Pipeline Slots (%)", fontsize = 24)
 	plt.xticks(range(80,101,5), fontsize = 20)
-	plt.yticks(range(0,13,2), fontsize = 20)
+	plt.yticks(range(0,15,2), fontsize = 20)
 	plt.legend(loc = "center left", prop={'size': 14})
 	plt.savefig("%s_spec.pdf" % fname, bbox_inches='tight')
 	plt.show()
@@ -532,12 +627,15 @@ def plot_rosko_vs_mkl_sparse(fname = 'rosko_vs_mkl_sp'):
 	mkl_bw = [8,17,15,13,8.5,12,6,32,24]
 	X = np.arange(len(labels))
 	# 
-	plt.figure(figsize = (6,4))
+	plt.figure(figsize = (6,5))
 	plt.title('(a) DRAM BW of SpMM in Rosko vs MKL', fontsize = 18)
-	plt.tick_params(labelbottom=False)   
+	# plt.tick_params(labelbottom=False)   
 	plt.bar(X + 0.00, rosko_bw, color = 'r', width = 0.25)
 	plt.bar(X + 0.25, mkl_bw, color = intel_color, width = 0.25)
-	plt.ylabel("DRAM Bandwidth (GB/sec)", fontsize = 16)
+	plt.ylabel("DRAM Bw (GB/sec)", fontsize = 16)
+	plt.xticks(X, labels, fontsize = 18)
+	plt.xticks(rotation=60)
+	plt.yticks( fontsize = 16)
 	plt.legend(labels=['Rosko', 'MKL'])
 	plt.tight_layout()
 	plt.savefig("%s_dram.pdf" % fname , bbox_inches='tight')
@@ -549,18 +647,16 @@ def plot_rosko_vs_mkl_sparse(fname = 'rosko_vs_mkl_sp'):
 	plt.title('(b) Throughput of SpMM in Rosko vs MKL', fontsize = 18)
 	plt.bar(X + 0.00, rel_tput, color = 'r', width = 0.25)
 	plt.bar(X + 0.25, 9*[1], color = intel_color, width = 0.25)
-	plt.xticks(X, labels)
+	plt.xticks(X, labels, fontsize = 18)
 	plt.xticks(rotation=60)
-	plt.ylabel("Throughput relative to MKL", fontsize = 16)
-	plt.yticks(np.arange(0, 5, 1))
+	plt.ylabel("Tput relative to MKL", fontsize = 16)
+	plt.yticks(np.arange(0, 5, 1), fontsize = 16)
 	plt.legend(labels=['Rosko', 'MKL'])
 	plt.tight_layout()
 	plt.savefig("%s_perf.pdf" % fname , bbox_inches='tight')
 	plt.show()
 	plt.clf()
 	plt.close('all')
-
-
 
 
 plot_rosko_vs_mkl_sparse()

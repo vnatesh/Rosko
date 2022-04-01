@@ -43,25 +43,25 @@ int main( int argc, char** argv ) {
 	// if(M < 1792) {
 	// 	iters = 20;
 	// }
-	double ret;
+	double ret = 0;
 	clock_gettime(CLOCK_REALTIME, &start);
 
 	for(int i = 0; i < iters; i++) {
-		ret = cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx);
+		ret += cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx);
 	}
 
     clock_gettime(CLOCK_REALTIME, &end);
     long seconds = end.tv_sec - start.tv_sec;
     long nanoseconds = end.tv_nsec - start.tv_nsec;
     diff_t = seconds + nanoseconds*1e-9;
-	printf("sp_sgemm time: %f \n", diff_t/iters); 
+	printf("sp_sgemm time: %f \n", ret / iters); 
 
 	if(write_result) {
 	    char fname[50];
 	    snprintf(fname, sizeof(fname), "result_load");
 	    FILE *fp;
 	    fp = fopen(fname, "a");
-	    fprintf(fp, "rosko,%d,%d,%d,%d,%d,%f\n",M,K,N,p,sp,diff_t/iters);
+	    fprintf(fp, "rosko,%d,%d,%d,%d,%d,%f\n",M,K,N,p,sp,ret/iters);
 	    fclose(fp);
 	}
 	// cake_sgemm_checker(A, B, C, N, M, K);
