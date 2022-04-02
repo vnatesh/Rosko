@@ -1,5 +1,5 @@
 # Overview
-This repository contains performance experiments of row-skipping outer product kernels (Rosko) for sparse-dense matrix multiplication (spMM) on CPUs. Rosko uses the CAKE tiling and scheduling algorithm for efficient multicore parallelism and minimal DRAM bandwidth usage. Rosko kernels are written using written using SIMD intrinsics. They outperform Intel and ARM Dense GEMM and spMM libraries for matrices with sparsities ranging from 75% to 99.8%. 
+This repository contains performance experiments of row-skipping outer product kernels (Rosko) for sparse-dense matrix multiplication (spMM) on CPUs. Rosko uses the CAKE tiling and scheduling algorithm for efficient multicore parallelism and minimal DRAM bandwidth usage. Rosko kernels are written using SIMD intrinsics. They outperform Intel and ARM Dense GEMM and spMM libraries for matrices with sparsities ranging from 75% to 99.8%. 
 
 ## Installation
 
@@ -51,17 +51,17 @@ Before running experiments, make sure the following additional dependencies are 
 
 * `ARM` 
 	* `ARMPL 21.1` 
-	* `ARMCL` 
+	* `ARMCL 22.02` 
 	* `OpenMP 4.5` 
 	* `Linux perf 5.4.86` 
 
-The experiments are organized in separate directories for each CPU architecture tested (Intel and ARM). Each arch-specific directory contains sub-directories corresponding to figures in the Rosko paper. To run an experiment and plot the associated figure, simply enter the directory and execute the `run.sh` file. An example to generate Figure 10 for the Intel CPU tested is shown below. Experiments should be performed in `sudo` mode to enable permissions for hardware profiling.
+The experiments are organized in separate directories for each CPU architecture tested (Intel and ARM). Each arch-specific directory contains sub-directories corresponding to figures in the Rosko paper. To run an experiment and plot the associated figure, simply enter the directory and execute the `run.sh` file. An example to generate the load balance figure for the Intel CPU tested is shown below. Experiments should be performed in `sudo` mode to enable permissions for hardware profiling.
 
 ```bash
 ~/Rosko$ sudo -s
 ~/Rosko$ source env.sh
-~/Rosko$ cd experiments/intel/Fig-10
-~/Rosko/experiments/intel/Fig-10$ ./run.sh
+~/Rosko$ cd experiments/intel/load_balance
+~/Rosko/experiments/intel/load_balance$ ./run.sh
 ```
 
 ## Details

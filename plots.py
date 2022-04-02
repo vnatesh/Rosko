@@ -1,6 +1,7 @@
 import pandas
 import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
+import matplotlib.cm as cm
 import numpy as np
 import os
 import re
@@ -42,7 +43,7 @@ def plot_rosko_vs_intel_load(fname = 'rosko_vs_intel_load'):
 	#
 	#
 	plt.ticklabel_format(useOffset=False, style='plain')
-	plt.title('(a) Speedup in Computation\nThroughput in Rosko', fontsize = 24)
+	plt.title('Speedup in Computation\nThroughput in Rosko', fontsize = 24)
 	plt.xlabel("number of cores", fontsize = 24)
 	plt.ylabel("Speedup", fontsize = 24)
 	plt.xticks(p, fontsize = 18)
@@ -428,7 +429,7 @@ def plot_rosko_vs_arm_end_to_end(fname = 'rosko_vs_arm_end_to_end'):
 	plt.xlabel("Sparsity (%)", fontsize = 18)
 	plt.ylabel("Runtime (sec)", fontsize = 18)
 	plt.yticks(np.arange(0,0.31,0.05))
-	plt.legend(loc = "upper right", prop={'size': 12})
+	plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 	plt.savefig("%s.pdf" % fname, bbox_inches='tight')
 	plt.show()
 	plt.clf()
@@ -437,8 +438,6 @@ def plot_rosko_vs_arm_end_to_end(fname = 'rosko_vs_arm_end_to_end'):
 
 
 plot_rosko_vs_arm_end_to_end()
-
-
 
 
 
@@ -471,7 +470,8 @@ def plot_rosko_vs_arm_dnn(fname = 'rosko_vs_arm'):
 			flops.append(0)
 			continue
 		#
-		flops.append(nz*N)
+		# flops.append(nz*N)
+		flops.append(nz)
 		# if i in [96,193,290]:
 		# 	# continue
 		# 	print(M,N,K,nz,i)
@@ -503,7 +503,7 @@ def plot_rosko_vs_arm_dnn(fname = 'rosko_vs_arm'):
 		dram_io_rosko[i] += (((int(re.search(r'\d+', a[6]).group())*64.0))) / 1e9
 		dram_io_rosko[i] /= 10.0
 		dram_bw_rosko[i] = dram_io_rosko[i] / cpu_time
-		gflops_rosko[i] = (float(nz*N) / cpu_time) / (1e9)
+		# gflops_rosko[i] = (float(nz*N) / cpu_time) / (1e9)
 		gflops_rosko[i] = cpu_time
 		#
 		a = open('reports_arm_trans/report_cake_%d' % i,'r').read().split('\n')
@@ -513,7 +513,7 @@ def plot_rosko_vs_arm_dnn(fname = 'rosko_vs_arm'):
 		dram_io_cake[i] += (((int(re.search(r'\d+', a[6]).group())*64.0))) / 1e9
 		dram_io_cake[i] /= 10.0
 		dram_bw_cake[i] = dram_io_cake[i] / cpu_time
-		gflops_cake[i] = (float(nz*N) / cpu_time) / (1e9)
+		# gflops_cake[i] = (float(nz*N) / cpu_time) / (1e9)
 		gflops_cake[i] = cpu_time
 		# if (dram_io_rosko[i] < dram_io_armpl[i]) and (dram_io_rosko[i] < dram_io_armcl[i]) \
 		# and (gflops_rosko[i] > gflops_armpl[i]) and (gflops_rosko[i] > gflops_armcl[i]):
@@ -541,10 +541,11 @@ def plot_rosko_vs_arm_dnn(fname = 'rosko_vs_arm'):
 	plt.scatter(flops, gflops_armcl, label = labels[2],  marker = markers[3], color = colors[3])
 	plt.scatter(flops, gflops_cake, label = labels[-1],  marker = markers[-1], color = colors[1])
 	#
-	plt.title('(a) Runtime for spMM in Transformer Layers')
-	plt.xlabel("number of ops (log10 scale)", fontsize = 18)
-	plt.xticks(range(7,10))
-	plt.ylabel("Runtime (sec)", fontsize = 18)
+	plt.title('(a) Runtime for SpMM in\nTransformer Layers', fontsize = 24)
+	plt.xlabel("# of nonzeros (log10 scale)", fontsize = 24)
+	plt.xticks(np.arange(3.5,5.6,0.5), fontsize = 16)
+	plt.yticks(fontsize = 16)
+	plt.ylabel("Runtime (sec)", fontsize = 24)
 	plt.legend(loc = "upper left", prop={'size': 12})
 	plt.savefig("%s_tput.pdf" % fname, bbox_inches='tight')
 	plt.show()
@@ -558,10 +559,11 @@ def plot_rosko_vs_arm_dnn(fname = 'rosko_vs_arm'):
 	plt.scatter(flops, dram_io_cake, label = labels[-1],  marker = markers[-1], color = colors[1])
 	plt.scatter(flops, dram_io_rosko, label = labels[0],  marker = markers[0], color = colors[5])
 	#
-	plt.title('(b) DRAM IO for spMM in Transformer Layers')
-	plt.xlabel("number of ops (log10 scale)", fontsize = 18)
-	plt.xticks(range(7,10))
-	plt.ylabel("DRAM IO (GB)", fontsize = 18)
+	plt.title('(b) DRAM IO for SpMM in\nTransformer Layers', fontsize = 24)
+	plt.xlabel("# of nonzeros (log10 scale)", fontsize = 24)
+	plt.xticks(np.arange(3.5,5.6,0.5), fontsize = 16)
+	plt.yticks(fontsize = 16)
+	plt.ylabel("DRAM IO (GB)", fontsize = 24)
 	plt.legend(loc = "upper left", prop={'size': 12})
 	plt.savefig("%s_io.pdf" % fname, bbox_inches='tight')
 	plt.show()
@@ -575,10 +577,11 @@ def plot_rosko_vs_arm_dnn(fname = 'rosko_vs_arm'):
 	plt.scatter(flops, dram_bw_armcl, label = labels[2],  marker = markers[3], color = colors[3])
 	plt.scatter(flops, dram_bw_cake, label = labels[-1],  marker = markers[-1], color = colors[1])
 	#
-	plt.title('(c) DRAM BW for spMM in Transformer Layers')
-	plt.xlabel("number of ops (log10 scale)", fontsize = 18)
-	plt.xticks(range(7,10))
-	plt.ylabel("DRAM Bandwidth (GB/sec)", fontsize = 18)
+	plt.title('(c) DRAM BW for SpMM in\nTransformer Layers', fontsize = 24)
+	plt.xlabel("# of nonzeros (log10 scale)", fontsize = 24)
+	plt.xticks(np.arange(3.5,5.6,0.5), fontsize = 16)
+	plt.yticks(fontsize = 16)
+	plt.ylabel("DRAM BW (GB/sec)", fontsize = 24)
 	plt.legend(loc = "upper right", prop={'size': 12})
 	plt.savefig("%s_bw.pdf" % fname, bbox_inches='tight')
 	plt.show()
@@ -592,9 +595,11 @@ def plot_rosko_vs_arm_dnn(fname = 'rosko_vs_arm'):
 	plt.scatter(gflops_cake, dram_bw_cake, label = labels[-1],  marker = markers[-1], color = colors[1])
 	plt.scatter(gflops_rosko, dram_bw_rosko, label = labels[0],  marker = markers[0], color = colors[5])
 	#
-	plt.title('(d) BW Required to Attain Target Runtime')
-	plt.xlabel("Runtime (sec)", fontsize = 18)
-	plt.ylabel("DRAM Bandwidth (GB/sec)", fontsize = 18)
+	plt.title('(d) BW Required to Attain\nTarget Runtime', fontsize = 24)
+	plt.xlabel("Runtime (sec)", fontsize = 24)
+	plt.xticks(np.arange(0,0.31,0.05), fontsize = 16)
+	plt.yticks(fontsize = 16)
+	plt.ylabel("DRAM BW (GB/sec)", fontsize = 24)
 	plt.legend(loc = "upper right", prop={'size': 12})
 	plt.savefig("%s_bw_tput.pdf" % fname, bbox_inches='tight')
 	plt.show()
@@ -804,8 +809,11 @@ plot_cake_vs_mkl_cpu(23040,23040,23040,144,144,1,ntrials=1)
 
 
 
+new_blues = cm.get_cmap('Blues', 512)
+cmp = cm.colors.ListedColormap(new_blues(np.linspace(0.20, 0.70, 265)))
 
-def plot_rosko_vs_arm_sparse(M,N,K,mc,kc,alpha,fname = 'rosko_vs_arm_sp', ntrials=10):
+
+def plot_rosko_vs_arm_sparse(fname = 'rosko_vs_arm_sp', ntrials=10):
 	plt.rcParams.update({'font.size': 16})
 	markers = ['o','v','s','d','^']
 	colors = ['b','g','aqua','k','m','r']
@@ -818,15 +826,16 @@ def plot_rosko_vs_arm_sparse(M,N,K,mc,kc,alpha,fname = 'rosko_vs_arm_sp', ntrial
 	boundary = [0.541215, 0.541215, 0.541215, 0.541215, 0.116096, 0.116096, 0.116096, 0.116096, 0]
 	plt.figure(figsize = (6,6))
 	plt.plot(sparsity, rosko_sp, label = labels[0], color = colors[-1], linestyle= 'dashed')
-	plt.plot(sparsity, arm_dense, label = labels[1], color = intel_color)
-	plt.contourf(sparsity[2:], rosko_sp[2:], [[z] * len(rosko_sp[2:]) for z in range(len(rosko_sp[2:]))], 500, cmap = 'Blues') #color=colors[1])
+	plt.plot(sparsity, arm_dense, label = labels[1], color = "blue")
+	plt.contourf(sparsity[2:], rosko_sp[2:], [[z] * len(rosko_sp[2:]) for z in range(len(rosko_sp[2:]))], 500, cmap =cmp) #color=colors[1])
+	plt.colorbar(cmap=cmp)
 	plt.fill_between(sparsity[1:], rosko_sp[1:], [0]*len(sparsity[1:]),  color='w')
 	# plt.fill_between(sparsity[-2:], arm_dense[-2:], boundary[-2:],  color='w')
 	# plt.plot([99]*len(sparsity), boundary, color = colors[3], linestyle= 'dashed')
 	plt.plot([75.9], [0.541215], marker = markers[0], color = colors[3])
 	# plt.plot([99], [0.541215], marker = markers[0], color = colors[3])
 	plt.annotate('75.9%', (76, 0.57), fontsize = 15)
-	# plt.annotate('99%', (96.5, 0.57), fontsize = 15)	
+	# plt.annotate('99%', (96.5, 0.57), fontsize = 15)
 	#
 	plt.title('(b) Runtime vs Sparsity on ARM CPU', fontsize = 20)
 	plt.xlabel("Sparsity (%)", fontsize = 18)
@@ -841,14 +850,14 @@ def plot_rosko_vs_arm_sparse(M,N,K,mc,kc,alpha,fname = 'rosko_vs_arm_sp', ntrial
 	plt.close('all')
 
 
-plot_rosko_vs_arm_sparse(23040,23040,23040,144,144,1,ntrials=1)
+plot_rosko_vs_arm_sparse(ntrials=1)
 
-import matplotlib.cm as cm
+
 
 def f(x):
 	return -1.1355744*x + 113.5435464
 
-def plot_rosko_vs_mkl_sparse(M,N,K,mc,kc,alpha,fname = 'rosko_vs_intel_sp', ntrials=10):
+def plot_rosko_vs_mkl_sparse(fname = 'rosko_vs_intel_sp', ntrials=10):
 	plt.rcParams.update({'font.size': 16})
 	markers = ['o','v','s','d','^']
 	colors = ['b','g','aqua','k','m','r']
@@ -873,17 +882,17 @@ def plot_rosko_vs_mkl_sparse(M,N,K,mc,kc,alpha,fname = 'rosko_vs_intel_sp', ntri
 	qq = [97.8,98,98.5,99, 99.5, 99.9, 99.95, 99.99]
 	plt.plot(qq, [f(i) for i in qq], label = labels[2],  color = colors[1], linestyle= 'dashed')
 	sparsity = [65, 70, 75, 80, 85, 90, 95, 99, 99.5, 99.9, 99.95, 99.99]
-	rosko_sp = [None, None, 2.475765] + rosko_sp 
+	rosko_sp = [None, None, 2.475765] + rosko_sp
 	intel_sp = [None, None, None] + intel_sp
 	intel_dense = [1.689468 for i in sparsity]
 	aa = plt.plot(sparsity, rosko_sp, label = labels[0], color = colors[-1], linestyle= 'dashed')
 	# cb1 = mpl.colorbar.ColorbarBase(aa, cmap='Blues',
- #                                norm = mpl.colors.Normalize(vmin=1, vmax=6),
- #                                orientation='horizontal')
-	plt.plot(sparsity, intel_dense, label = labels[1], color = intel_color)
-	q = plt.contourf(sparsity[4:], rosko_sp[4:], [[z] * len(rosko_sp[4:]) for z in range(len(rosko_sp[4:]))], 500, cmap = 'Blues') #color=colors[1])
+	#                                norm = mpl.colors.Normalize(vmin=1, vmax=6),
+	#                                orientation='horizontal')
+	plt.plot(sparsity, intel_dense, label = labels[1], color = "blue")
+	levels = np.linspace(0.0, 4, 1000)
+	q = plt.contourf(sparsity[4:], rosko_sp[4:], [[z] * len(rosko_sp[4:]) for z in range(len(rosko_sp[4:]))], 500, levels=levels, cmap = cmp) #color=colors[1])
 	# plt.colorbar(q, norm = mpl.colors.Normalize(vmin=1, vmax=4))
-	plt.colorbar(cmap='Blues')
 	# cb1.set_label('Some Units')
 	plt.fill_between(sparsity[4:], rosko_sp[4:], [0]*len(sparsity[4:]),  color='w')
 	plt.fill_between(sparsity[-5:], intel_dense[-5:], intel_sp[-5:],  color='w')
@@ -911,5 +920,4 @@ def plot_rosko_vs_mkl_sparse(M,N,K,mc,kc,alpha,fname = 'rosko_vs_intel_sp', ntri
 	plt.close('all')
 
 
-plot_rosko_vs_mkl_sparse(23040,23040,23040,144,144,1,ntrials=1)
-
+plot_rosko_vs_mkl_sparse(ntrials=1)
