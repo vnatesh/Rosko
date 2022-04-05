@@ -470,40 +470,33 @@ def plot_rosko_vs_arm_dnn(fname = 'rosko_vs_arm'):
 			flops.append(0)
 			continue
 		#
-		# flops.append(nz*N)
 		flops.append(nz)
 		# if i in [96,193,290]:
 		# 	# continue
 		# 	print(M,N,K,nz,i)
 		#
 		a = open('reports_arm_trans/report_armpl_%d' % i,'r').read().split('\n')
-		# cpu_time1 = float(re.search(r'\d+\.\d+', a[8]).group())
 		cpu_time = df1[(df1['algo'] == 'armpl') & (df1['id'] == i)]['time']._values[0]
 		dram_io_armpl[i] = (((int(re.search(r'\d+', a[5]).group())*64.0))) / 1e9
 		dram_io_armpl[i] += (((int(re.search(r'\d+', a[6]).group())*64.0))) / 1e9
-		dram_io_armpl[i] /= 10.0
+		dram_io_armpl[i] -= 2*(M*K + K*N)*4 / 1e9 # read and write io due to A,B inits
 		dram_bw_armpl[i] = dram_io_armpl[i] / cpu_time
-		# gflops_armpl[i] = (float(nz*N) / cpu_time) / (1e9)
 		gflops_armpl[i] = cpu_time
 		#
 		a = open('reports_arm_trans/report_armcl_%d' % i,'r').read().split('\n')
-		# cpu_time1 = float(re.search(r'\d+\.\d+', a[8]).group())
 		cpu_time = df1[(df1['algo'] == 'armcl') & (df1['id'] == i)]['time']._values[0]
 		dram_io_armcl[i] = (((int(re.search(r'\d+', a[5]).group())*64.0))) / 1e9
 		dram_io_armcl[i] += (((int(re.search(r'\d+', a[6]).group())*64.0))) / 1e9
-		dram_io_armcl[i] /= 10.0
+		dram_io_armcl[i] -= 2*(M*K + K*N)*4 / 1e9
 		dram_bw_armcl[i] = dram_io_armcl[i] / cpu_time
-		# gflops_armcl[i] = (float(nz*N) / cpu_time) / (1e9)
 		gflops_armcl[i] = cpu_time
 		#
 		a = open('reports_arm_trans/report_rop_%d' % i,'r').read().split('\n')
-		# cpu_time1 = float(re.search(r'\d+\.\d+', a[8]).group())
 		cpu_time = df1[(df1['algo'] == 'ROP') & (df1['id'] == i)]['time']._values[0]
 		dram_io_rosko[i] = (((int(re.search(r'\d+', a[5]).group())*64.0))) / 1e9
 		dram_io_rosko[i] += (((int(re.search(r'\d+', a[6]).group())*64.0))) / 1e9
-		dram_io_rosko[i] /= 10.0
+		dram_io_rosko[i] -= 2*(nz + K*N)*4 / 1e9
 		dram_bw_rosko[i] = dram_io_rosko[i] / cpu_time
-		# gflops_rosko[i] = (float(nz*N) / cpu_time) / (1e9)
 		gflops_rosko[i] = cpu_time
 		#
 		a = open('reports_arm_trans/report_cake_%d' % i,'r').read().split('\n')
@@ -511,9 +504,8 @@ def plot_rosko_vs_arm_dnn(fname = 'rosko_vs_arm'):
 		cpu_time = df1[(df1['algo'] == 'CAKE') & (df1['id'] == i)]['time']._values[0]
 		dram_io_cake[i] = (((int(re.search(r'\d+', a[5]).group())*64.0))) / 1e9
 		dram_io_cake[i] += (((int(re.search(r'\d+', a[6]).group())*64.0))) / 1e9
-		dram_io_cake[i] /= 10.0
+		dram_io_cake[i] -= 2*(nz + K*N)*4 / 1e9
 		dram_bw_cake[i] = dram_io_cake[i] / cpu_time
-		# gflops_cake[i] = (float(nz*N) / cpu_time) / (1e9)
 		gflops_cake[i] = cpu_time
 		# if (dram_io_rosko[i] < dram_io_armpl[i]) and (dram_io_rosko[i] < dram_io_armcl[i]) \
 		# and (gflops_rosko[i] > gflops_armpl[i]) and (gflops_rosko[i] > gflops_armcl[i]):
