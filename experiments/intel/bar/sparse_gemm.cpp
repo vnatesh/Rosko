@@ -942,18 +942,13 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
         diff_t = seconds + nanoseconds*1e-9;
         printf("csr pack time: %f \n", diff_t ); 
 
-        //warmup
-        // clock_gettime(CLOCK_REALTIME, &start);
+        // warmup
 
-        // oneapi::mkl::sparse::gemm(main_queue, transpose_val, alpha, handle, b_buffer, columns, ldb,
-        //                           beta, c_buffer, ldc);
-        // clock_gettime(CLOCK_REALTIME, &end);
-        // seconds = end.tv_sec - start.tv_sec;
-        // nanoseconds = end.tv_nsec - start.tv_nsec;
-        // diff_t = seconds + nanoseconds*1e-9;
-        // printf("sparse gemm time: %f \n", diff_t ); 
+        oneapi::mkl::sparse::gemm(main_queue, transpose_val, alpha, handle, b_buffer, columns, ldb,
+                                  beta, c_buffer, ldc);
 
 
+        mkl_set_num_threads(atoi(argv[2]));
         clock_gettime(CLOCK_REALTIME, &start);
 
         // add oneapi::mkl::sparse::gemm to execution queue
@@ -965,6 +960,15 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
         nanoseconds = end.tv_nsec - start.tv_nsec;
         diff_t = seconds + nanoseconds*1e-9;
         printf("sparse gemm time: %f \n", diff_t ); 
+
+
+        char fname[50];
+        snprintf(fname, sizeof(fname), "bar_load");
+        FILE *fp;
+        fp = fopen(fname, "a");
+        fprintf(fp, "mkl,%d,%d,%d,%d,%f\n",M,K,N,p,diff_t);
+        fclose(fp);
+
 
         clock_gettime(CLOCK_REALTIME, &start);
 

@@ -6,7 +6,7 @@
 int main( int argc, char** argv ) {
      // run_tests();
 
-    int M, K, N, p = 10;
+    int M, K, N, p = atoi(argv[2]);
     struct timespec start, end;
     double diff_t;
     long seconds, nanoseconds;
@@ -92,13 +92,21 @@ int main( int argc, char** argv ) {
 
     clock_gettime(CLOCK_REALTIME, &start);
 
-    cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx);
+    double ans = cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx, density_val, argv);
+
 
     clock_gettime(CLOCK_REALTIME, &end);
     seconds = end.tv_sec - start.tv_sec;
     nanoseconds = end.tv_nsec - start.tv_nsec;
     diff_t = seconds + nanoseconds*1e-9;
     printf("sp_sgemm time: %f \n", diff_t); 
+
+    char fname[50];
+    snprintf(fname, sizeof(fname), "bar_load");
+    FILE *fp;
+    fp = fopen(fname, "a");
+    fprintf(fp, "rosko,%s,%d,%f\n",argv[1],p,ans);
+    fclose(fp);
 
     // cake_sgemm_checker(A, B, C, N, M, K);
 

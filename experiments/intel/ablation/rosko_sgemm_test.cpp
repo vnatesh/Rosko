@@ -19,8 +19,8 @@ int main( int argc, char** argv ) {
 	K = atoi(argv[2]);
 	N = atoi(argv[3]);
 	p = atoi(argv[4]);
-	sp = atoi(argv[5]);
-	write_result = atoi(argv[6]);
+	sp = atoi(argv[6]);
+	write_result = atoi(argv[7]);
 
 	printf("M = %d, K = %d, N = %d, cores = %d, sparsity = %f\n", M,K,N,p, ((float) sp) / 100.0);
 
@@ -42,7 +42,8 @@ int main( int argc, char** argv ) {
 	
 	clock_gettime(CLOCK_REALTIME, &start);
 
-	double ret = cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx);
+	double ret = cake_sp_sgemm(A, B, C, M, N, K, p, 
+		cake_cntx, 1.0 - (((float) sp) / 100.0), argv);
 
     clock_gettime(CLOCK_REALTIME, &end);
     long seconds = end.tv_sec - start.tv_sec;
@@ -55,7 +56,7 @@ int main( int argc, char** argv ) {
 	    snprintf(fname, sizeof(fname), "result_ablate_intel");
 	    FILE *fp;
 	    fp = fopen(fname, "a");
-	    fprintf(fp, "rosko,%d,%d,%d,%d,%f\n",M,K,N,sp,diff_t);
+	    fprintf(fp, "rosko new,%d,%d,%d,%d,%f\n",M,K,N,sp,diff_t);
 	    fclose(fp);
 	}
 	// cake_sgemm_checker(A, B, C, N, M, K);
