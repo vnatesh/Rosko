@@ -948,7 +948,10 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
                                   beta, c_buffer, ldc);
 
 
-        mkl_set_num_threads(atoi(argv[2]));
+        // mkl_set_num_threads(atoi(argv[2]));
+        // omp_set_num_threads(atoi(argv[2]));
+        mkl_set_num_threads_local(atoi(argv[2]));
+
         clock_gettime(CLOCK_REALTIME, &start);
 
         // add oneapi::mkl::sparse::gemm to execution queue
