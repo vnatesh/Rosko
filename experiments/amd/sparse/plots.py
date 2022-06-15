@@ -15,12 +15,12 @@ from matplotlib import ticker as mticker
 def plot_rosko_vs_aocl_sparse(fname = 'rosko_vs_aocl_sp'):
 	plt.rcParams.update({'font.size': 12})
 	# all matrices used are 99.87-99.97% sparse
-	# labels = ['Fash_mnist', \
-	# 'har','indianpines','J_VowelsSmall', \
-	# 'kmnist','mnist_test','optdigits',\
-	# 'usps','worms20']
+	labels = ['Fash_mnist', \
+	'har','indianpines','J_VowelsSmall', \
+	'kmnist','mnist_test','optdigits',\
+	'usps','worms20']
 	df1 = pandas.read_csv('bar_load')
-	labels = [i[:-4] for i in df1[df1['algo'] == 'aocl']['file']._values]
+	# labels = [i[:-4] for i in df1[df1['algo'] == 'aocl']['file']._values]
 	rel_tput = df1[df1['algo'] == 'aocl']['time']._values / df1[df1['algo'] == 'rosko']['time']._values
 	X = np.arange(len(labels))
 	#
@@ -31,7 +31,7 @@ def plot_rosko_vs_aocl_sparse(fname = 'rosko_vs_aocl_sp'):
 	plt.xticks(X, labels, fontsize = 18)
 	plt.xticks(rotation=60)
 	plt.ylabel("Tput relative to aocl", fontsize = 16)
-	plt.yticks(np.arange(0, 5, 1), fontsize = 16)
+	# plt.yticks(np.arange(0, 5, 1), fontsize = 16)
 	plt.legend(labels=['Rosko', 'AOCL'])
 	plt.tight_layout()
 	plt.savefig("%s_perf.pdf" % fname , bbox_inches='tight')
