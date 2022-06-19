@@ -52,9 +52,12 @@ int main( int argc, char** argv ) {
     if ((ret_code = mm_read_mtx_crd_size(f, &M, &K, &nz)) !=0)
         exit(1);
 
+    bool issymm = mm_is_symmetric(matcode) ? 1 : 0; 
+    int nnz = issymm ? nz*2 : nz;
+
     N = M;
-    double density_val = ((double) nz) / (M*K);
-    printf("nz = %d, density = %f\n", nz, density_val);
+    double density_val = ((double) nnz) / (M*K);
+    printf("nnz = %d, density = %f\n", nnz, density_val);
     printf("M = %d, K = %d, N = %d, cores = %d\n", M,K,N,p);
 
     float* A = (float*) malloc(M * K * sizeof( float ));
@@ -66,6 +69,12 @@ int main( int argc, char** argv ) {
         fscanf(f, "%d %d %f\n", &i_tmp, &j_tmp, &a_tmp);
         i_tmp--;  /* adjust from 1-based to 0-based */
         j_tmp--;
+
+        // if matrix is symmetric, set value for other triangle
+        if(issymm) {
+            A[j_tmp*K + i_tmp] = a_tmp;
+        }
+
         A[i_tmp*K + j_tmp] = a_tmp;
     }
 
