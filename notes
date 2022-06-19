@@ -1,0 +1,26 @@
+# assembly intrinsics tutorial
+https://www.codeproject.com/Articles/874396/Crunching-Numbers-with-AVX-and-AVX
+
+# Intel Vtune CPU pipeline diagrams
+https://www.intel.com/content/www/us/en/develop/documentation/vtune-help/top/analyze-performance/microarchitecture-analysis-group/general-exploration-analysis/microarchitecture-pipe.html
+
+# Google Deep Learning Matrix Collection benchmark
+https://github.com/google-research/google-research/tree/master/sgk
+
+# Summary of pruning techniques
+https://arxiv.org/pdf/2102.00554.pdf
+
+# SuiteSparse matrix collection
+https://sparse.tamu.edu
+
+# Download SuiteSparse matrices via python
+https://github.com/drdarshan/ssgetpy/blob/master/demo.ipynb
+
+# Reading .smtx, .mtx matrix formats in C
+https://math.nist.gov/MatrixMarket/mmio-c.html
+
+# ARM Neon Intrinsics
+https://developer.arm.com/architectures/instruction-sets/intrinsics
+
+# Intel oneAPI Dockerfile
+https://github.com/intel/oneapi-containers/blob/master/images/docker/basekit/Dockerfile.ubuntu-18.04
