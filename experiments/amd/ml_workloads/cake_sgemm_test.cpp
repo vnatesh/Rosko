@@ -52,6 +52,43 @@ int main( int argc, char** argv ) {
 		free(A);
 		free(B);
 		free(C);
+
+
+
+
+
+
+
+
+		A = (float*) malloc(M * K * sizeof( float ));
+		B = (float*) malloc(K * N * sizeof( float ));
+		C = (float*) calloc(M * N , sizeof( float ));
+
+		float density_val = 0.05;
+
+		rand_sparse(A, M, K, 0.95);
+		rand_init(B, K, N);
+		
+	    clock_gettime(CLOCK_REALTIME, &start);
+
+        cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx, density_val);
+
+	    clock_gettime(CLOCK_REALTIME, &end);
+	    seconds = end.tv_sec - start.tv_sec;
+	    nanoseconds = end.tv_nsec - start.tv_nsec;
+	    diff_t = seconds + nanoseconds*1e-9;
+
+	    fp = fopen(fname, "a");
+		fprintf(fp, "rosko,%d,%d,%d,%d,%f\n",M,K,N,p,diff_t);
+	    fclose(fp);
+	
+		free(A);
+		free(B);
+		free(C);
+
+
+
+
 	}
 
 
