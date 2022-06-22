@@ -53,8 +53,8 @@ int main( int argc, char** argv )
 	m = atoi(argv[1]);
 	k = atoi(argv[2]);
 	n = atoi(argv[3]);
-    p = atoi(argv[4]);
-	ntrials = atoi(argv[5]);
+    int p = atoi(argv[4]);
+	int ntrials = atoi(argv[5]);
 
 	char fname[50];
 	snprintf(fname, sizeof(fname), "ml_workloads");
@@ -94,7 +94,7 @@ int main( int argc, char** argv )
 	    nanoseconds = end.tv_nsec - start.tv_nsec;
 	    diff_t = seconds + nanoseconds*1e-9;
 	    fp = fopen(fname, "a");
-		fprintf(fp, "blis,%d,%d,%d,%d,%f\n",M,K,N,p,diff_t);
+		fprintf(fp, "blis,%d,%d,%d,%d,%f\n",m,k,n,p,diff_t);
 	    fclose(fp);
 
 		free( a );
