@@ -57,9 +57,6 @@ int main( int argc, char** argv ) {
 
 
 
-
-
-
 		A = (float*) malloc(M * K * sizeof( float ));
 		B = (float*) malloc(K * N * sizeof( float ));
 		C = (float*) calloc(M * N , sizeof( float ));
@@ -85,10 +82,6 @@ int main( int argc, char** argv ) {
 		free(A);
 		free(B);
 		free(C);
-
-
-
-
 	}
 
 

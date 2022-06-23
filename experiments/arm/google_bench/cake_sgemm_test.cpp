@@ -66,13 +66,6 @@ int main( int argc, char** argv ) {
    	fclose(fptr);
 
 
-
-// 583557.45
-
-// 388220
-// 1233869 - 0.8
-// 1094429 - 0.98
-
 	float* B = (float*) malloc(K * N * sizeof( float ));
 	float* C = (float*) calloc(M * N , sizeof( float ));
 
