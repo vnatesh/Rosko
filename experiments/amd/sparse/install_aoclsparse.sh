@@ -17,10 +17,19 @@ export AOCLSPARSE_ROOT=$PWD
 cp library/include/aoclsparse_version.h.in library/include/aoclsparse_version.h
 cd tests/benchmarks
 
-g++ aoclsparse_test.cpp ../common/*.cpp -I$AOCLSPARSE_ROOT/library/include \
+# g++ aoclsparse_test.cpp ../common/*.cpp -I$AOCLSPARSE_ROOT/library/include \
+# -I$AOCLSPARSE_ROOT/tests/include   \
+# -L$LD_LIBRARY_PATH $AOCLSPARSE_ROOT/build/release/library/libaoclsparse.so \
+# -o aoclsparse-bench
+
+# compile aoclsparse-bench with CAKE
+g++ -g -mavx -mfma -fopenmp aoclsparse_test.cpp ../common/*.cpp \
+-I$AOCLSPARSE_ROOT/library/include \
 -I$AOCLSPARSE_ROOT/tests/include   \
+-I$CAKE_HOME/include  \
 -L$LD_LIBRARY_PATH $AOCLSPARSE_ROOT/build/release/library/libaoclsparse.so \
--o aoclsparse-bench
+-L$CAKE_HOME -lcake -o aoclsparse-bench
+
 
 mv aoclsparse-bench ../../..
 cd ../../..

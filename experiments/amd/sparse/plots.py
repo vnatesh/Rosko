@@ -27,7 +27,7 @@ def plot_rosko_vs_aocl_sparse(fname = 'rosko_vs_aocl_sp'):
 	plt.figure(figsize = (6,5))
 	plt.title('(a) Throughput of SpMM in Rosko vs aocl', fontsize = 18)
 	plt.bar(X + 0.00, rel_tput, color = 'r', width = 0.25)
-	plt.bar(X + 0.25, 9*[1], color = 'g', width = 0.25)
+	plt.bar(X + 0.25, len(labels)*[1], color = 'g', width = 0.25)
 	plt.xticks(X, labels, fontsize = 18)
 	plt.xticks(rotation=60)
 	plt.ylabel("Tput relative to aocl", fontsize = 16)
