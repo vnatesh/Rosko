@@ -6,7 +6,7 @@
 int main( int argc, char** argv ) {
      // run_tests();
 
-    int M, K, N, p = atoi(argv[2]);
+    int M, K, N, p = atoi(argv[2]), write_result = atoi(argv[3]);
     struct timespec start, end;
     double diff_t;
     long seconds, nanoseconds;
@@ -66,7 +66,7 @@ int main( int argc, char** argv ) {
 
 
     for (int i = 0; i < nz; i++) {
-        fscanf(f, "%d %d %f\n", &i_tmp, &j_tmp, &a_tmp);
+        fscanf(f, "%d %d %f\n", &i_tmp, &j_tmp, &a_tmp); // row, col,
         i_tmp--;  /* adjust from 1-based to 0-based */
         j_tmp--;
 
@@ -110,41 +110,16 @@ int main( int argc, char** argv ) {
     diff_t = seconds + nanoseconds*1e-9;
     printf("sp_sgemm time: %f \n", diff_t); 
 
-    char fname[50];
-    snprintf(fname, sizeof(fname), "bar_load");
-    FILE *fp;
-    fp = fopen(fname, "a");
-    fprintf(fp, "rosko,%s,%d,%f\n",argv[1],p,ans);
-    fclose(fp);
 
-    // cake_sgemm_checker(A, B, C, N, M, K);
+    if(write_result) {
+        char fname[50];
+        snprintf(fname, sizeof(fname), "result_sp");
+        FILE *fp;
+        fp = fopen(fname, "a");
+        fprintf(fp, "rosko,%s,%d,%f\n",argv[1],p,ans);
+        fclose(fp);
+    }
 
-
-    // print_mat(A, M,K);
-
-
-    // clock_gettime(CLOCK_REALTIME, &start);
-
-    // for(int i = 0; i < 1000; i++) {
-    //  cake_sgemm(A_t, B, C, M, N, K, p, cake_cntx);
-    // }
-
- //    clock_gettime(CLOCK_REALTIME, &end);
- //     seconds = end.tv_sec - start.tv_sec;
- //     nanoseconds = end.tv_nsec - start.tv_nsec;
- //    diff_t = seconds + nanoseconds*1e-9;
-
-    // printf("sgemm time: %f \n", diff_t / 1000); 
-
-    // char fname[50];
-    // snprintf(fname, sizeof(fname), "results");
-    // FILE *fp;
-    // fp = fopen(fname, "a");
-    // fprintf(fp, "cake,%d,%f\n",M*N*K,diff_t/1000);
-    // fclose(fp);
-
-    // // cake_sgemm_checker(A, B, C, N, M, K);
-    // free(A_t);   
 
     free(A);
     free(B);

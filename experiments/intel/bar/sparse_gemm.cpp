@@ -792,8 +792,15 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
     intType ncols = K;
     std::int64_t columns = M;
     int N = M;
-    double density_val = ((double) nz) / (M*K);
-    printf("density = %f\n", density_val);
+
+    bool issymm = mm_is_symmetric(matcode) ? 1 : 0; 
+    int nnz = issymm ? nz*2 : nz;
+
+    double density_val = ((double) nnz) / (M*K);
+    printf("nnz = %d, density = %f\n", nnz, density_val);
+    printf("M = %d, K = %d, N = %d\n", M,K,N);
+
+
 
 
     std::int64_t ldb     = columns;
@@ -808,59 +815,91 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
 
     int i_tmp,j_tmp; float a_tmp;
 
-    // for (i=0; i<nz; i++)
-    // {
-    //     // fscanf(f, "%d %d %lg\n", &I[i], &J[i], &val[i]);
-    //     fscanf(f, "%d %d\n", &i_tmp, &j_tmp);
-    //     // printf("%d %d\n", i_tmp, j_tmp);
 
-    //     i_tmp--;  /* adjust from 1-based to 0-based */
-    //     j_tmp--;
-    //     ia.push_back(i_tmp);
-    //     ja.push_back(j_tmp);
-    //     a.push_back(rand_scalar<fp>());
-    // }
 
-    for (i=0; i<nz; i++)
-    {
-        // fscanf(f, "%d %d %lg\n", &I[i], &J[i], &val[i]);
-        fscanf(f, "%d %d %f\n", &i_tmp, &j_tmp, &a_tmp);
-        // printf("%d %d\n", i_tmp, j_tmp);
 
+
+
+
+
+
+    std::vector<float> val_unsorted(nnz, 0.0);
+    std::vector<int> row_idx_unsorted(nnz, 0);
+    std::vector<int> col_idx_unsorted(nnz, 0);
+    std::vector<int> row_idx_ctr(nrows, 0);
+    std::vector<int> permutation(nnz);
+
+
+    for (int i = 0; i < nz; i++) {
+        fscanf(f, "%d %d %f\n", &i_tmp, &j_tmp, &a_tmp); // row, col, val
         i_tmp--;  /* adjust from 1-based to 0-based */
         j_tmp--;
-        ia.push_back(i_tmp);
-        ja.push_back(j_tmp);
-        a.push_back(a_tmp);
+        row_idx_unsorted[i] = i_tmp;
+        col_idx_unsorted[i] = j_tmp;
+        val_unsorted[i] = a_tmp;
+
+        ++row_idx_ctr[row_idx_unsorted[i]];
+        permutation[i] = i;
+    }
+
+
+    if(issymm) {
+
+        for (int i = 0; i < nz; i++) {
+            row_idx_unsorted[nz + i] = col_idx_unsorted[i];
+            col_idx_unsorted[nz + i] = row_idx_unsorted[i];
+            val_unsorted[nz + i] = val_unsorted[i];
+
+            ++row_idx_ctr[row_idx_unsorted[nz + i]];
+            permutation[nz + i] = nz + i;
+        }
     }
 
     if (f !=stdin) fclose(f);
+
+    std::sort(permutation.begin(), permutation.end(),
+        [&](int a, int b)
+        {
+            if (row_idx_unsorted[a] < row_idx_unsorted[b]) {
+                return true;
+            } else if (row_idx_unsorted[a] == row_idx_unsorted[b]) {
+                return col_idx_unsorted[a] < col_idx_unsorted[b];
+            }
+            return false;
+        }
+    );
+
+
+
+    ia.push_back(0); // starting index of row0.
+
+    /// Generate the row pointer array.
+    for (int i = 0; i < nrows; ++i) {
+        ia.push_back(0); // dummy append
+        ia[i + 1] = ia[i] + row_idx_ctr[i];
+        row_idx_ctr[i] = 0;
+    }
+
+    /// Generate col index and value array.
+    for (int i = 0; i < nnz; ++i) {
+        a.push_back(val_unsorted[permutation[i]]);
+        ja.push_back(col_idx_unsorted[permutation[i]]);
+    }
+
+
+    // printf("ia %d ja %d a %d\n", ia.size(), ja.size(), a.size());
+
+    // for(int i = 0; i < 100; i++) {
+    //     printf("%d ", ja[i] );
+    // }
+
+
+
 
 
     // for(int x = 0; x < 100; x++) {
     //     printf("%f ", a[x]);
     // }
-
-
-// python - <<END
-// import ssgetpy
-// ssgetpy.search(rowbounds=(5000,22000),colbounds=(5000,22000), \
-//     dtype = 'real', group='ML_Graph').download(destpath = '.', extract=True)
-// ssgetpy.search(rowbounds=(5000,22000),colbounds=(5000,22000),\
-// dtype = 'real', group='Belcastro').download(destpath = '.', extract=True)
-// ssgetpy.search(nzbounds=(35631,35633),\
-//     dtype = 'real', group='LPnetlib').download(destpath = '.', extract=True)
-// ssgetpy.search(nzbounds=(1853103,1853105),\
-//     dtype = 'real', group='Simon').download(destpath = '.', extract=True)
-// END
-
-// mv **/*.mtx .
-// rm -R -- */;
-// rm *label*;
-
-// for file in *.mtx; do
-
-// done
 
     // Matrices b and c
     std::vector<fp, mkl_allocator<fp, 64>> b;
@@ -942,15 +981,19 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
         diff_t = seconds + nanoseconds*1e-9;
         printf("csr pack time: %f \n", diff_t ); 
 
+        int p = atoi(argv[2]);
+        mkl_set_num_threads_local(p);
+
+        int write_result = atoi(argv[3]);
         // warmup
 
-        oneapi::mkl::sparse::gemm(main_queue, transpose_val, alpha, handle, b_buffer, columns, ldb,
-                                  beta, c_buffer, ldc);
-
+        if(write_result) {
+            oneapi::mkl::sparse::gemm(main_queue, transpose_val, alpha, handle, b_buffer, columns, ldb,
+                                      beta, c_buffer, ldc);
+        }
 
         // mkl_set_num_threads(atoi(argv[2]));
         // omp_set_num_threads(atoi(argv[2]));
-        mkl_set_num_threads_local(atoi(argv[2]));
 
         clock_gettime(CLOCK_REALTIME, &start);
 
@@ -964,35 +1007,20 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
         diff_t = seconds + nanoseconds*1e-9;
         printf("sparse gemm time: %f \n", diff_t ); 
 
-
-        char fname[50];
-        snprintf(fname, sizeof(fname), "bar_load");
-        FILE *fp;
-        fp = fopen(fname, "a");
-        fprintf(fp, "mkl,%d,%d,%d,%d,%f\n",M,K,N,p,diff_t);
-        fclose(fp);
-
-
-        clock_gettime(CLOCK_REALTIME, &start);
+        if(write_result) {
+            char fname[50];
+            snprintf(fname, sizeof(fname), "result_sp");
+            FILE *fp1;
+            fp1 = fopen(fname, "a");
+            fprintf(fp1, "mkl,%s,%d,%f\n",argv[1],p,diff_t);
+            fclose(fp1);
+        }
 
         oneapi::mkl::sparse::release_matrix_handle(&handle);
-
-        clock_gettime(CLOCK_REALTIME, &end);
-        seconds = end.tv_sec - start.tv_sec;
-        nanoseconds = end.tv_nsec - start.tv_nsec;
-        diff_t = seconds + nanoseconds*1e-9;
-        printf("handle time: %f \n", diff_t ); 
-
-
-        char fname[50];
-        snprintf(fname, sizeof(fname), "result_sp");
-        FILE *fp1;
-        fp1 = fopen(fname, "a");
-        fprintf(fp1, "mkl,%d,%d,%d,%f,%f\n",M,N,K,density_val,diff_t);
-        fclose(fp1);
-
-
     }
+
+
+
     catch (cl::sycl::exception const &e) {
         std::cout << "\t\tCaught synchronous SYCL exception:\n" << e.what() << std::endl;
         oneapi::mkl::sparse::release_matrix_handle(&handle);
