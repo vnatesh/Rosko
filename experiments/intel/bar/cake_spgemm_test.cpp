@@ -98,17 +98,20 @@ int main( int argc, char** argv ) {
     
 
     // cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx);
+    int ntrials = atoi(argv[4]);
+    double ans = 0;
 
     clock_gettime(CLOCK_REALTIME, &start);
 
-    double ans = cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx, density_val, argv);
-
+    for(int i = 0; i < ntrials; i++) {
+        ans += cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx, density_val, argv);
+    }
 
     clock_gettime(CLOCK_REALTIME, &end);
     seconds = end.tv_sec - start.tv_sec;
     nanoseconds = end.tv_nsec - start.tv_nsec;
     diff_t = seconds + nanoseconds*1e-9;
-    printf("sp_sgemm time: %f \n", diff_t); 
+    printf("sp_sgemm time: %f \n", diff_t / ntrials); 
 
 
     if(write_result) {
@@ -116,7 +119,7 @@ int main( int argc, char** argv ) {
         snprintf(fname, sizeof(fname), "result_sp");
         FILE *fp;
         fp = fopen(fname, "a");
-        fprintf(fp, "rosko,%s,%d,%f\n",argv[1],p,ans);
+        fprintf(fp, "rosko,%s,%d,%f\n",argv[1],p,ans / ntrials);
         fclose(fp);
     }
 

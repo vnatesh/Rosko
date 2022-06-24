@@ -47,7 +47,7 @@ cd $x
 # compile cake_sgemm_test
 make;
 
-NTRIALS=1;
+NTRIALS=10;
 NCORES=10;
 
 echo "algo,file,p,time" >> result_sp
@@ -73,8 +73,8 @@ do
 			-report-output reports/report_cake_sgemm_$i-$j.csv -csv-delimiter comma;
 		rm -rf cake_sgemm_result;
 
-		./sparse_gemm.out $file $n 1;
-		./cake_spgemm_test $file $n 1; 
+		./sparse_gemm.out $file $n 1 $NTRIALS;
+		./cake_spgemm_test $file $n 1 $NTRIALS; 
 	done
 done
 

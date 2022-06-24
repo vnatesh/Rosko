@@ -995,24 +995,29 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
         // mkl_set_num_threads(atoi(argv[2]));
         // omp_set_num_threads(atoi(argv[2]));
 
+        int ntrials = atoi(argv[4]);
+        
         clock_gettime(CLOCK_REALTIME, &start);
 
+        for(int i = 0; i < ntrials; i++) {
+
         // add oneapi::mkl::sparse::gemm to execution queue
-        oneapi::mkl::sparse::gemm(main_queue, transpose_val, alpha, handle, b_buffer, columns, ldb,
+            oneapi::mkl::sparse::gemm(main_queue, transpose_val, alpha, handle, b_buffer, columns, ldb,
                                   beta, c_buffer, ldc);
+        }
 
         clock_gettime(CLOCK_REALTIME, &end);
         seconds = end.tv_sec - start.tv_sec;
         nanoseconds = end.tv_nsec - start.tv_nsec;
         diff_t = seconds + nanoseconds*1e-9;
-        printf("sparse gemm time: %f \n", diff_t ); 
+        printf("sparse gemm time: %f \n", diff_t / ntrials); 
 
         if(write_result) {
             char fname[50];
             snprintf(fname, sizeof(fname), "result_sp");
             FILE *fp1;
             fp1 = fopen(fname, "a");
-            fprintf(fp1, "mkl,%s,%d,%f\n",argv[1],p,diff_t);
+            fprintf(fp1, "mkl,%s,%d,%f\n",argv[1],p,diff_t / ntrials);
             fclose(fp1);
         }
 
