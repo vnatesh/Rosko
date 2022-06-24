@@ -1,6 +1,71 @@
 #include "cake.h"
 #include "../../common/mmio.h"
 
+#include <map>
+#include <vector>
+#include <algorithm>
+
+
+float* row_reordering(float* A, int M, int K, int N);
+
+
+
+float* row_reordering(float* A, int M, int K, int N) {
+
+    // assign rows to bins based on their nnz
+    std::map<int, std::vector<int>, std::less<int>> nnz_bins;
+    float* A_reord = (float*) calloc(M * K, sizeof( float ));
+    int rows_rem = M, bin_ind = 0, a_ind = 0, nnz = 0;
+
+
+    for(int i = 0; i < M; i++) {
+
+        nnz = 0;
+
+        for(int j = 0; j < K; j++) {
+            if(A[i*K + j]) {
+                nnz++;
+            }
+        }
+
+        nnz_bins[nnz].push_back(i);
+        nnz = 0;
+    }
+
+
+    // round-robin assignment of rows from each nnz bin to new A mat to
+    // remove clusters of high/low density rows and distribute them evenly
+    // throughout the matrix for load balancing
+
+    while(rows_rem) {
+
+        for(std::pair<int, std::vector<int>> e : nnz_bins) {
+            
+            if(bin_ind < e.second.size()) {
+
+                for(int j = 0; j < K; j++) {
+                    A_reord[a_ind] = A[e.second[bin_ind]*K + j];
+                    a_ind++;
+                }
+
+                rows_rem--;
+            }
+        }
+
+        bin_ind++;
+    }
+
+
+    for(std::pair<int, std::vector<int>> e : nnz_bins) {
+        printf("nnz = %d, nrows = %d\n",e.first, e.second.size());
+    }
+
+
+
+    return A_reord;
+}
+
+
 
 
 int main( int argc, char** argv ) {
@@ -99,13 +164,19 @@ int main( int argc, char** argv ) {
 
     // cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx);
 
+
+
+    float* A_reord = row_reordering(A, M, K, N);
+
+
+
     clock_gettime(CLOCK_REALTIME, &start);
 
     double ans = 0;
     int iters = atoi(argv[2]);
 
     for(int i = 0; i < iters; i++) {
-        ans += cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx, density_val, argv);
+        ans += cake_sp_sgemm(A_reord, B, C, M, N, K, p, cake_cntx, density_val, argv);
     }
 
     clock_gettime(CLOCK_REALTIME, &end);
@@ -153,7 +224,7 @@ int main( int argc, char** argv ) {
     free(A);
     free(B);
     free(C);
-
+    free(A_reord);
     return 0;
 }
 
