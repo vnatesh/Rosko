@@ -66,7 +66,7 @@ int main( int argc, char** argv ) {
 
 
     for (int i = 0; i < nz; i++) {
-        fscanf(f, "%d %d %f\n", &i_tmp, &j_tmp, &a_tmp); // row, col,
+        fscanf(f, "%d %d %f\n", &i_tmp, &j_tmp, &a_tmp); // row, col, val
         i_tmp--;  /* adjust from 1-based to 0-based */
         j_tmp--;
 
@@ -104,7 +104,7 @@ int main( int argc, char** argv ) {
     clock_gettime(CLOCK_REALTIME, &start);
 
     for(int i = 0; i < ntrials; i++) {
-        ans += cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx, density_val, argv);
+        ans += cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx, density_val);
     }
 
     clock_gettime(CLOCK_REALTIME, &end);

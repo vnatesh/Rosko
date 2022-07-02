@@ -796,12 +796,6 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
     bool issymm = mm_is_symmetric(matcode) ? 1 : 0; 
     int nnz = issymm ? nz*2 : nz;
 
-    double density_val = ((double) nnz) / (M*K);
-    printf("nnz = %d, density = %f\n", nnz, density_val);
-    printf("M = %d, K = %d, N = %d\n", M,K,N);
-
-
-
 
     std::int64_t ldb     = columns;
     std::int64_t ldc     = columns;
@@ -814,11 +808,6 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
     std::vector<fp, mkl_allocator<fp, 64>> a;
 
     int i_tmp,j_tmp; float a_tmp;
-
-
-
-
-
 
 
 
@@ -842,20 +831,27 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
         permutation[i] = i;
     }
 
-
+    int ind = 0;
     if(issymm) {
 
         for (int i = 0; i < nz; i++) {
-            row_idx_unsorted[nz + i] = col_idx_unsorted[i];
-            col_idx_unsorted[nz + i] = row_idx_unsorted[i];
-            val_unsorted[nz + i] = val_unsorted[i];
+            // ignore diagonal entires
+            if(col_idx_unsorted[i] != row_idx_unsorted[i]) {
 
-            ++row_idx_ctr[row_idx_unsorted[nz + i]];
-            permutation[nz + i] = nz + i;
+                row_idx_unsorted[nz + ind] = col_idx_unsorted[i];
+                col_idx_unsorted[nz + ind] = row_idx_unsorted[i];
+                val_unsorted[nz + ind] = val_unsorted[i];
+
+                ++row_idx_ctr[row_idx_unsorted[nz + ind]];
+                permutation[nz + ind] = nz + ind;
+                ind++;
+            }
         }
     }
 
     if (f !=stdin) fclose(f);
+
+    nnz = nz + ind;
 
     std::sort(permutation.begin(), permutation.end(),
         [&](int a, int b)
@@ -868,6 +864,15 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
             return false;
         }
     );
+
+
+
+
+
+    double density_val = ((double) nnz) / (M*K);
+    printf("nnz = %d, density = %f\n", nnz, density_val);
+    printf("M = %d, K = %d, N = %d\n", M,K,N);
+
 
 
 
