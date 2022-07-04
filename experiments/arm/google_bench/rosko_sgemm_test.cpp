@@ -12,7 +12,7 @@ float rand_gen() {
 int main( int argc, char** argv ) {
 	 // run_tests();
 
-	int M, K, N, p, nz, ntrials = atoi(argv[3]), write_result = atoi(argv[4]);
+	int M, K, N, p, nz, ntrials = atoi(argv[3]), write_result = atoi(argv[4]);;
 	struct timespec start, end;
 	double diff_t;
 
@@ -85,7 +85,7 @@ int main( int argc, char** argv ) {
 	// double ret = cake_sp_gemm(A, B, C, M, N, K, p, cake_cntx);	
 	double ans = 0;
 	for(int i = 0; i < ntrials; i++) {
-		ans += cake_sgemm(A, B, C, M, N, K, p, cake_cntx);
+		ans += cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx);
 	}
 
 	if(write_result) {
@@ -93,11 +93,9 @@ int main( int argc, char** argv ) {
 	    snprintf(fname, sizeof(fname), "result_dlmc");
 	    FILE *fp;
 	    fp = fopen(fname, "a");
-	    fprintf(fp, "CAKE,%d,%d,%d,%d,%d,%f\n",M,K,N,nz,id,ans/ntrials);
+	    fprintf(fp, "rosko,%d,%d,%d,%d,%d,%f\n",M,K,N,nz,id,ans / ntrials);
 	    fclose(fp);
 	}
-
-
 	// cake_sgemm_checker(A, B, C, N, M, K);
 	
 	free(A);

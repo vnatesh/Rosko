@@ -52,6 +52,8 @@ public:
 		ssize_t nread;
 
         id = atoi(argv[2]);
+        ntrials = atoi(argv[3]);
+        write_result = atoi(argv[4]);
 
 		fptr = fopen(argv[1], "r");
 		if (fptr == NULL) {
@@ -117,7 +119,7 @@ public:
 
         // use p cores for experiment
         NEScheduler::get().set_num_threads(p);
-        for(int i = 0; i < 10; i++) {
+        for(int i = 0; i < ntrials; i++) {
             sgemm.run();
         }
 
@@ -127,12 +129,14 @@ public:
         diff_t = seconds + nanoseconds*1e-9;
         printf("sgemm time: %f \n", diff_t); 
 
-        // char fname[50];
-        // snprintf(fname, sizeof(fname), "result_bench");
-        // FILE *fp;
-        // fp = fopen(fname, "a");
-        // fprintf(fp, "armcl,%d,%d,%d,%d,%d,%f\n",M,K,N,nz,id,diff_t);
-        // fclose(fp);
+        if(write_result) {
+            char fname[50];
+            snprintf(fname, sizeof(fname), "result_dlmc");
+            FILE *fp;
+            fp = fopen(fname, "a");
+            fprintf(fp, "armcl,%d,%d,%d,%d,%d,%f\n",M,K,N,nz,id,diff_t / ntrials);
+            fclose(fp);
+        }
 
     }
     void do_teardown() override
@@ -153,6 +157,8 @@ private:
     int         p;
     int 		nz;
     int id;
+    int write_result;
+    int ntrials;
     bool        is_fortran{};
     std::string output_filename{};
 };

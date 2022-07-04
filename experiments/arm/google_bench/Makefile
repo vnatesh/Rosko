@@ -4,7 +4,7 @@ ifneq ($(strip $(BLIS_INSTALL_PATH)),)
 BLIS_INC_PATH   := $(BLIS_INSTALL_PATH)/include/blis
 endif
 
-# g++ rop_sgemm_test.cpp -I/usr/local/include/blis -I/tmp/CAKE_on_CPU/include -L/tmp/CAKE_on_CPU  -lcake -o testing
+# g++ rosko_sgemm_test.cpp -I/usr/local/include/blis -I/tmp/CAKE_on_CPU/include -L/tmp/CAKE_on_CPU  -lcake -o testing
 
 CAKE_INC_PATH  := $(CAKE_HOME)/include
 TEST_OBJ_PATH  := .
@@ -50,13 +50,13 @@ CFLAGS 	:= $(filter-out -fopenmp -std=c99, $(CFLAGS_tmp))
 all: $(TARGETS)
 
 cake_blis: $(wildcard *.h) $(wildcard *.c)
-	g++ $(CFLAGS_blis) rop_sgemm_test.cpp $(LIBCAKE) -o rop_sgemm_test
+	g++ $(CFLAGS_blis) rosko_sgemm_test.cpp $(LIBCAKE) -o rosko_sgemm_test
 
 cake_armv8: $(wildcard *.h) $(wildcard *.c)
-	g++ -O3 $(CFLAGS) rop_sgemm_test.cpp $(LIBCAKE) -o rop_sgemm_test
+	g++ -O3 $(CFLAGS) rosko_sgemm_test.cpp $(LIBCAKE) -o rosko_sgemm_test
 
 cake_haswell: $(wildcard *.h) $(wildcard *.c)
-	dpcpp $(CFLAGS) rop_sgemm_test.cpp $(LIBCAKE) -o rop_sgemm_test
+	dpcpp $(CFLAGS) rosko_sgemm_test.cpp $(LIBCAKE) -o rosko_sgemm_test
 
 cake: $(wildcard *.h) $(wildcard *.c)
 	g++ -O3 $(CFLAGS) cake_sgemm_test.cpp $(LIBCAKE) -o cake_sgemm_test

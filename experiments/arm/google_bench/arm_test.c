@@ -33,7 +33,7 @@ int main(int argc, char* argv[])  {
         exit(1);
     }
 
-    int id = atoi(argv[2]);
+    int id = atoi(argv[2]), ntrials = atoi(argv[3]), write_result = atoi(argv[4]);
 
     n = 2048; // fix N dimension for now (batch size = 8, seq len = 256)
     p = 4; // 4 cores on rasbpi 4
@@ -81,7 +81,7 @@ int main(int argc, char* argv[])  {
 
     clock_gettime(CLOCK_REALTIME, &start);
 
-    for(int i = 0; i < 10; i++) {
+    for(int i = 0; i < ntrials; i++) {
         cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
                 m, n, k, alpha, A, k, B, n, beta, C, n);
     }
@@ -93,13 +93,14 @@ int main(int argc, char* argv[])  {
     diff_t = seconds + nanoseconds*1e-9;
     printf("sgemm time: %f \n", diff_t); 
 
-
-    // char fname[50];
-    // snprintf(fname, sizeof(fname), "result_bench");
-    // FILE *fp;
-    // fp = fopen(fname, "a");
-    // fprintf(fp, "armpl,%d,%d,%d,%d,%d,%f\n",m,k,n,nz,id,diff_t);
-    // fclose(fp);
+    if(write_result) {
+        char fname[50];
+        snprintf(fname, sizeof(fname), "result_dlmc");
+        FILE *fp;
+        fp = fopen(fname, "a");
+        fprintf(fp, "armpl,%d,%d,%d,%d,%d,%f\n",m,k,n,nz,id,diff_t / ntrials);
+        fclose(fp);
+    }
 
 
     free(A);

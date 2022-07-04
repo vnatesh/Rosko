@@ -25,37 +25,42 @@ aarch64-linux-gnu-g++ -o neon_sgemm -fopenmp \
 neon_sgemm.o $ARMCL_PATH/build/utils/Utils.o -L$ARMCL_PATH/build \
 -L$ARMCL_PATH -lpthread -larm_compute -larm_compute_core
 
-# compile rop_sgemm_test
+# compile rosko_sgemm_test
 make;
 
 mkdir reports_arm_trans
 i=0;
+NTRIALS=10;
+
+echo "algo,M,K,N,nz,id,time" >> result_bench
+
 
 for file in random_pruning/**/*.smtx; 
 do
 
 
 
-	# ./rop_sgemm_test $file $i; 
-	# ./arm_test $file $i; 
-	# ./neon_sgemm  $file $i;
+	# ./rosko_sgemm_test $file $i $NTRIALS 1; 
+	# ./cake_sgemm_test $file $i $NTRIALS 1; 
+	# ./arm_test $file $i $NTRIALS 1; 
+	# ./neon_sgemm  $file $i $NTRIALS 1;
 	perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
-	-o reports_arm_trans/report_rop_$i ./rop_sgemm_test $file $i;
+	-o reports_arm_trans/report_rosko_$i ./rosko_sgemm_test $file $i 1 0;
 
 	perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
-	-o reports_arm_trans/report_cake_$i ./cake_sgemm_test $file $i;
+	-o reports_arm_trans/report_cake_$i ./cake_sgemm_test $file $i 1 0;
 
 	# perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
-	# -o reports_arm_trans/report_setup_cake_$i ./rop_sgemm_test $file $i;
+	# -o reports_arm_trans/report_setup_cake_$i ./rosko_sgemm_test $file $i;
 
 	perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
-	-o reports_arm_trans/report_armpl_$i ./arm_test $file $i; 
+	-o reports_arm_trans/report_armpl_$i ./arm_test $file $i 1 0; 
 
 	# perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
 	# -o reports_arm_trans/report_setup_armpl_$i ./arm_test $file $i; 
 
 	perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
-	-o reports_arm_trans/report_armcl_$i ./neon_sgemm $file $i;
+	-o reports_arm_trans/report_armcl_$i ./neon_sgemm $file $i 1 0;
 
 	# perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
 	# -o reports_arm_trans/report_setup_armcl_$i ./neon_sgemm $file $i;
