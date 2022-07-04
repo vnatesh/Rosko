@@ -60,6 +60,8 @@ int main( int argc, char** argv ) {
     printf("nnz = %d, density = %f\n", nnz, density_val);
     printf("M = %d, K = %d, N = %d, cores = %d\n", M,K,N,p);
 
+
+
     float* A = (float*) malloc(M * K * sizeof( float ));
     float* B = (float*) malloc(K * N * sizeof( float ));
     float* C = (float*) calloc(M * N , sizeof( float ));
@@ -119,7 +121,7 @@ int main( int argc, char** argv ) {
         snprintf(fname, sizeof(fname), "result_sp");
         FILE *fp;
         fp = fopen(fname, "a");
-        fprintf(fp, "rosko,%s,%d,%f\n",argv[1],p,ans / ntrials);
+        fprintf(fp, "rosko,%s,%d,%d,%d,%d,%f,%f\n",argv[1],M,K,N,p,(1-density_val)*100,ans / ntrials);
         fclose(fp);
     }
 

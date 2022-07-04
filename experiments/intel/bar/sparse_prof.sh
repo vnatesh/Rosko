@@ -7,33 +7,9 @@ mkdir reports;
 
 x=$PWD
 
+export GOMP_CPU_AFFINITY="0 1 2 3 4 5 6 7 8 9";
 
 # Download ML_Graph SuiteSparse matrices
-pip install ssgetpy
-
-
-
-python - <<END
-import ssgetpy
-ssgetpy.search(rowbounds=(5000,22000),colbounds=(5000,22000), \
-    dtype = 'real', group='ML_Graph').download(destpath = '.', extract=True)
-END
-
-# python - <<END
-# import ssgetpy
-# ssgetpy.search(rowbounds=(5000,22000),colbounds=(5000,22000), \
-#     dtype = 'real', group='ML_Graph').download(destpath = '.', extract=True)
-# # ssgetpy.search(rowbounds=(5000,22000),colbounds=(5000,22000),\
-# # dtype = 'real', group='Belcastro').download(destpath = '.', extract=True)
-# ssgetpy.search(nzbounds=(35631,35633),\
-#     dtype = 'real', group='LPnetlib').download(destpath = '.', extract=True)
-# ssgetpy.search(nzbounds=(1853103,1853105),\
-#     dtype = 'real', group='Simon').download(destpath = '.', extract=True)
-# END
-
-mv **/*.mtx .
-rm -R -- */;
-rm *label*;
 
 
 # compile mkl_sparse gemm test with Intel MKL
@@ -44,13 +20,13 @@ cp _results/intel64_so_tbb/spblas/sparse_gemm.out $x
 cd $x
 
 
-# compile cake_sgemm_test
+# compile rosko_test
 make;
 
 NTRIALS=10;
 NCORES=10;
 
-echo "algo,file,p,time" >> result_sp
+echo "algo,file,M,K,N,p,sparsity,time" >> result_sp
 # run matmul bench through intel vtune 
 
 
@@ -60,18 +36,18 @@ do
 	do
 		vtune --collect memory-access -data-limit=0 \
 			-result-dir=$PWD/prof_result \
-		 	$PWD/sparse_gemm.out $file $n 0; 
+		 	$PWD/sparse_gemm.out $file $n 0 $NTRIALS; 
 		vtune -report summary -r prof_result -format csv \
-			-report-output reports/report_mkl_$i-$j.csv -csv-delimiter comma;
+			-report-output reports/report_mkl_$file-$n.csv -csv-delimiter comma;
 		rm -rf prof_result;
 
 
 		vtune --collect memory-access -data-limit=0 \
-			-result-dir=$PWD/cake_sgemm_result \
-			 $PWD/cake_spgemm_test $file $n 0;
-		vtune -report summary -r cake_sgemm_result -format csv \
-			-report-output reports/report_cake_sgemm_$i-$j.csv -csv-delimiter comma;
-		rm -rf cake_sgemm_result;
+			-result-dir=$PWD/rosko_result \
+			 $PWD/cake_spgemm_test $file $n 0 $NTRIALS;
+		vtune -report summary -r rosko_result -format csv \
+			-report-output reports/report_rosko_$file-$n.csv -csv-delimiter comma;
+		rm -rf rosko_result;
 
 		./sparse_gemm.out $file $n 1 $NTRIALS;
 		./cake_spgemm_test $file $n 1 $NTRIALS; 

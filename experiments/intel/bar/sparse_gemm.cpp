@@ -873,6 +873,9 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
     printf("nnz = %d, density = %f\n", nnz, density_val);
     printf("M = %d, K = %d, N = %d\n", M,K,N);
 
+    // if(density_val >= 0.999) {
+    //     exit(1);
+    // }
 
 
 
@@ -1022,7 +1025,7 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
             snprintf(fname, sizeof(fname), "result_sp");
             FILE *fp1;
             fp1 = fopen(fname, "a");
-            fprintf(fp1, "mkl,%s,%d,%f\n",argv[1],p,diff_t / ntrials);
+            fprintf(fp1, "mkl,%s,%d,%d,%d,%d,%f,%f\n",argv[1],M,K,N,p,(1-density_val)*100.0, diff_t / ntrials);
             fclose(fp1);
         }
 
