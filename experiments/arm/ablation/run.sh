@@ -26,33 +26,68 @@ neon_sgemm.o $ARMCL_PATH/build/utils/Utils.o -L$ARMCL_PATH/build \
 # compile inner product, rosko, and cake
 make;
 
+echo "algo,M,K,N,sp,time" >> result_ablate_arm
+NTRIALS=5
+NCORES=4
 
 # armcl dense MM
 perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
--o reports_arm_ablate/report_armcl ./neon_sgemm 5000 5000 5000 4 0;
+-o reports_arm_ablate/report_armcl ./neon_sgemm 5000 5000 5000 $NCORES 0 1;
 
 # CAKE dense MM
 perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
--o reports_arm_ablate/report_cake ./cake_sgemm_test 5000 5000 5000 4 0;
+-o reports_arm_ablate/report_cake ./cake_sgemm_test 5000 5000 5000 $NCORES 0 1;
+
+
 
 # get runtimes
-./neon_sgemm 5000 5000 5000 4 1
-./cake_sgemm_test 5000 5000 5000 4 1
+./neon_sgemm 5000 5000 5000 $NCORES 1 $NTRIALS
+./cake_sgemm_test 5000 5000 5000 $NCORES 1 $NTRIALS
 
 for i in 70 72 75 77 80 82 85 87 90 92 95 97 99
 do
-	# # rosko without density-based reordering
-	# perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
-	# -o reports_arm_ablate/report_rop_$i ./rosko_sgemm_test $file $i;
-
 	# rosko 
 	perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
-	-o reports_arm_ablate/report_rosko_$i ./rosko_sgemm_test 5000 5000 5000 4 0 $i 0;
+	-o reports_arm_ablate/report_rosko_reorder_tile_$i ./rosko_reorder_tile 5000 5000 5000 $NCORES 0 $i 1;
+
+	perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
+	-o reports_arm_ablate/report_rosko_reorder_$i ./rosko_reorder 5000 5000 5000 $NCORES 0 $i 1;
 
 	# get runtimes
-	./rosko_sgemm_test 5000 5000 5000 4 0 $i 1
+	./rosko_reorder_tile 5000 5000 5000 $NCORES 1 $i $NTRIALS
+	./rosko_reorder 5000 5000 5000 $NCORES 1 $i $NTRIALS
 
 done
 
+
+
+x=$PWD
+
+mv $CAKE_HOME/src/kernels/armv8/sparse.cpp sparse_tmp.cpp
+mv $CAKE_HOME/src/pack_ob.cpp pack_ob_tmp.cpp
+
+mv sparse.cpp $CAKE_HOME/src/kernels/armv8
+mv pack_ob.cpp $CAKE_HOME/src
+
+cd $CAKE_HOME
+make;
+source env.sh;
+cd $x;
+
+
+for i in 70 72 75 77 80 82 85 87 90 92 95 97 99
+do
+	# rosko without density-based reordering or sp-tiling
+	perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
+	-o reports_arm_ablate/report_rosko_$i ./rosko 5000 5000 5000 $NCORES 0 $i 1;
+
+	# get runtimes
+	./rosko 5000 5000 5000 $NCORES 1 $i $NTRIALS
+
+done
+
+
+mv sparse_tmp.cpp $CAKE_HOME/src/kernels/armv8/sparse.cpp
+mv pack_ob_tmp.cpp $CAKE_HOME/src/pack_ob.cpp
 
 # python plots.py $NTRIALS;

@@ -47,6 +47,7 @@ public:
         K = strtol(argv[3], nullptr, 10);
         p = atoi(argv[4]);
         write_result = atoi(argv[5]);
+        ntrials = atoi(argv[6]);
 
         printf("M = %ld, K = %ld, N = %ld, p = %d\n", M,K,N,p);
         
@@ -99,20 +100,22 @@ public:
 
         // use p cores for experiment
         NEScheduler::get().set_num_threads(p);
-        sgemm.run();
+        for(int i = 0; i < ntrials; i++) {
+            sgemm.run();
+        }
 
         clock_gettime(CLOCK_REALTIME, &end);
         long seconds = end.tv_sec - start.tv_sec;
         long nanoseconds = end.tv_nsec - start.tv_nsec;
         diff_t = seconds + nanoseconds*1e-9;
-        printf("sgemm time: %f \n", diff_t); 
+        printf("sgemm time: %f \n", diff_t / ntrials); 
 
         if(write_result) {
             char fname[50];
             snprintf(fname, sizeof(fname), "result_ablate_arm");
             FILE *fp;
             fp = fopen(fname, "a");
-            fprintf(fp, "armcl,%d,%d,%d,%d,%f\n",M,K,N,1,diff_t);
+            fprintf(fp, "armcl,%d,%d,%d,%d,%f\n",M,K,N,1,diff_t / ntrials);
             fclose(fp);
         }
     }
@@ -133,6 +136,7 @@ private:
     size_t      K;
     int         p;
     int         write_result;
+    int         ntrials;
     bool        is_fortran{};
     std::string output_filename{};
 };
