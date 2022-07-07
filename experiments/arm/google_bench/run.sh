@@ -32,7 +32,7 @@ mkdir reports_arm_trans
 i=0;
 NTRIALS=10;
 
-echo "algo,M,K,N,nz,id,time" >> result_bench
+echo "algo,M,K,N,nz,id,time" >> result_dlmc
 
 
 for file in random_pruning/**/*.smtx; 

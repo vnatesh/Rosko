@@ -37,7 +37,7 @@ int main( int argc, char** argv ) {
 	M = atoi(strtok(line," "));
 	K = atoi(strtok(NULL, " "));
 	nz = atoi(strtok(NULL, " "));
-
+	float density = ((float) nz) / ((float) (M*K))
 	float* A = (float*) malloc(M * K * sizeof( float ));
 
 	printf("M = %d K = %d nz = %d  N = %d, cores = %d\n", M, K, nz, N, p);
@@ -85,7 +85,7 @@ int main( int argc, char** argv ) {
 	// double ret = cake_sp_gemm(A, B, C, M, N, K, p, cake_cntx);	
 	double ans = 0;
 	for(int i = 0; i < ntrials; i++) {
-		ans += cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx);
+		ans += cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx, density);
 	}
 
 	if(write_result) {
