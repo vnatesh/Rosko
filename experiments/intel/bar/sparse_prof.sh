@@ -23,7 +23,7 @@ cd $x
 # compile rosko_test
 make;
 
-NTRIALS=10;
+NTRIALS=5;
 NCORES=10;
 
 echo "algo,file,M,K,N,p,sparsity,time" >> result_sp
@@ -32,21 +32,21 @@ echo "algo,file,M,K,N,p,sparsity,time" >> result_sp
 
 for ((n=10; n <= $NCORES; n++));
 do
-	for file in *.mtx; 
+	for file in data/*.mtx; 
 	do
 		vtune --collect memory-access -data-limit=0 \
 			-result-dir=$PWD/prof_result \
-		 	$PWD/sparse_gemm.out $file $n 0 $NTRIALS; 
+		 	$PWD/sparse_gemm.out $file $n 0 1; 
 		vtune -report summary -r prof_result -format csv \
-			-report-output reports/report_mkl_$file-$n.csv -csv-delimiter comma;
+			-report-output reports/report_mkl_${file##*/}-$n.csv -csv-delimiter comma;
 		rm -rf prof_result;
 
 
 		vtune --collect memory-access -data-limit=0 \
 			-result-dir=$PWD/rosko_result \
-			 $PWD/cake_spgemm_test $file $n 0 $NTRIALS;
+			 $PWD/cake_spgemm_test $file $n 0 1;
 		vtune -report summary -r rosko_result -format csv \
-			-report-output reports/report_rosko_$file-$n.csv -csv-delimiter comma;
+			-report-output reports/report_rosko_${file##*/}-$n.csv -csv-delimiter comma;
 		rm -rf rosko_result;
 
 		./sparse_gemm.out $file $n 1 $NTRIALS;

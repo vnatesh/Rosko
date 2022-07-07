@@ -991,6 +991,7 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
 
         int p = atoi(argv[2]);
         mkl_set_num_threads_local(p);
+        omp_set_num_threads(p);
 
         int write_result = atoi(argv[3]);
         // warmup

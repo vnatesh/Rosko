@@ -43,7 +43,23 @@ for n in [files[i].name for i in range(len(files))]:
 		continue
 END
 
+python -c "
+import ssgetpy
+import os
+import shutil
+
+files = ssgetpy.search(rowbounds=(5000,16000),colbounds=(5000,16000), \
+    dtype = 'real', limit = 300)
+files.download(destpath = '.', extract=True)
+for n in [files[i].name for i in range(len(files))]:
+	try:
+		shutil.move('%s/%s.mtx' % (n,n), '.')
+		shutil.rmtree('%s' % n )
+	except FileNotFoundError:
+		continue
+"
 
 
 
+mv **/*.mtx .
 rm -R -- */;
