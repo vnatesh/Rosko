@@ -39,11 +39,11 @@ int main( int argc, char** argv ) {
 
 	cake_cntx_t* cake_cntx = cake_query_cntx();
 	
-	
+	float density_val = 1.0 - (((float) sp) / 100.0);
+
 	clock_gettime(CLOCK_REALTIME, &start);
 
-	double ret = cake_sp_sgemm(A, B, C, M, N, K, p, 
-		cake_cntx, 1.0 - (((float) sp) / 100.0), argv);
+	double ret = cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx, density_val);
 
     clock_gettime(CLOCK_REALTIME, &end);
     long seconds = end.tv_sec - start.tv_sec;

@@ -32,11 +32,13 @@ int main(int argc, char* argv[])  {
     mkl_set_num_threads(p);
 
     float *A, *B, *C;
-    int m, n, k, i, j, write_result;
+    int m, n, k, i, j, write_result, ntrials;
     float alpha, beta;
 
     m = atoi(argv[1]), k = atoi(argv[2]), n = atoi(argv[3]);
     write_result = atoi(argv[5]);
+    ntrials = atoi(argv[6]);
+
     //m = atoi(argv[2]);
     //k = m;
     //n = m;
@@ -97,21 +99,24 @@ int main(int argc, char* argv[])  {
 
     clock_gettime(CLOCK_REALTIME, &start);
 
-    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+    for(int i = 0; i < ntrials; i++) {
+        cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
                 m, n, k, alpha, A, k, B, n, beta, C, n);
+    }
+
     clock_gettime(CLOCK_REALTIME, &end);
 
     long seconds = end.tv_sec - start.tv_sec;
     long nanoseconds = end.tv_nsec - start.tv_nsec;
     diff_t = seconds + nanoseconds*1e-9;
-    printf("GEMM time: %f \n", diff_t); 
+    printf("GEMM time: %f \n", diff_t / ntrials); 
 
     if(write_result) {
         char fname[50];
         snprintf(fname, sizeof(fname), "result_ablate_intel");
         FILE *fp;
         fp = fopen(fname, "a");
-        fprintf(fp, "mkl,%d,%d,%d,%d,%f\n",m,k,n,1,diff_t);
+        fprintf(fp, "mkl,%d,%d,%d,%d,%f\n",m,k,n,1,diff_t / ntrials);
         fclose(fp);
     }
 

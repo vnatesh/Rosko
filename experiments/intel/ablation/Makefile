@@ -29,12 +29,17 @@ UNAME_P := $(shell uname -p)
 SRC_FILES =  $(wildcard $(CAKE_HOME)/src/*.cpp)
 
 ifeq ($(UNAME_P),aarch64)
-	TARGETS = cake_armv8
+	TARGETS = rosko
+	TARGETS += rosko_reorder
+	TARGETS += rosko_reorder_tile
 	TARGETS += cake
 else ifeq ($(UNAME_P),x86_64)
 	TARGETS = cake_haswell
 	TARGETS += cake
-	TARGETS += inner
+	TARGETS = rosko
+	TARGETS += rosko_reorder
+	TARGETS += rosko_reorder_tile
+	TARGETS += cake
 	CFLAGS_tmp		  += -g -mavx -mfma
 else
 	TARGETS = cake_blis
@@ -52,10 +57,16 @@ CFLAGS 	:= $(filter-out -fopenmp -std=c99, $(CFLAGS_tmp))
 all: $(TARGETS)
 
 cake_blis: $(wildcard *.h) $(wildcard *.c)
-	g++ $(CFLAGS_blis) rosko_sgemm_test.cpp $(LIBCAKE) -o rosko_sgemm_test
+	g++ $(CFLAGS_blis) rosko_reorder_tile.cpp $(LIBCAKE) -o rosko_sgemm_test
 
-cake_armv8: $(wildcard *.h) $(wildcard *.c)
-	g++ -O3 $(CFLAGS) rosko_sgemm_test.cpp $(LIBCAKE) -o rosko_sgemm_test
+rosko: $(wildcard *.h) $(wildcard *.c)
+	g++ -O3 $(CFLAGS) rosko.cpp $(LIBCAKE) -o rosko
+
+rosko_reorder: $(wildcard *.h) $(wildcard *.c)
+	g++ -O3 $(CFLAGS) rosko_reorder.cpp $(LIBCAKE) -o rosko_reorder
+
+rosko_reorder_tile: $(wildcard *.h) $(wildcard *.c)
+	g++ -O3 $(CFLAGS) rosko_reorder_tile.cpp $(LIBCAKE) -o rosko_reorder_tile
 
 cake_haswell: $(wildcard *.h) $(wildcard *.c)
 	dpcpp $(CFLAGS) rosko_sgemm_test.cpp $(LIBCAKE) -o rosko_sgemm_test
