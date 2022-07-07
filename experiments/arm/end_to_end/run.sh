@@ -25,14 +25,18 @@ aarch64-linux-gnu-g++ -o neon_sgemm -fopenmp \
 neon_sgemm.o $ARMCL_PATH/build/utils/Utils.o -L$ARMCL_PATH/build \
 -L$ARMCL_PATH -lpthread -larm_compute -larm_compute_core
 
-# compile rop_sgemm_test
+
+# compile rosko_sgemm_test
 make;
+
+echo "algo,M,K,N,nz,time" >> result_end_to_end
+
 
 for dir in matrices/* 
 do 
 	for file in $dir/* 
 	do 
-		./rop_sgemm_test $file; 
+		./rosko_sgemm_test $file; 
 		./arm_test $file; 
 		./neon_sgemm  $file;
 	done 

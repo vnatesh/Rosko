@@ -78,9 +78,10 @@ int main(int argc, char* argv[]) {
 	
 	double ret1 = 0.0, ret2 = 0.0;
 	int iters = 10;
+	float density = ((float) nz) / ((float) (M*K));
 
 	for(int i = 0; i < iters; i++) {
-		ret1 += cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx);
+		ret1 += cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx, density);
 		ret2 += cake_sgemm(A, B, C, M, N, K, p, cake_cntx);
 	}
 
