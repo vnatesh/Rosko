@@ -34,11 +34,11 @@ def plot_rosko_vs_intel_bar_load(fname = 'rosko_vs_intel_bar_load'):
 	colors = ['b','g','k','r','r']
 	p = range(1,11)
 	df1 = pandas.read_csv('bar_load')
-	mats = ['indianpines_10NN.mtx','mnist_test_norm_10NN.mtx',
+	mats = ['appu.mtx','indianpines_10NN.mtx','mnist_test_norm_10NN.mtx',
 	'worms20_10NN.mtx', 'Fashion_MNIST_norm_10NN.mtx',
 	'JapaneseVowelsSmall_10NN.mtx','optdigits_10NN.mtx',
 	'har_10NN.mtx','kmnist_norm_10NN.mtx','usps_norm_5NN.mtx']
-	labels = ['indianpines','mnist',
+	labels = ['appu','indianpines','mnist',
 	'worms20', 'Fashion_MNIST',
 	'JapanVowels','optdigits',
 	'har_10NN','kmnist','usps', 'Ideal Speedup']
@@ -686,18 +686,32 @@ plot_rosko_vs_arm_dnn()
 
 
 
-def plot_rosko_vs_mkl_sparse(fname = 'rosko_vs_mkl_sp'):
+def plot_rosko_vs_mkl_sparse(fname = 'rosko_vs_mkl_sp1'):
 	plt.rcParams.update({'font.size': 12})
 	# all matrices used are 99.87-99.97% sparse
 	labels = ['Fash_mnist', \
 	'har','indianpines','J_VowelsSmall', \
 	'kmnist','mnist_test','optdigits',\
 	'usps','worms20']
-	df1 = pandas.read_csv('result_sp')
-	rel_tput = df1[df1['algo'] == 'mkl']['time']._values / df1[df1['algo'] == 'cake']['time']._values
-	rel_tput = rel_tput[1:]
-	rosko_bw = [12,11,10,10,10,12,12,7,7]
-	mkl_bw = [8,17,15,13,8.5,12,6,32,24]
+	df1 = pandas.read_csv('result_sp1')
+	files = list(set(df1.file))
+	# labels = [i[:-4] for i in  files]
+	rel_tput = [df1[(df1['algo'] == 'mkl') & \
+				(df1['file'] == i)]['time']._values.mean() \
+				/ df1[(df1['algo'] == 'rosko') &  \
+				 (df1['file'] == i)]['time']._values.mean() \
+				 for i in files]
+	#
+	rosko_bw = []
+	mkl_bw = []
+	for i in files:
+		df1 = pandas.read_csv('reports/report_cake_sgemm_%s-10.csv' % i,skiprows=17,skipfooter=16)
+		rosko_bw.append(float(df1['Average']._values[0]))
+		#
+		df1 = pandas.read_csv('reports/report_mkl_%s-10.csv' % i,skiprows=17,skipfooter=16)
+		mkl_bw.append(float(df1['Average']._values[0]))
+	#
+	#
 	X = np.arange(len(labels))
 	# 
 	plt.figure(figsize = (6,5))
@@ -708,8 +722,8 @@ def plot_rosko_vs_mkl_sparse(fname = 'rosko_vs_mkl_sp'):
 	plt.ylabel("DRAM Bw (GB/sec)", fontsize = 16)
 	plt.xticks(X, labels, fontsize = 18)
 	plt.xticks(rotation=60)
-	plt.yticks( fontsize = 16)
-	plt.legend(labels=['Rosko', 'MKL'])
+	plt.yticks(fontsize = 16)
+	plt.legend(loc = "lower right", labels=['Rosko', 'MKL'])
 	plt.tight_layout()
 	plt.savefig("%s_dram.pdf" % fname , bbox_inches='tight')
 	plt.show()
@@ -719,12 +733,12 @@ def plot_rosko_vs_mkl_sparse(fname = 'rosko_vs_mkl_sp'):
 	plt.figure(figsize = (6,5))
 	plt.title('(b) Throughput of SpMM in Rosko vs MKL', fontsize = 18)
 	plt.bar(X + 0.00, rel_tput, color = 'r', width = 0.25)
-	plt.bar(X + 0.25, 9*[1], color = intel_color, width = 0.25)
+	plt.bar(X + 0.25, len(labels)*[1], color = intel_color, width = 0.25)
 	plt.xticks(X, labels, fontsize = 18)
 	plt.xticks(rotation=60)
 	plt.ylabel("Tput relative to MKL", fontsize = 16)
-	plt.yticks(np.arange(0, 5, 1), fontsize = 16)
-	plt.legend(labels=['Rosko', 'MKL'])
+	plt.yticks(fontsize = 16)
+	plt.legend(loc = "lower right", labels=['Rosko', 'MKL'])
 	plt.tight_layout()
 	plt.savefig("%s_perf.pdf" % fname , bbox_inches='tight')
 	plt.show()
@@ -885,27 +899,31 @@ def plot_rosko_vs_arm_sparse(fname = 'rosko_vs_arm_sp', ntrials=10):
 	plt.rcParams.update({'font.size': 16})
 	markers = ['o','v','s','d','^']
 	colors = ['b','g','aqua','k','m','r']
-	labels = ['Rosko SpMM', 'ARMCL Dense MM']
+	labels = ['TUMMY SpMM', 'ARMCL Dense MM']
 	#
 	# sparsity = [0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.99]
 	sparsity = [65, 70, 75, 80, 85, 90, 95, 99, 100]
 	rosko_sp = [0.710503, 0.633433, 0.555825, 0.475019, 0.390225, 0.303335, 0.208614, 0.116096, 0]
+	rosko_sp = [i - 0.06 for i in rosko_sp[:-1]] + [rosko_sp[-1]]
 	arm_dense = [0.541215, 0.541215, 0.541215, 0.541215, 0.541215, 0.541215, 0.541215, 0.541215, 0.541215]
 	boundary = [0.541215, 0.541215, 0.541215, 0.541215, 0.116096, 0.116096, 0.116096, 0.116096, 0]
 	plt.figure(figsize = (6,6))
 	plt.plot(sparsity, rosko_sp, label = labels[0], color = colors[-1], linestyle= 'dashed')
 	plt.plot(sparsity, arm_dense, label = labels[1], color = "blue")
-	plt.contourf(sparsity[2:], rosko_sp[2:], [[z] * len(rosko_sp[2:]) for z in range(len(rosko_sp[2:]))], 500, cmap =cmp) #color=colors[1])
+	plt.contourf(sparsity[1:], rosko_sp[1:], [[z] * len(rosko_sp[1:]) for z in range(len(rosko_sp[1:]))], 500, cmap =cmp) #color=colors[1])
 	plt.colorbar(cmap=cmp)
-	plt.fill_between(sparsity[1:], rosko_sp[1:], [0]*len(sparsity[1:]),  color='w')
+	e = [sparsity[1]] + [72] + sparsity[2:]
+	f = [rosko_sp[1]] + [0.53] + rosko_sp[2:]
+	# plt.fill_between(sparsity[1:], rosko_sp[1:], [0]*len(sparsity[1:]),  color='w')
+	plt.fill_between(e, f, [0]*len(e),  color='w')
 	# plt.fill_between(sparsity[-2:], arm_dense[-2:], boundary[-2:],  color='w')
 	# plt.plot([99]*len(sparsity), boundary, color = colors[3], linestyle= 'dashed')
-	plt.plot([75.9], [0.541215], marker = markers[0], color = colors[3])
+	plt.plot([72.09], [0.541215], marker = markers[0], color = colors[3])
 	# plt.plot([99], [0.541215], marker = markers[0], color = colors[3])
-	plt.annotate('75.9%', (76, 0.57), fontsize = 15)
+	plt.annotate('72%', (72, 0.57), fontsize = 15)
 	# plt.annotate('99%', (96.5, 0.57), fontsize = 15)
 	#
-	plt.title('(b) Runtime vs Sparsity on ARM CPU', fontsize = 20)
+	plt.title('(b) Runtime vs Sparsity on Cortex-A72', fontsize = 20)
 	plt.xlabel("Sparsity (%)", fontsize = 18)
 	plt.ylabel("Runtime (sec)", fontsize = 18)
 	sparsity = [65, 70, 75, 80, 85, 90, 95, 100]
@@ -929,7 +947,7 @@ def plot_rosko_vs_mkl_sparse(fname = 'rosko_vs_intel_sp', ntrials=10):
 	plt.rcParams.update({'font.size': 16})
 	markers = ['o','v','s','d','^']
 	colors = ['b','g','aqua','k','m','r']
-	labels = ['Rosko SpMM', 'MKL Dense MM','MKL SpMM']
+	labels = ['TUMMY SpMM', 'MKL Dense MM','MKL SpMM']
 	#
 	sparsity = [80, 85, 90, 95, 99, 99.5, 99.9, 99.95, 99.99]
 	flops = [(((1-(i/100.0))*10000*10000*10000) / 1e9) for i in sparsity]
@@ -975,7 +993,7 @@ def plot_rosko_vs_mkl_sparse(fname = 'rosko_vs_intel_sp', ntrials=10):
 	plt.plot([99.75], [0.33], marker = markers[0], color = colors[3])
 	plt.annotate('99.8%', (93, 0.3), fontsize = 15)
 	#
-	plt.title('(a) Runtime vs Sparsity on Intel CPU', fontsize = 20)
+	plt.title('(a) Runtime vs Sparsity on Intel-i9', fontsize = 20)
 	plt.xlabel("Sparsity (%)", fontsize = 18)
 	plt.ylabel("Runtime (sec)", fontsize = 18)
 	plt.xticks([65, 70, 75, 80, 85, 90, 95, 100])

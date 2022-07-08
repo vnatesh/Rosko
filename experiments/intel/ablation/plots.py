@@ -17,7 +17,7 @@ def plot_rosko_vs_intel_ablate(fname = 'rosko_vs_intel_ablate', ntrials = 2):
 	plt.rcParams.update({'font.size': 12})
 	markers = ['o','v','s','d','^']
 	colors = ['b','g','k','m','r']
-	labels = ['MKL', 'CAKE','rosko', 'rosko+reordering', 'rosko+reorder+sp_tiling']
+	labels = ['MKL', 'CAKE','Rosko', 'Rosko+reordering', 'Rosko+reorder+sp_tiling']
 	sparsity = [80, 82, 85, 87, 90, 92, 95, 97, 99]
 	M=K=N=10000
 	dft = pandas.read_csv('result_ablate_intel')
@@ -93,7 +93,7 @@ def plot_rosko_vs_intel_ablate(fname = 'rosko_vs_intel_ablate', ntrials = 2):
 	plt.plot(sparsity, dram_bw_rosko_reorder, label = labels[3], color = colors[3])
 	plt.plot(sparsity, dram_bw_rosko_reorder_tile, label = labels[4], color = colors[4])
 	#
-	plt.title('(e) DRAM Bandwidth on Intel CPU', fontsize = 24)
+	plt.title('(e) DRAM Bandwidth on Intel-i9', fontsize = 24)
 	plt.xlabel("Sparsity (%)", fontsize = 24)
 	plt.xticks(range(80,101,5), fontsize = 20)
 	plt.yticks(range(0,19,3), fontsize = 16)
@@ -117,9 +117,9 @@ def plot_rosko_vs_intel_ablate(fname = 'rosko_vs_intel_ablate', ntrials = 2):
 	plt.plot(sparsity, troskoreordertile, label = labels[4],  color = colors[4])
 	#
 	plt.ticklabel_format(useOffset=False, style='plain')
-	plt.title('(d) Throughput on Intel CPU', fontsize = 24)
+	plt.title('(b) Throughput on Intel-i9', fontsize = 24)
 	plt.xlabel("Sparsity (%)", fontsize = 24)
-	plt.ylabel("Relative Tput wrt MKL", fontsize = 20)
+	plt.ylabel("Relative Tput wrt MKL", fontsize = 24)
 	plt.xticks(range(80,101,5), fontsize = 20)
 	plt.yticks(np.arange(0,7,1), fontsize = 20)
 	plt.legend(loc = "upper left", prop={'size': 16})
@@ -136,7 +136,7 @@ def plot_rosko_vs_intel_ablate(fname = 'rosko_vs_intel_ablate', ntrials = 2):
 	plt.plot(sparsity, spec_rosko_reorder_tile, label = labels[4],  color = colors[4])
 	#
 	plt.ticklabel_format(useOffset=False, style='plain')
-	plt.title('(g) Misspeculation on Intel CPU', fontsize = 24)
+	plt.title('(f) Misspeculation on Intel-i9', fontsize = 24)
 	plt.xlabel("Sparsity (%)", fontsize = 24)
 	plt.ylabel("Pipeline Slots (%)", fontsize = 24)
 	plt.xticks(range(80,101,5), fontsize = 20)
@@ -154,7 +154,7 @@ def plot_rosko_vs_intel_ablate(fname = 'rosko_vs_intel_ablate', ntrials = 2):
 	plt.plot(sparsity, dram_io_rosko_reorder, label = labels[3], color = colors[3])
 	plt.plot(sparsity, dram_io_rosko_reorder_tile, label = labels[4], color = colors[4])
 	#
-	plt.title('(f) DRAM IO on Intel CPU', fontsize = 24)
+	plt.title('(e) DRAM IO on Intel-i9', fontsize = 24)
 	plt.xlabel("Sparsity (%)", fontsize = 24)
 	plt.ylabel("DRAM IO (GB)", fontsize = 24)
 	plt.xticks(range(80,101,5), fontsize = 20)

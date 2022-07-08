@@ -14,7 +14,7 @@ def plot_rosko_vs_arm_dnn(fname = 'rosko_vs_arm_dlmc'):
 	plt.rcParams.update({'font.size': 12})
 	markers = ['o','v','s','d','^']
 	colors = ['b','g','aqua','k','m','r']
-	labels = ['Rosko', 'ARMPL','ARMCL', 'CAKE']
+	labels = ['TUMMY', 'ARMPL','ARMCL', 'CAKE']
 	gflops_armpl=[0]*776;gflops_rosko=[0]*776;dram_io_rosko=[0]*776;dram_io_armpl=[0]*776;
 	gflops_armcl=[0]*776; dram_io_armcl=[0]*776; dram_bw_rosko=[0]*776;dram_bw_armpl=[0]*776;
 	dram_bw_armcl=[0]*776;dram_io_cake=[0]*776; dram_bw_cake=[0]*776; gflops_cake=[0]*776;
@@ -91,10 +91,10 @@ def plot_rosko_vs_arm_dnn(fname = 'rosko_vs_arm_dlmc'):
 	# plt.subplot(1, 2, 1)
 	flops = np.log10(np.array(flops))
 	flops = [i for i in flops if i !=0 and i != np.inf and i != -np.inf]	
-	gflops_armcl = [i for i in gflops_armcl if i !=0 and i != np.inf and i != -np.inf]
-	gflops_armpl = [i for i in gflops_armpl if i !=0 and i != np.inf and i != -np.inf]
-	gflops_cake = [i for i in gflops_cake if i !=0 and i != np.inf and i != -np.inf]
-	gflops_rosko = [i for i in gflops_rosko if i !=0 and i != np.inf and i != -np.inf]
+	gflops_armcl = [i/1e9 for i in gflops_armcl if i !=0 and i != np.inf and i != -np.inf]
+	gflops_armpl = [i/1e9 for i in gflops_armpl if i !=0 and i != np.inf and i != -np.inf]
+	gflops_cake = [i/1e9 for i in gflops_cake if i !=0 and i != np.inf and i != -np.inf]
+	gflops_rosko = [i/1e9 for i in gflops_rosko if i !=0 and i != np.inf and i != -np.inf]
 	dram_io_armcl = [i for i in dram_io_armcl if i !=0 and i != np.inf and i != -np.inf]
 	dram_io_armpl = [i for i in dram_io_armpl if i !=0 and i != np.inf and i != -np.inf]
 	dram_io_cake = [i for i in dram_io_cake if i !=0 and i != np.inf and i != -np.inf]
@@ -114,8 +114,8 @@ def plot_rosko_vs_arm_dnn(fname = 'rosko_vs_arm_dlmc'):
 	plt.scatter(flops, gflops_armcl, label = labels[2],  marker = markers[3], color = colors[3])
 	plt.scatter(flops, gflops_cake, label = labels[-1],  marker = markers[-1], color = colors[1])
 	#
-	plt.title('(a) Throughput for SpMM in\nTransformer Layers', fontsize = 18)
-	plt.xlabel("# of nonzeros (log10 scale)", fontsize = 18)
+	plt.title('(a) Throughput for SpMM in\nTransformer Layers', fontsize = 24)
+	plt.xlabel("# of nonzeros (log10 scale)", fontsize = 24)
 	plt.xticks(np.arange(3.5,5.6,0.5), fontsize = 16)
 	plt.yticks(fontsize = 16)
 	plt.ylabel("Throughput (GFLOPs/sec)", fontsize = 18)

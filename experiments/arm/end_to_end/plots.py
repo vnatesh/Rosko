@@ -18,7 +18,7 @@ def plot_rosko_vs_arm_end_to_end(fname = 'rosko_vs_arm_end_to_end'):
 	labels = ['TUMMY', 'CAKE', 'ARMPL','ARMCL']
 	t_armpl=[];t_rosko=[];t_armcl=[];t_cake=[];
 	#
-	df1 = pandas.read_csv('result_end_to_end')
+	df1 = pandas.read_csv('result_end_to_end1')
 	#
 	df1["sparsity"] = (1.0 - (df1["nz"] / (df1["M"]*df1["K"])))*100
 	sparsity = sorted(set(df1["sparsity"]))
@@ -41,9 +41,9 @@ def plot_rosko_vs_arm_end_to_end(fname = 'rosko_vs_arm_end_to_end'):
 	plt.plot(sparsity, t_armpl, label = labels[2],  marker = markers[1], color = colors[4])
 	plt.plot(sparsity, t_armcl, label = labels[3],  marker = markers[3], color = colors[3])
 	#
-	plt.title('ARM CPU ResNet-50 Inference Latency')
-	plt.xlabel("Sparsity (%)", fontsize = 18)
-	plt.ylabel("Runtime (sec)", fontsize = 18)
+	plt.title('ARM CPU ResNet-50 Inference Runtime', fontsize = 18)
+	plt.xlabel("Sparsity (%)", fontsize = 20)
+	plt.ylabel("Runtime (sec)", fontsize = 20)
 	plt.yticks(np.arange(0,0.31,0.05))
 	plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 	plt.savefig("%s.pdf" % fname, bbox_inches='tight')
