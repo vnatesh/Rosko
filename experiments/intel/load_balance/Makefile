@@ -33,6 +33,7 @@ ifeq ($(UNAME_P),aarch64)
 	TARGETS += cake
 else ifeq ($(UNAME_P),x86_64)
 	TARGETS = cake_haswell
+	TARGETS += reorder
 	CFLAGS_tmp		  += -g -mavx -mfma
 else
 	TARGETS = cake_blis
@@ -57,6 +58,9 @@ cake_armv8: $(wildcard *.h) $(wildcard *.c)
 
 cake_haswell: $(wildcard *.h) $(wildcard *.c)
 	dpcpp $(CFLAGS) rosko_sgemm_test.cpp $(LIBCAKE) -o rosko_sgemm_test
+
+reorder: $(wildcard *.h) $(wildcard *.c)
+	dpcpp $(CFLAGS) rosko_sgemm_reorder.cpp $(LIBCAKE) -o rosko_sgemm_reorder
 
 clean:
 	rm -rf *.o *.so
