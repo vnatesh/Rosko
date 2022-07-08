@@ -1,5 +1,5 @@
 # Overview
-This repository contains performance experiments of row-skipping outer product kernels (Rosko) for sparse-dense matrix multiplication (spMM) on CPUs. Rosko uses the CAKE tiling and scheduling algorithm for efficient multicore parallelism and minimal DRAM bandwidth usage. Rosko kernels are written using SIMD intrinsics. They outperform Intel and ARM Dense GEMM and spMM libraries for matrices with sparsities ranging from 75% to 99.8%. 
+This repository contains performance experiments of row-skipping outer product kernels (Rosko) for sparse-dense matrix multiplication (spMM) on CPUs. Rosko uses the CAKE tiling and scheduling algorithm for efficient multicore parallelism and minimal DRAM bandwidth usage. Rosko kernels are written using SIMD intrinsics. They outperform Intel and ARM Dense GEMM and spMM libraries for matrices with sparsities ranging from 72% to 99.9%. 
 
 ## Native Installation
 
@@ -23,8 +23,8 @@ Installation automatically downloads and installs the following tool/dependency 
 We provide a dockerfile to initialize a docker container with pre-installed Intel oneAPI and Rosko libraries.
 
 ```bash
-sudo docker build . -t rosko
-sudo docker run --pid=host --cap-add=SYS_ADMIN --cap-add=SYS_PTRACE -it rosko
+sudo docker build . -t rosko_image
+sudo docker run --pid=host --cap-add=SYS_ADMIN --cap-add=SYS_PTRACE -it rosko_image
 ```
 
 
