@@ -4,6 +4,8 @@
 # Download ML_Graph SuiteSparse matrices
 
 pip install ssgetpy
+mkdir data
+cd data
 
 python3 - <<END
 import ssgetpy

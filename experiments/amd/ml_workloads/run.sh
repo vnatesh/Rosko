@@ -19,7 +19,10 @@ p=24
 ntrials=15
 
 
-INPUT=matrix_sizes_ML_preliminary.csv
+# remove csv header line
+tail -n +2 matrix_sizes_ML_preliminary.csv > mat_tmp.csv
+
+INPUT=mat_tmp.csv
 OLDIFS=$IFS
 IFS=','
 [ ! -f $INPUT ] && { echo "$INPUT file not found"; exit 99; }
@@ -31,3 +34,5 @@ do
 
 done < $INPUT
 IFS=$OLDIFS
+
+rm mat_tmp.csv

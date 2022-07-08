@@ -13,7 +13,7 @@ float* row_reordering(float* A, int M, int K, int N);
 float* row_reordering(float* A, int M, int K, int N) {
 
     // assign rows to bins based on their nnz
-    std::map<int, std::vector<int>, std::less<int>> nnz_bins;
+    std::map<int, std::vector<int>, std::greater<int>> nnz_bins;
     float* A_reord = (float*) calloc(M * K, sizeof( float ));
     int rows_rem = M, bin_ind = 0, a_ind = 0, nnz = 0;
 
@@ -33,34 +33,71 @@ float* row_reordering(float* A, int M, int K, int N) {
     }
 
 
-    // round-robin assignment of rows from each nnz bin to new A mat to
-    // remove clusters of high/low density rows and distribute them evenly
-    // throughout the matrix for load balancing
+    // // round-robin assignment of rows from each nnz bin to new A mat to
+    // // remove clusters of high/low density rows and distribute them evenly
+    // // throughout the matrix for load balancing
 
-    while(rows_rem) {
+    // std::map<int, std::vector<int>, std::greater<int>>::reverse_iterator it;
 
-        for(std::pair<int, std::vector<int>> e : nnz_bins) {
+
+    // while(rows_rem) {
+
+    //     for(std::pair<int, std::vector<int>> e : nnz_bins) {
             
-            if(bin_ind < e.second.size()) {
+    //         if(bin_ind < e.second.size()) {
 
-                for(int j = 0; j < K; j++) {
-                    A_reord[a_ind] = A[e.second[bin_ind]*K + j];
-                    a_ind++;
-                }
+    //             // write row 
+    //             for(int j = 0; j < K; j++) {
+    //                 A_reord[a_ind] = A[e.second[bin_ind]*K + j];
+    //                 a_ind++;
+    //             }
 
-                rows_rem--;
-            }
-        }
+    //             rows_rem--;
+    //         }
+    //     }
 
-        bin_ind++;
-    }
+    //     bin_ind++;
 
+
+
+    //     for (it = nnz_bins.rbegin(); it != nnz_bins.rend(); it++) {    
+            
+    //         if(bin_ind < it->second.size()) {
+
+    //             // write row 
+    //             for(int j = 0; j < K; j++) {
+    //                 A_reord[a_ind] = A[it->second[bin_ind]*K + j];
+    //                 a_ind++;
+    //             }
+
+    //             rows_rem--;
+    //         }
+    //     }
+
+    //     bin_ind++;
+    // }
+
+
+    // for(std::pair<int, std::vector<int>> e : nnz_bins) {
+    //     printf("nnz = %d, nrows = %d\n",e.first, e.second.size());
+    // }
+    
+    // print_mat(A, M, K);
+
+    // print_mat(A_reord, M, K);
 
     for(std::pair<int, std::vector<int>> e : nnz_bins) {
-        printf("nnz = %d, nrows = %d\n",e.first, e.second.size());
+        
+        for(bin_ind = 0; bin_ind < e.second.size(); bin_ind++) {
+
+            for(int j = 0; j < K; j++) {
+                A_reord[a_ind] = A[e.second[bin_ind]*K + j];
+                a_ind++;
+            }
+
+            rows_rem--;
+        }
     }
-
-
 
     return A_reord;
 }
@@ -71,7 +108,7 @@ float* row_reordering(float* A, int M, int K, int N) {
 int main( int argc, char** argv ) {
      // run_tests();
 
-    int M, K, N, p = 1;
+    int M, K, N, p = 1, write_result = atoi(argv[3]);
     struct timespec start, end;
     double diff_t;
     long seconds, nanoseconds;
@@ -176,7 +213,7 @@ int main( int argc, char** argv ) {
     int iters = atoi(argv[2]);
 
     for(int i = 0; i < iters; i++) {
-        ans += cake_sp_sgemm(A_reord, B, C, M, N, K, p, cake_cntx, density_val, argv);
+        ans += cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx, density_val, argv);
     }
 
     clock_gettime(CLOCK_REALTIME, &end);
@@ -185,12 +222,39 @@ int main( int argc, char** argv ) {
     diff_t = seconds + nanoseconds*1e-9;
     printf("sp_sgemm time: %f \n", diff_t);
 
-    char fname[50];
-    snprintf(fname, sizeof(fname), "bar_load");
-    FILE *fp;
-    fp = fopen(fname, "a");
-    fprintf(fp, "rosko,%s,%d,%f\n",argv[1],p,ans / iters);
-    fclose(fp);
+    if(write_result) {
+        char fname[50];
+        snprintf(fname, sizeof(fname), "bar_load");
+        FILE *fp;
+        fp = fopen(fname, "a");
+        fprintf(fp, "rosko,%s,%d,%f\n", argv[1], p, ans / iters);
+        fclose(fp);
+    }
+
+
+    clock_gettime(CLOCK_REALTIME, &start);
+
+    ans = 0;
+
+    for(int i = 0; i < iters; i++) {
+        ans += cake_sp_sgemm(A_reord, B, C, M, N, K, p, cake_cntx, density_val, argv);
+    }
+
+    clock_gettime(CLOCK_REALTIME, &end);
+    seconds = end.tv_sec - start.tv_sec;
+    nanoseconds = end.tv_nsec - start.tv_nsec;
+    diff_t = seconds + nanoseconds*1e-9;
+    printf("row reorder sp_sgemm time: %f \n", diff_t);
+
+    if(write_result) {
+
+        char fname[50];
+        snprintf(fname, sizeof(fname), "bar_load");
+        FILE *fp;
+        fp = fopen(fname, "a");
+        fprintf(fp, "rosko row-reorder,%s,%d,%f\n",argv[1],p,ans / iters);
+        fclose(fp);
+    }
 
     // cake_sgemm_checker(A, B, C, N, M, K);
 
