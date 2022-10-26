@@ -1006,19 +1006,39 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
 
         int ntrials = atoi(argv[4]);
         
-        clock_gettime(CLOCK_REALTIME, &start);
+        float ressss;
+        float tttmp[18];
+        int flushsz=100000000;
 
         for(int i = 0; i < ntrials; i++) {
+
+            float *dirty = (float *)malloc(flushsz * sizeof(float));
+            #pragma omp parallel for
+            for (int dirt = 0; dirt < flushsz; dirt++){
+                dirty[dirt] += dirt%100;
+                tttmp[dirt%18] += dirty[dirt];
+            }
+
+            for(int ii =0; ii<18;ii++){
+                ressss+= tttmp[ii];
+            }
+
+
+            clock_gettime(CLOCK_REALTIME, &start);
 
         // add oneapi::mkl::sparse::gemm to execution queue
             oneapi::mkl::sparse::gemm(main_queue, transpose_val, alpha, handle, b_buffer, columns, ldb,
                                   beta, c_buffer, ldc);
+
+            clock_gettime(CLOCK_REALTIME, &end);
+            seconds = end.tv_sec - start.tv_sec;
+            nanoseconds = end.tv_nsec - start.tv_nsec;
+            diff_t += seconds + nanoseconds*1e-9;
+
+            free(dirty);
+
         }
 
-        clock_gettime(CLOCK_REALTIME, &end);
-        seconds = end.tv_sec - start.tv_sec;
-        nanoseconds = end.tv_nsec - start.tv_nsec;
-        diff_t = seconds + nanoseconds*1e-9;
         printf("sparse gemm time: %f \n", diff_t / ntrials); 
 
         if(write_result) {
