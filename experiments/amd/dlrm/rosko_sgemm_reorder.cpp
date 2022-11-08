@@ -218,7 +218,7 @@ int main( int argc, char** argv ) {
 	    snprintf(fname, sizeof(fname), "results");
 	    FILE *fp;
 	    fp = fopen(fname, "a");
-	    fprintf(fp, "rosko,%d,%d,%d,%d,%f,%f\n",M,K,N,p,sp, ret/iters);
+	    fprintf(fp, "reorder,%d,%d,%d,%d,%f,%f\n",M,K,N,p,sp, ret/iters);
 	    fclose(fp);
 	}
 
