@@ -27,7 +27,6 @@ int main(int argc, char* argv[]) {
   // omp_set_num_threads(p);
   taco_set_num_threads(p);
   int ww = taco_get_num_threads();
-  printf("yoooo %d\n", ww);
 
   std::default_random_engine gen(0);
   std::uniform_real_distribution<double> unif(0.0, 1.0);
@@ -172,7 +171,7 @@ int main(int argc, char* argv[]) {
 
 
   printf("done compute\n");
-
+  remove("rand.mtx"); 
 
   // Write the output of the computation to file (stored in the FROSTT format).
   // write("C.tns", C);

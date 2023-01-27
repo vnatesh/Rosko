@@ -1080,13 +1080,12 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
           fclose(fp2);
       }
 
-
+remove("rand.mtx") ;
 
         oneapi::mkl::sparse::release_matrix_handle(&handle);
     }
 
-
-
+       
     catch (cl::sycl::exception const &e) {
         std::cout << "\t\tCaught synchronous SYCL exception:\n" << e.what() << std::endl;
         oneapi::mkl::sparse::release_matrix_handle(&handle);

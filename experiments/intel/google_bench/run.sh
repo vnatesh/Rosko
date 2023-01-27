@@ -3,13 +3,14 @@
 export GOMP_CPU_AFFINITY="0 1 2 3 4 5 6 7 8 9";
 
 # compile taco 
-g++ -std=c++11 -fopenmp -pthread -O3 -DNDEBUG -DTACO -I include -Lbuild/lib spmm.cpp -o spmm -ltaco
 export TACO_PATH=$PWD/taco/build/lib;
 export LD_LIBRARY_PATH=$TACO_PATH:$LD_LIBRARY_PATH
 
+g++ -std=c++11 -fopenmp -pthread -O3 -DNDEBUG -DTACO -I taco/include -L$PWD/taco/build/lib taco_spmm.cpp -o taco_spmm -ltaco
+
 
 # compile mkl_dense
-gcc -fopenmp -m64 -I${MKLROOT}/include mkl_sgemm_test.c -Wl,--no-as-needed \
+g++ -fopenmp -m64 -I${MKLROOT}/include mkl_sgemm_test.cpp -Wl,--no-as-needed \
 -L${MKLROOT}/lib/intel64 -lmkl_intel_lp64 -lmkl_core -lmkl_gnu_thread -lpthread \
 -lm -ldl -o mkl_sgemm_test
 
@@ -33,12 +34,12 @@ NTRIALS=10;
 echo "algo,M,K,N,nz,id,time" >> result_dlmc
 
 
-for file in random_pruning/**/*.smtx; 
+for file in dlmc/transformer/random_pruning/0.9/*.smtx; 
 do
 
 	./rosko_sgemm_test $file $i $NTRIALS 1; 
 	./taco_spmm $file $i $NTRIALS 1; 
-	./mkl_sgemm_test  $file $i $NTRIALS 1;
+	./mkl_sgemm_test $file $i $NTRIALS 1;
 	./sparse_gemm.out $file $i $NTRIALS 1;
 
 	# perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
@@ -69,5 +70,6 @@ done
 
 
 # python3 plots.py $NTRIALS; 
+
 
 

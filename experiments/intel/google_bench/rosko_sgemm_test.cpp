@@ -17,7 +17,7 @@ int main( int argc, char** argv ) {
 	double diff_t;
 
 	N = 2048; // fix N dimension for now (batch size = 8, seq len = 256)
-	p = 4; // 4 cores on rasbpi 4
+	p = 10; // 4 cores on rasbpi 4
 
 	int id = atoi(argv[2]);
 
@@ -37,10 +37,10 @@ int main( int argc, char** argv ) {
 	M = atoi(strtok(line," "));
 	K = atoi(strtok(NULL, " "));
 	nz = atoi(strtok(NULL, " "));
-	float density = ((float) nz) / ((float) (M*K))
+	float density = ((float) nz) / ((float) (M*K));
 	float* A = (float*) malloc(M * K * sizeof( float ));
 
-	printf("M = %d K = %d nz = %d  N = %d, cores = %d\n", M, K, nz, N, p);
+	printf("M = %d K = %d nz = %d  N = %d, cores = %d, file = %s\n", M, K, nz, N, p, argv[1]);
 
 	nread = getline(&line, &len, fptr);
 	nread = getline(&line, &len, fptr);
@@ -79,21 +79,41 @@ int main( int argc, char** argv ) {
 	rand_init(B, K, N);
 
 	cake_cntx_t* cake_cntx = cake_query_cntx();
-	
+	update_mr_nr(cake_cntx, 20, 96);
 //	cake_sgemm(A, B, C, M, N, K, p, cake_cntx);
 
 	// double ret = cake_sp_gemm(A, B, C, M, N, K, p, cake_cntx);	
-	double ans = 0;
-	for(int i = 0; i < ntrials; i++) {
-		ans += cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx, density);
-	}
+
+    float ressss;
+    float tttmp[18];
+    int flushsz=10000000;
+    diff_t = 0.0;
+    
+    for(int i = 0; i < ntrials; i++) {
+
+
+        float *dirty = (float *)malloc(flushsz * sizeof(float));
+        #pragma omp parallel for
+        for (int dirt = 0; dirt < flushsz; dirt++){
+            dirty[dirt] += dirt%100;
+            tttmp[dirt%18] += dirty[dirt];
+        }
+
+        for(int ii =0; ii<18;ii++){
+            ressss+= tttmp[ii];
+        }
+
+		diff_t += cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx, density);
+
+        free(dirty);
+    }
 
 	if(write_result) {
 	    char fname[50];
 	    snprintf(fname, sizeof(fname), "result_dlmc");
 	    FILE *fp;
 	    fp = fopen(fname, "a");
-	    fprintf(fp, "rosko,%d,%d,%d,%d,%d,%f\n",M,K,N,nz,id,ans / ntrials);
+	    fprintf(fp, "rosko,%d,%d,%d,%d,%d,%f\n",M,K,N,nz,id, diff_t / ntrials);
 	    fclose(fp);
 	}
 	// cake_sgemm_checker(A, B, C, N, M, K);
@@ -104,5 +124,3 @@ int main( int argc, char** argv ) {
 
 	return 0;
 }
-
-
