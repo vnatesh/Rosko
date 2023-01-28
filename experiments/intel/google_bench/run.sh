@@ -28,16 +28,16 @@ cd $x
 make;
 
 mkdir -p reports_arm_trans
-i=0;
+i=291;
 NTRIALS=10;
 
-echo "algo,M,K,N,nz,id,time" >> result_dlmc
+# echo "algo,M,K,N,nz,id,time" >> result_dlmc
 
 
-for file in dlmc/transformer/random_pruning/0.9/*.smtx; 
+for file in dlmc/transformer/random_pruning/0.98/*.smtx; 
 do
 
-	./rosko_sgemm_test $file $i $NTRIALS 1; 
+	./rosko_sgemm_test $file $i 100 1; 
 	./taco_spmm $file $i $NTRIALS 1; 
 	./mkl_sgemm_test $file $i $NTRIALS 1;
 	./sparse_gemm.out $file $i $NTRIALS 1;
@@ -70,6 +70,5 @@ done
 
 
 # python3 plots.py $NTRIALS; 
-
 
 

@@ -150,12 +150,15 @@ int main(int argc, char* argv[])  {
 
     printf("GEMM time: %f \n", diff_t / ntrials); 
 
-    // char fname[50];
-    // snprintf(fname, sizeof(fname), "results_sq");
-    // FILE *fp;
-    // fp = fopen(fname, "a");
-    // fprintf(fp, "mkl,%d,%d,%f\n",p,m,diff_t);
-    // fclose(fp);
+    if(write_result) {
+        char fname[50];
+        snprintf(fname, sizeof(fname), "result_dlmc");
+        FILE *fp;
+        fp = fopen(fname, "a");
+        fprintf(fp, "mkl,%d,%d,%d,%d,%d,%f\n",m,k,n,nz,id, diff_t / ntrials);
+        fclose(fp);
+    }
+
 
 
     // printf ("\n Deallocating memory \n\n");
