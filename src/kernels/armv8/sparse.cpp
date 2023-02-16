@@ -5,7 +5,7 @@
 
 
 
-void cake_sp_sgemm_armv8_8x12(float* A, float* B, float* C, int m, int n, int k, 
+void rosko_sgemm_armv8_8x12(float* A, float* B, float* C, int m, int n, int k, 
 							int* nnz_outer, int* k_inds, int* loc_m) {
 
 	int m_cnt, k_ind;
@@ -169,7 +169,7 @@ void cake_sp_sgemm_armv8_8x12(float* A, float* B, float* C, int m, int n, int k,
 
 
 // // sparse kernel without density-based reordering
-// void cake_sp_sgemm_armv8_8x12(float* A, float* B, float* C, int m, int n, int k, 
+// void rosko_sgemm_armv8_8x12(float* A, float* B, float* C, int m, int n, int k, 
 // 							int* nnz_outer, int* k_inds, int* loc_m) {
 
 // 	int m_cnt, k_ind;

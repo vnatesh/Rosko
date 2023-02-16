@@ -4,7 +4,7 @@
 
 
 
-void cake_sp_sgemm_haswell_6x16(float* A, float* B, float* C, int m, int n, int k, 
+void rosko_sgemm_haswell_6x16(float* A, float* B, float* C, int m, int n, int k, 
 							int* nnz_outer, int* k_inds, int* loc_m) {
 
 	int m_cnt, k_ind;
@@ -139,7 +139,7 @@ void cake_sp_sgemm_haswell_6x16(float* A, float* B, float* C, int m, int n, int 
 
 
 
-void cake_sp_sgemm_haswell_3x32(float* A, float* B, float* C, int m, int n, int k, 
+void rosko_sgemm_haswell_3x32(float* A, float* B, float* C, int m, int n, int k, 
 							int* nnz_outer, int* k_inds, int* loc_m) {
 
 	int m_cnt, k_ind;
@@ -287,7 +287,7 @@ void cake_sp_sgemm_haswell_3x32(float* A, float* B, float* C, int m, int n, int 
 
 
 // // sparse kernel without density-based reordering
-// void cake_sp_sgemm_haswell_6x16(float* A, float* B, float* C, int m, int n, int k, 
+// void rosko_sgemm_haswell_6x16(float* A, float* B, float* C, int m, int n, int k, 
 // 							int* nnz_outer, int* k_inds,  int* loc_m) {
 
 // 	int m_cnt1, m_cnt2, m_cnt3, m_cnt4;
@@ -407,7 +407,7 @@ void cake_sp_sgemm_haswell_3x32(float* A, float* B, float* C, int m, int n, int 
 
 
 
-// void cake_sp_sgemm_haswell_6x16(float* A, float* B, float* C, int m, int n, int k, 
+// void rosko_sgemm_haswell_6x16(float* A, float* B, float* C, int m, int n, int k, 
 // 							int* nnz_outer, int* loc_m) {
 
 // 	__m256 a, b1, b2;
@@ -651,7 +651,7 @@ void cake_sp_sgemm_haswell_3x32(float* A, float* B, float* C, int m, int n, int 
 // };
 
 
-// void cake_sp_sgemm_haswell_6x16(float* A, float* B, float* C, int m, int n, int k, 
+// void rosko_sgemm_haswell_6x16(float* A, float* B, float* C, int m, int n, int k, 
 // 							int* nnz_outer, int* loc_m) {
 
 // 	int m_cnt1, m_cnt2, m_cnt3, m_cnt4;
@@ -761,7 +761,7 @@ void cake_sp_sgemm_haswell_3x32(float* A, float* B, float* C, int m, int n, int 
 
 
 
-// void cake_sp_sgemm_haswell_6x16(float* A, float* B, float* C, int m, int n, int k, 
+// void rosko_sgemm_haswell_6x16(float* A, float* B, float* C, int m, int n, int k, 
 // 							int* nnz_outer, int* loc_m) {
 
 // 	// __m256* c = (__m256*) calloc(6*2 , sizeof(__m256));
