@@ -3,8 +3,8 @@
 
 int main( int argc, char** argv ) {
 	// run_tests();
-	// run_tests_sparse_test();
-	// run_tests_sparse();
+	run_tests_sparse_test();
+	run_tests_sparse();
 
 // exit(1);
 	int M, K, N, p, nz, mr, nr, ntrials, alg;
@@ -37,7 +37,7 @@ int main( int argc, char** argv ) {
 	density = ((float) nz) / ((float) (((float) M) * ((float) K)));
 
 	cake_cntx_t* cake_cntx = cake_query_cntx();
-	update_mr_nr(cake_cntx, 30, 128);
+	update_mr_nr(cake_cntx, 6, 16);
 
 	blk_dims_t* x = (blk_dims_t*) malloc(sizeof(blk_dims_t));
 	init_sparse_block_dims(M, N, K, p, x, cake_cntx, KMN, NULL, density, 4, alg);

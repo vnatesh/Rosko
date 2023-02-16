@@ -33,7 +33,7 @@ blis: $(wildcard *.h) $(wildcard *.c)
 	g++ $(CFLAGS_blis) cake_sgemm_test.cpp $(LIBCAKE) -o cake_sgemm_test1
 
 cake: $(wildcard *.h) $(wildcard *.c)
-	g++ $(CFLAGS) cake_spgemm_test.cpp ../../common/*.c $(LIBCAKE) -o cake_spgemm_test
+	g++ $(CFLAGS) rosko_sgemm_test.cpp ../../common/*.c $(LIBCAKE) -o rosko_sgemm_test
 
 # dpcpp -fp-speculation=fast	g++ $(CFLAGS) cake_sgemm_test.cpp $(LIBCAKE) -o cake_sgemm_test
 

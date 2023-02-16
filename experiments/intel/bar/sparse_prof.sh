@@ -44,13 +44,13 @@ do
 
 		vtune --collect memory-access -data-limit=0 \
 			-result-dir=$PWD/rosko_result \
-			 $PWD/cake_spgemm_test $file $n 0 1;
+			 $PWD/rosko_sgemm_test $file $n 0 1;
 		vtune -report summary -r rosko_result -format csv \
 			-report-output reports/report_rosko_${file##*/}-$n.csv -csv-delimiter comma;
 		rm -rf rosko_result;
 
 		./sparse_gemm.out $file $n 1 $NTRIALS;
-		./cake_spgemm_test $file $n 1 $NTRIALS; 
+		./rosko_sgemm_test $file $n 1 $NTRIALS; 
 	done
 done
 

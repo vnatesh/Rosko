@@ -24,7 +24,7 @@ open('bar_load', 'a').write("aocl,%s,1,%s\n" % (os.environ["value"], \
 float(open('out', 'r').read().split('\n')[2].split()[10]) / 1000.0))
 END
     rm out;
-    ./cake_spgemm_test ${file##*/} $NTRIALS;
+    ./rosko_sgemm_test ${file##*/} $NTRIALS;
 
 
     # /home/vinatesh/AMDuProf_Linux_x64_3.5.671/bin/AMDuProfCLI collect \
@@ -32,7 +32,7 @@ END
     --event event=pmcx043,umask=0x08,interval=50000 \
     --event event=pmcx043,umask=0x40,interval=50000 \
     --event event=timer -o /tmp/test \
-    ./cake_spgemm_test ${file##*/} 1;
+    ./rosko_sgemm_test ${file##*/} 1;
 
     # /home/vinatesh/AMDuProf_Linux_x64_3.5.671/bin/AMDuProfCLI report -i /tmp/test/*
     AMDuProfCLI report -i /tmp/test/*
