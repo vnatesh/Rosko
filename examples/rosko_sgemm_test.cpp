@@ -1,4 +1,4 @@
-#include "cake.h"
+#include "rosko.h"
 
 
 int main( int argc, char** argv ) {
@@ -40,7 +40,7 @@ int main( int argc, char** argv ) {
 	update_mr_nr(cake_cntx, 30, 128);
 
 	blk_dims_t* x = (blk_dims_t*) malloc(sizeof(blk_dims_t));
-	init_block_dims(M, N, K, p, x, cake_cntx, KMN, NULL, density, 4, alg);
+	init_sparse_block_dims(M, N, K, p, x, cake_cntx, KMN, NULL, density, 4, alg);
 	csr = file_to_csr(argv[8]);
 	sp_pack_t* sp_pack = malloc_sp_pack(M, K, nz, x, cake_cntx);
 
@@ -76,7 +76,7 @@ int main( int argc, char** argv ) {
         }
 
 
-		diff_t += cake_sp_sgemm_testing(argv[8], B, C, M, N, K, p, cake_cntx, 
+		diff_t += rosko_sgemm_compressed(argv[8], B, C, M, N, K, p, cake_cntx, 
 									density, NULL, sp_pack, 1, 0, 1, 0, KMN, alg);
         free(dirty);
     }
