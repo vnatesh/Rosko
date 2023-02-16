@@ -25,7 +25,7 @@ CAKE_SRC := $(CAKE_HOME)/src
 
 
 
-UNAME_P := $(shell uname -p)
+UNAME_P := $(shell uname -m)
 SRC_FILES =  $(wildcard $(CAKE_HOME)/src/*.cpp)
 
 ifeq ($(UNAME_P),aarch64)

@@ -47,7 +47,7 @@ int main( int argc, char** argv ) {
 	clock_gettime(CLOCK_REALTIME, &start);
 
 	for(int i = 0; i < iters; i++) {
-		ret = cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx);
+		ret = rosko_sgemm(A, B, C, M, N, K, p, cake_cntx);
 	}
 
     clock_gettime(CLOCK_REALTIME, &end);

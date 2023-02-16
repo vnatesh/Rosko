@@ -216,7 +216,7 @@ int main( int argc, char** argv ) {
     // printf("dense sgemm time: %f \n", diff_t); 
     
 
-    // cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx);
+    // rosko_sgemm(A, B, C, M, N, K, p, cake_cntx);
     int ntrials = atoi(argv[4]);
     double ans = 0;
 
@@ -226,7 +226,7 @@ int main( int argc, char** argv ) {
     clock_gettime(CLOCK_REALTIME, &start);
 
     for(int i = 0; i < ntrials; i++) {
-        ans += cake_sp_sgemm(A_reord, B, C, M, N, K, p, cake_cntx, density_val);
+        ans += rosko_sgemm(A_reord, B, C, M, N, K, p, cake_cntx, density_val);
     }
 
     clock_gettime(CLOCK_REALTIME, &end);
@@ -250,7 +250,7 @@ int main( int argc, char** argv ) {
     clock_gettime(CLOCK_REALTIME, &start);
 
     for(int i = 0; i < ntrials; i++) {
-        ans1 += cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx, density_val);
+        ans1 += rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density_val);
     }
 
     clock_gettime(CLOCK_REALTIME, &end);

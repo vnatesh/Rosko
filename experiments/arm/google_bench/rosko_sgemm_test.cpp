@@ -82,10 +82,10 @@ int main( int argc, char** argv ) {
 	
 //	cake_sgemm(A, B, C, M, N, K, p, cake_cntx);
 
-	// double ret = cake_sp_gemm(A, B, C, M, N, K, p, cake_cntx);	
+	// double ret = rosko_sgemm(A, B, C, M, N, K, p, cake_cntx);	
 	double ans = 0;
 	for(int i = 0; i < ntrials; i++) {
-		ans += cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx, density);
+		ans += rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density);
 	}
 
 	if(write_result) {

@@ -67,7 +67,7 @@ int main( int argc, char** argv ) {
 		            ressss+= tttmp[ii];
 		        }
 
-				diff_t += cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx, density);
+				diff_t += rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density);
 		        free(dirty);
 
 		    }

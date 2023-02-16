@@ -82,7 +82,7 @@ int main( int argc, char** argv ) {
 	// update_mr_nr(cake_cntx, 20, 96);
 //	cake_sgemm(A, B, C, M, N, K, p, cake_cntx);
 
-	// double ret = cake_sp_gemm(A, B, C, M, N, K, p, cake_cntx);	
+	// double ret = rosko_sgemm(A, B, C, M, N, K, p, cake_cntx);	
 
     float ressss;
     float tttmp[18];
@@ -103,7 +103,7 @@ int main( int argc, char** argv ) {
             ressss+= tttmp[ii];
         }
 
-		diff_t += cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx, density);
+		diff_t += rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density);
 
         free(dirty);
     }

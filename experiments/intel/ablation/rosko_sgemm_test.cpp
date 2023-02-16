@@ -43,7 +43,7 @@ int main( int argc, char** argv ) {
 
 	clock_gettime(CLOCK_REALTIME, &start);
 
-	double ret = cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx, density_val);
+	double ret = rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density_val);
 
     clock_gettime(CLOCK_REALTIME, &end);
     long seconds = end.tv_sec - start.tv_sec;

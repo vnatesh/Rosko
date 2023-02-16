@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
 	float density = ((float) nz) / ((float) (M*K));
 
 	for(int i = 0; i < iters; i++) {
-		ret1 += cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx, density);
+		ret1 += rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density);
 		ret2 += cake_sgemm(A, B, C, M, N, K, p, cake_cntx);
 	}
 

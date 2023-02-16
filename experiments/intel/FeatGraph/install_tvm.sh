@@ -29,10 +29,11 @@ cd python; python3.8 setup.py install --user; cd ..
 
 pip3 install --user numpy decorator attrs
 pip3 install --user tornado psutil 'xgboost<1.6.0' cloudpickle
-
+pip3 install ogb
 
 
 # download FeatGraph
+cd ..
 git clone https://github.com/amazon-science/FeatGraph.git
 export PYTHONPATH=$PWD/FeatGraph/python:${PYTHONPATH}
 
