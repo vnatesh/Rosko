@@ -22,7 +22,7 @@ def plot_rosko_vs_intel_dnn(fname = 'rosko_vs_intel_dlmc'):
 	df1 = pandas.read_csv('result_dlmc')
 	flops = []
 	#
-	for i in range(388):
+	for i in range(291,776):
 		# multiply by 64 bytes since external memory request non-cacheable 
 		# and L2-data cache refills/writeback PMUs
 		# in ARM are expressed in terms of number of cache lines
@@ -43,7 +43,8 @@ def plot_rosko_vs_intel_dnn(fname = 'rosko_vs_intel_dlmc'):
 		time_mkl.append(cpu_time)
 		#
 		cpu_time = df1[(df1['algo'] == 'mkl_sparse') & (df1['id'] == i)]['time']._values[0]
-		gflops_mkl_sp.append((nz*N) / cpu_time / 1e9)
+		# cpu_time /= 10
+		gflops_mkl_sp.append((nz*N) / (cpu_time) / 1e9)
 		time_mkl_sparse.append(cpu_time)
 		#
 		cpu_time = df1[(df1['algo'] == 'rosko') & (df1['id'] == i)]['time']._values[0]
@@ -71,7 +72,7 @@ def plot_rosko_vs_intel_dnn(fname = 'rosko_vs_intel_dlmc'):
 	plt.yticks(fontsize = 16)
 	plt.ylabel("Throughput (GFLOPs/sec)", fontsize = 18)
 	plt.legend(loc = "upper left", prop={'size': 12})
-	plt.savefig("%s_tput.pdf" % fname, bbox_inches='tight')
+	# plt.savefig("%s_tput.pdf" % fname, bbox_inches='tight')
 	plt.show()
 	plt.clf()
 	plt.close('all')

@@ -7,7 +7,7 @@
 double rosko_sgemm(float* A, float* B, float* C, int M, int N, int K, int p, 
 	cake_cntx_t* cake_cntx, float density, char* argv[], 
 	bool packedA, sp_pack_t* sp_pack, bool packedB, 
-	float alpha, float beta, enum sched sch) {
+	float alpha, float beta, enum sched sch, int alg) {
 
 
 	size_t A_sz, B_sz, C_sz;	
@@ -28,7 +28,7 @@ double rosko_sgemm(float* A, float* B, float* C, int M, int N, int K, int p,
 
 	clock_gettime(CLOCK_REALTIME, &start1);
 
-	init_sparse_block_dims(M, N, K, p, x, cake_cntx, sch, argv, density);
+	init_sparse_block_dims(M, N, K, p, x, cake_cntx, sch, argv, density, 4, alg);
 	omp_set_num_threads(p);
 
 	if(DEBUG) printf("m_r = %d, n_r = %d\n\n", cake_cntx->mr, cake_cntx->nr);

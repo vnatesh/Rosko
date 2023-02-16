@@ -1076,7 +1076,7 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
           snprintf(fname1, sizeof(fname1), "result_dlmc");
           FILE *fp2;
           fp2 = fopen(fname1, "a");
-          fprintf(fp2, "mkl_sparse,%d,%d,%d,%d,%d,%f\n",M,K,N,nz,id, diff_t);
+          fprintf(fp2, "mkl_sparse,%d,%d,%d,%d,%d,%f\n",M,K,N,nz,id, diff_t / ntrials);
           fclose(fp2);
       }
 
