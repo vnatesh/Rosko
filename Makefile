@@ -36,13 +36,12 @@ LIBS := -L$(CAKE_HOME) -lcake
 
 ifeq ($(UNAME_M),aarch64)
 	TARGETS = rosko_armv8
-	SRC_FILES += $(ROSKO_SRC)/kernels/armv8/sparse.cpp
-	CFLAGS_tmp += -O3 -mtune=cortex-a53
 	LIBS += -L$(ROSKO_HOME) -lrosko_kernels
 else ifeq ($(UNAME_M),x86_64)
 	TARGETS = rosko_haswell
-	SRC_FILES += $(ROSKO_SRC)/kernels/haswell/sparse.cpp
-	CFLAGS_tmp += -mavx -mfma -mtune=haswell -O2
+	LIBS += -L$(ROSKO_HOME) -lrosko_kernels
+else
+	TARGETS = rosko_haswell
 	LIBS += -L$(ROSKO_HOME) -lrosko_kernels
 endif
 

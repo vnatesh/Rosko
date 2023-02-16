@@ -194,6 +194,11 @@ double rosko_sgemm_compressed(char* fname, float* B, float* C, int M, int N, int
 		clock_gettime(CLOCK_REALTIME, &start);
 
 	    B_sz = cake_sgemm_packed_B_size(K, N, p, x, cake_cntx);
+
+
+	// printf("K = %d N = %d Mb = %d, Nb = %d, k_c = %d, k_c1 = %d, p = %d, mc = %d, nc = %d, mc1 = %d, nc1 = %d\n", 
+	// 	K, N, x->Mb, x->Nb, x->k_c, x->k_c1, p, x->m_c, x->n_c, x->m_c1, x->n_c1);
+
 		if(posix_memalign((void**) &B_p, 64, B_sz)) {
 			printf("posix memalign error\n");
 			exit(1);
@@ -278,8 +283,6 @@ double rosko_sgemm_compressed(char* fname, float* B, float* C, int M, int N, int
 }
 
 
-
-// mv results shmoo; scp shmoo vikas@10.0.0.185:/Users/vikas/Documents/test
 
 void schedule_sp(sp_pack_t* A_p, float* B_p, float* C_p, int M, int N, int K, int p, 
 	cake_cntx_t* cake_cntx, blk_dims_t* x, enum sched sch) {

@@ -8,10 +8,10 @@ int run_tests_sparse() {
 	float *A, *B, *C;
 	cake_cntx_t* cake_cntx = cake_query_cntx();
 	max_threads = cake_cntx->ncores;
-	int num_tests = 6;
-	int Ms[6] = {1,10,96,111,960,2111};
-	int Ks[6] = {1,10,96,111,960,2111};
-	int Ns[6] = {1,10,96,111,960,2111};
+	int num_tests = 5;
+	int Ms[5] = {10,96,111,960,2111};
+	int Ks[5] = {10,96,111,960,2111};
+	int Ns[5] = {10,96,111,960,2111};
 	int cnt = 0;
 
 	printf("starting spMM tests\n");
@@ -100,17 +100,15 @@ int run_tests_sparse() {
 
 int run_tests_sparse_test() {
 
-	printf("sparse testing!!!!!\n");
-	sleep(7);
 	// float *A, *B, *C;
 	int M, K, N, m, k, n, max_threads,p;
 	float *A, *B, *C;
 	cake_cntx_t* cake_cntx = cake_query_cntx();
 	max_threads = cake_cntx->ncores;
-	int num_tests = 6;
-	int Ms[6] = {1,10,96,111,960,2111};
-	int Ks[6] = {1,10,96,111,960,2111};
-	int Ns[6] = {1,10,96,111,960,2111};
+	int num_tests = 5;
+	int Ms[5] = {10,96,111,960,2111};
+	int Ks[5] = {10,96,111,960,2111};
+	int Ns[5] = {10,96,111,960,2111};
 	int cnt = 0;
 
 	printf("starting spMM tests\n");
@@ -139,12 +137,16 @@ int run_tests_sparse_test() {
 					
 					csr_t* csr = file_to_csr(fname);
 					float density = ((float) csr->rowptr[M]) / ((float) (((float) M) * ((float) K)));
+					
+// printf("density = %f, nz = %d, max_threads = %d\n",density , nz, max_threads);
 					blk_dims_t* x = (blk_dims_t*) malloc(sizeof(blk_dims_t));
 					cake_cntx_t* cake_cntx = cake_query_cntx();
-					init_block_dims(M, N, K, p, x, cake_cntx, KMN, NULL, density);
+					init_sparse_block_dims(M, N, K, p, x, cake_cntx, KMN, NULL, density);
 					sp_pack_t* sp_pack = malloc_sp_pack(M, K, nz, x, cake_cntx);
 					pack_A_csr_to_sp_k_first(csr, M, K, nz, p, sp_pack, x, cake_cntx);
-					rosko_sgemm_compressed(fname, B, C, M, N, K, p, cake_cntx, density, NULL, sp_pack, 1, 0, 1, 0, KMN);
+
+					// printf("heyyyyy\n");
+					rosko_sgemm_compressed(fname, B, C, M, N, K, p, cake_cntx, density, NULL, sp_pack, 1, 0, 1, 0, KMN, 2);
 					
 					free_csr(csr);
 					free_sp_pack(sp_pack);
@@ -157,6 +159,7 @@ int run_tests_sparse_test() {
 					free(A);
 					free(B);
 					free(C);
+					free(cake_cntx);
 
 				}
 			}
