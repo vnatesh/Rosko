@@ -4,7 +4,7 @@
 
 
 
-double cake_sp_sgemm(float* A, float* B, float* C, int M, int N, int K, int p, 
+double rosko_sgemm(float* A, float* B, float* C, int M, int N, int K, int p, 
 	cake_cntx_t* cake_cntx, float density, char* argv[], 
 	bool packedA, sp_pack_t* sp_pack, bool packedB, 
 	float alpha, float beta, enum sched sch) {
@@ -152,7 +152,7 @@ double cake_sp_sgemm(float* A, float* B, float* C, int M, int N, int K, int p,
 
 
 
-double cake_sp_sgemm_compressed(char* fname, float* B, float* C, int M, int N, int K, int p, 
+double rosko_sgemm_compressed(char* fname, float* B, float* C, int M, int N, int K, int p, 
 	cake_cntx_t* cake_cntx, float density, char* argv[], sp_pack_t* sp_pack,
 	bool packedA, bool packedB, float alpha, float beta, enum sched sch, int alg) {
 

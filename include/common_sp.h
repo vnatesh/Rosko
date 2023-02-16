@@ -1,4 +1,7 @@
+#pragma once
+
 #include "cake.h"
+#include "rosko_kernels.h"
 
 // #define DEBUG 0
 // #define ARR_PRINT 0

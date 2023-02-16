@@ -34,7 +34,7 @@ int run_tests_sparse() {
 				    rand_sparse(A, M, K, 0.5);
 					rand_init(B, K, N);
 
-					cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx, 0.5);
+					rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, 0.5);
 					if(cake_sgemm_checker(A, B, C, N, M, K)) {
 						printf("TESTS FAILED on M-first p=%d M=%d K=%d N=%d\n",p,M,K,N);
 						cnt++;
@@ -53,7 +53,7 @@ int run_tests_sparse() {
 				 //    rand_sparse(A, M, K, 0.5);
 					// rand_init(B, K, N);
 
-					// cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx, 0,0,1,0,KMN);
+					// rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, 0,0,1,0,KMN);
 					// if(cake_sgemm_checker(A, B, C, N, M, K)) {
 					// 	printf("TESTS FAILED on K-first p=%d M=%d K=%d N=%d\n",p,M,K,N);
 					// 	cnt++;
@@ -72,7 +72,7 @@ int run_tests_sparse() {
 				 //    rand_sparse(A, M, K, 0.5);
 					// rand_init(B, K, N);
 
-					// cake_sp_sgemm(A, B, C, M, N, K, p, cake_cntx, 0,0,1,0, NKM);
+					// rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, 0,0,1,0, NKM);
 					// if(cake_sgemm_checker(A, B, C, N, M, K)) {
 					// 	printf("TESTS FAILED on N-first p=%d M=%d K=%d N=%d\n",p,M,K,N);
 					// 	cnt++;
@@ -144,7 +144,7 @@ int run_tests_sparse_test() {
 					init_block_dims(M, N, K, p, x, cake_cntx, KMN, NULL, density);
 					sp_pack_t* sp_pack = malloc_sp_pack(M, K, nz, x, cake_cntx);
 					pack_A_csr_to_sp_k_first(csr, M, K, nz, p, sp_pack, x, cake_cntx);
-					cake_sp_sgemm_compressed(fname, B, C, M, N, K, p, cake_cntx, density, NULL, sp_pack, 1, 0, 1, 0, KMN);
+					rosko_sgemm_compressed(fname, B, C, M, N, K, p, cake_cntx, density, NULL, sp_pack, 1, 0, 1, 0, KMN);
 					
 					free_csr(csr);
 					free_sp_pack(sp_pack);
