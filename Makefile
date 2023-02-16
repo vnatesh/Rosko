@@ -5,10 +5,6 @@ ROSKO_HOME := $(PWD)
 
 CAKE_INC_PATH  := $(CAKE_HOME)/include
 
-# cake shared library
-LIBCAKE      := -L$(CAKE_HOME) -lcake
-
-
 INCLUDE_PATH  := $(ROSKO_HOME)/include
 
 
@@ -34,23 +30,24 @@ LIBROSKO      := librosko.so
 ROSKO_SRC := $(ROSKO_HOME)/src
 UNAME_M := $(shell uname -m) # TODO uname -m doesn't work on all systems
 SRC_FILES =  $(wildcard $(ROSKO_HOME)/src/*.cpp)
-
+# cake shared library
+LIBS := -L$(CAKE_HOME) -lcake
 
 
 ifeq ($(UNAME_M),aarch64)
 	TARGETS = rosko_armv8
 	SRC_FILES += $(ROSKO_SRC)/kernels/armv8/sparse.cpp
 	CFLAGS_tmp += -O3 -mtune=cortex-a53
-	LIBS = -L$(ROSKO_HOME) -lrosko_kernels
+	LIBS += -L$(ROSKO_HOME) -lrosko_kernels
 else ifeq ($(UNAME_M),x86_64)
 	TARGETS = rosko_haswell
 	SRC_FILES += $(ROSKO_SRC)/kernels/haswell/sparse.cpp
 	CFLAGS_tmp += -mavx -mfma -mtune=haswell -O2
-	LIBS = -L$(ROSKO_HOME) -lrosko_kernels
+	LIBS += -L$(ROSKO_HOME) -lrosko_kernels
 endif
 
 
-LIBS += $(LIBCAKE)
+
 CFLAGS 	:= $(filter-out -std=c99, $(CFLAGS_tmp))
 
 
