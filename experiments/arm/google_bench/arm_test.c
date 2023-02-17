@@ -79,19 +79,43 @@ int main(int argc, char* argv[])  {
     rand_init(A, m, k);
     rand_init(B, k, n);
 
-    clock_gettime(CLOCK_REALTIME, &start);
 
+
+    float ressss;
+    float tttmp[18];
+    int flushsz=200000;
+    diff_t = 0.0;
+    
     for(int i = 0; i < ntrials; i++) {
+
+
+        float *dirty = (float *)malloc(flushsz * sizeof(float));
+        #pragma omp parallel for
+        for (int dirt = 0; dirt < flushsz; dirt++){
+            dirty[dirt] += dirt%100;
+            tttmp[dirt%18] += dirty[dirt];
+        }
+
+        for(int ii =0; ii<18;ii++){
+            ressss+= tttmp[ii];
+        }
+
+        clock_gettime(CLOCK_REALTIME, &start);
+
+        // diff_t += rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density);
         cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
                 m, n, k, alpha, A, k, B, n, beta, C, n);
+
+        clock_gettime(CLOCK_REALTIME, &end);
+        long seconds = end.tv_sec - start.tv_sec;
+        long nanoseconds = end.tv_nsec - start.tv_nsec;
+        diff_t += seconds + nanoseconds*1e-9;
+
+        free(dirty);
     }
 
 
-    clock_gettime(CLOCK_REALTIME, &end);
-    long seconds = end.tv_sec - start.tv_sec;
-    long nanoseconds = end.tv_nsec - start.tv_nsec;
-    diff_t = seconds + nanoseconds*1e-9;
-    printf("sgemm time: %f \n", diff_t); 
+    printf("sgemm time: %f \n", diff_t / ntrials); 
 
     if(write_result) {
         char fname[50];

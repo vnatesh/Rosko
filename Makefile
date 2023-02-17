@@ -34,17 +34,16 @@ SRC_FILES =  $(wildcard $(ROSKO_HOME)/src/*.cpp)
 LIBS := -L$(CAKE_HOME) -lcake
 
 
-ifeq ($(UNAME_M),aarch64)
+ifneq (,$(findstring aarch64,$(UNAME_M)))
 	TARGETS = rosko_armv8
 	LIBS += -L$(ROSKO_HOME) -lrosko_kernels
-else ifeq ($(UNAME_M),x86_64)
+else ifneq (,$(findstring x86_64,$(UNAME_M)))
 	TARGETS = rosko_haswell
 	LIBS += -L$(ROSKO_HOME) -lrosko_kernels
 else
 	TARGETS = rosko_haswell
 	LIBS += -L$(ROSKO_HOME) -lrosko_kernels
 endif
-
 
 
 CFLAGS 	:= $(filter-out -std=c99, $(CFLAGS_tmp))

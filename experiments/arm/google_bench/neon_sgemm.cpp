@@ -115,19 +115,44 @@ public:
         struct timespec start, end;
         double diff_t;
 
-        clock_gettime(CLOCK_REALTIME, &start);
 
         // use p cores for experiment
         NEScheduler::get().set_num_threads(p);
+
+        float ressss;
+        float tttmp[18];
+        int flushsz=200000;
+        diff_t = 0.0;
+        
         for(int i = 0; i < ntrials; i++) {
+
+
+            float *dirty = (float *)malloc(flushsz * sizeof(float));
+            #pragma omp parallel for
+            for (int dirt = 0; dirt < flushsz; dirt++){
+                dirty[dirt] += dirt%100;
+                tttmp[dirt%18] += dirty[dirt];
+            }
+
+            for(int ii =0; ii<18;ii++){
+                ressss+= tttmp[ii];
+            }
+
+            clock_gettime(CLOCK_REALTIME, &start);
+
+            // diff_t += rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density);
             sgemm.run();
+
+            clock_gettime(CLOCK_REALTIME, &end);
+            long seconds = end.tv_sec - start.tv_sec;
+            long nanoseconds = end.tv_nsec - start.tv_nsec;
+            diff_t += seconds + nanoseconds*1e-9;
+
+            free(dirty);
         }
 
-        clock_gettime(CLOCK_REALTIME, &end);
-        long seconds = end.tv_sec - start.tv_sec;
-        long nanoseconds = end.tv_nsec - start.tv_nsec;
-        diff_t = seconds + nanoseconds*1e-9;
-        printf("sgemm time: %f \n", diff_t); 
+
+        printf("sgemm time: %f \n", diff_t / ntrials); 
 
         if(write_result) {
             char fname[50];
