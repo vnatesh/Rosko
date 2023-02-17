@@ -175,22 +175,6 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
 
     try {
 
-        clock_gettime(CLOCK_REALTIME, &start);
-
-        oneapi::mkl::sparse::init_matrix_handle(&handle);
-
-        oneapi::mkl::sparse::set_csr_data(handle, nrows, ncols, oneapi::mkl::index_base::zero,
-                                          ia_buffer, ja_buffer, a_buffer);
-
-        clock_gettime(CLOCK_REALTIME, &end);
-        seconds = end.tv_sec - start.tv_sec;
-        nanoseconds = end.tv_nsec - start.tv_nsec;
-        diff_t = seconds + nanoseconds*1e-9;
-        printf("csr pack time: %f \n", diff_t ); 
-
-
-
-
 
         float ressss;
         float tttmp[18];
@@ -198,6 +182,13 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
         diff_t = 0.0;
 
         for(int i = 0; i < ntrials; i++) {
+
+
+
+            oneapi::mkl::sparse::init_matrix_handle(&handle);
+
+            oneapi::mkl::sparse::set_csr_data(handle, nrows, ncols, oneapi::mkl::index_base::zero,
+                                              ia_buffer, ja_buffer, a_buffer);
 
 
             float *dirty = (float *)malloc(flushsz * sizeof(float));
@@ -218,15 +209,17 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
             oneapi::mkl::sparse::gemm(main_queue, transpose_val, alpha, handle, b_buffer, columns, ldb,
                                       beta, c_buffer, ldc);
 
-            oneapi::mkl::sparse::release_matrix_handle(&handle);
-
             clock_gettime(CLOCK_REALTIME, &end);
             seconds = end.tv_sec - start.tv_sec;
             nanoseconds = end.tv_nsec - start.tv_nsec;
             diff_t += seconds + nanoseconds*1e-9;
 
+            oneapi::mkl::sparse::release_matrix_handle(&handle);
+
             free(dirty);
         }
+
+            // oneapi::mkl::sparse::release_matrix_handle(&handle);
 
         printf("sparse gemm time: %f \n", diff_t / ntrials); 
     }

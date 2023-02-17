@@ -32,6 +32,8 @@ def plot_rosko_vs_intel_dnn(fname = 'rosko_vs_intel_dlmc'):
 		K = df1[(df1['algo'] == 'mkl') & (df1['id'] == i)]['K']._values[0]
 		if M > 30000 or K > 30000 or N > 30000:
 			continue
+		if (float(nz) / float(M*K)) >= 0.12:
+			continue
 		#
 		flops.append(nz*N)
 		# if i in [96,193,290]:

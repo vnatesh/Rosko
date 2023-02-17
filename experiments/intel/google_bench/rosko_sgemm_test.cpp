@@ -79,7 +79,7 @@ int main( int argc, char** argv ) {
 	rand_init(B, K, N);
 
 	cake_cntx_t* cake_cntx = cake_query_cntx();
-	// update_mr_nr(cake_cntx, 20, 96);
+	update_mr_nr(cake_cntx, 30, 128);
 //	cake_sgemm(A, B, C, M, N, K, p, cake_cntx);
 
 	// double ret = rosko_sgemm(A, B, C, M, N, K, p, cake_cntx);	
