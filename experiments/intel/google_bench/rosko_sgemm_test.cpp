@@ -12,7 +12,7 @@ float rand_gen() {
 int main( int argc, char** argv ) {
 	 // run_tests();
 
-	int M, K, N, p, nz, ntrials = atoi(argv[3]), write_result = atoi(argv[4]);;
+	int M, K, N, p, nz, alg, ntrials = atoi(argv[3]), write_result = atoi(argv[4]);;
 	struct timespec start, end;
 	double diff_t;
 
@@ -40,7 +40,6 @@ int main( int argc, char** argv ) {
 	float density = ((float) nz) / ((float) (M*K));
 	float* A = (float*) malloc(M * K * sizeof( float ));
 
-	printf("M = %d K = %d nz = %d  N = %d, cores = %d, file = %s\n", M, K, nz, N, p, argv[1]);
 
 	nread = getline(&line, &len, fptr);
 	nread = getline(&line, &len, fptr);
@@ -79,10 +78,26 @@ int main( int argc, char** argv ) {
 	rand_init(B, K, N);
 
 	cake_cntx_t* cake_cntx = cake_query_cntx();
-	update_mr_nr(cake_cntx, 30, 128);
 //	cake_sgemm(A, B, C, M, N, K, p, cake_cntx);
 
 	// double ret = rosko_sgemm(A, B, C, M, N, K, p, cake_cntx);	
+
+	if(density > 0.05) {
+		update_mr_nr(cake_cntx, 30, 128);
+		alg = 0;
+	} else {
+		update_mr_nr(cake_cntx, 6, 16);
+		alg = 2;
+	}
+
+	// update_mr_nr(cake_cntx, 6, 16);
+	// alg = 2;
+	printf("M = %d K = %d nz = %d  N = %d, cores = %d, file = %s, alg = %d, mr = %d, nr = %d\n",
+	 M, K, nz, N, p, argv[1], alg, cake_cntx->mr, cake_cntx->nr);
+
+
+
+
 
     float ressss;
     float tttmp[18];
@@ -104,9 +119,11 @@ int main( int argc, char** argv ) {
         }
 
 		// diff_t += rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density);
-		diff_t += rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density, NULL, 0, NULL, 0, 1, 0, KMN, 1);
+		diff_t += rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density, NULL, 0, NULL, 0, 1, 0, KMN, alg);
         free(dirty);
     }
+
+	printf("rosko,%d,%d,%d,%d,%d,%f\n",M,K,N,nz,id, diff_t / ntrials);
 
 	if(write_result) {
 	    char fname[50];

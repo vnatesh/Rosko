@@ -7,6 +7,9 @@ import os
 import re
 import sys
 from matplotlib import ticker as mticker
+from scipy import stats
+from scipy.stats import gmean
+
 
 
 
@@ -32,10 +35,11 @@ def plot_rosko_vs_intel_dnn(fname = 'rosko_vs_intel_dlmc'):
 		K = df1[(df1['algo'] == 'mkl') & (df1['id'] == i)]['K']._values[0]
 		if M > 30000 or K > 30000 or N > 30000:
 			continue
-		if (float(nz) / float(M*K)) >= 0.12:
+		if (float(nz) / float(M*K)) >= 0.22:
 			continue
 		#
-		flops.append(nz*N)
+		# flops.append(100*(1.0 - (nz / float(M*K))))
+		flops.append(nz)
 		# if i in [96,193,290]:
 		# 	# continue
 		# 	print(M,N,K,nz,i)
@@ -69,15 +73,20 @@ def plot_rosko_vs_intel_dnn(fname = 'rosko_vs_intel_dlmc'):
 	plt.scatter(flops, gflops_taco, label = labels[-1],  marker = markers[-1], color = colors[1], s=20)
 	#
 	plt.title('(a) Throughput for SpMM in\nTransformer Layers', fontsize = 24)
-	plt.xlabel("# of nonzeros (log10 scale)", fontsize = 24)
+	plt.xlabel("# of nonzeroes (log scale)", fontsize = 24)
 	# plt.xticks(np.arange(3.5,5.6,0.5), fontsize = 16)
 	plt.yticks(fontsize = 16)
 	plt.ylabel("Throughput (GFLOPs/sec)", fontsize = 18)
 	plt.legend(loc = "upper left", prop={'size': 12})
-	# plt.savefig("%s_tput.pdf" % fname, bbox_inches='tight')
+	plt.savefig("%s_tput.pdf" % fname, bbox_inches='tight')
+	speedup = np.array(gflops_rosko) / np.array(gflops_mkl_sp)
+	print(gmean(speedup))
+	print(stats.describe(speedup))
+	print([i for i in speedup if i < 1.0 ])
 	plt.show()
 	plt.clf()
 	plt.close('all')
+
 	#
 	#
 

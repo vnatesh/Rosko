@@ -3,8 +3,8 @@
 
 int main( int argc, char** argv ) {
 	// run_tests();
-	run_tests_sparse_test();
-	run_tests_sparse();
+	// run_tests_sparse_test();
+	// run_tests_sparse();
 
 // exit(1);
 	int M, K, N, p, nz, mr, nr, ntrials, alg;
@@ -37,7 +37,7 @@ int main( int argc, char** argv ) {
 	density = ((float) nz) / ((float) (((float) M) * ((float) K)));
 
 	cake_cntx_t* cake_cntx = cake_query_cntx();
-	update_mr_nr(cake_cntx, 6, 16);
+	update_mr_nr(cake_cntx, 30, 128);
 
 	blk_dims_t* x = (blk_dims_t*) malloc(sizeof(blk_dims_t));
 	init_sparse_block_dims(M, N, K, p, x, cake_cntx, KMN, NULL, density, 4, alg);
@@ -76,11 +76,14 @@ int main( int argc, char** argv ) {
         }
 
 
-		diff_t += rosko_sgemm_compressed(argv[8], B, C, M, N, K, p, cake_cntx, 
-									density, NULL, sp_pack, 1, 0, 1, 0, KMN, alg);
+		// diff_t += rosko_sgemm_compressed(argv[8], B, C, M, N, K, p, cake_cntx, 
+		// 							density, NULL, sp_pack, 1, 0, 1, 0, KMN, alg);
+		diff_t += rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density, NULL, 0, NULL, 0, 1, 0, KMN, alg);
+
         free(dirty);
     }
 
+	printf("%d,%f,%d,%d,%d,%f\n", alg, sp, M, K, N, diff_t / ntrials);
 	fprintf(fp, "%d,%f,%d,%d,%d,%f\n", alg, sp, M, K, N, diff_t / ntrials);
 	fclose(fp);
 	free(x);
