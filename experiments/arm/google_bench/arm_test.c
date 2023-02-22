@@ -34,6 +34,7 @@ int main(int argc, char* argv[])  {
     }
 
     int id = atoi(argv[2]), ntrials = atoi(argv[3]), write_result = atoi(argv[4]);
+    int dram = atoi(argv[5]);
 
     n = 2048; // fix N dimension for now (batch size = 8, seq len = 256)
     p = 4; // 4 cores on rasbpi 4
@@ -80,38 +81,56 @@ int main(int argc, char* argv[])  {
     rand_init(B, k, n);
 
 
+    if(dram) {
 
-    float ressss;
-    float tttmp[18];
-    int flushsz=200000;
-    diff_t = 0.0;
-    
-    for(int i = 0; i < ntrials; i++) {
+        diff_t = 0.0;
+        for(int i = 0; i < ntrials; i++) {
 
+            clock_gettime(CLOCK_REALTIME, &start);
 
-        float *dirty = (float *)malloc(flushsz * sizeof(float));
-        #pragma omp parallel for
-        for (int dirt = 0; dirt < flushsz; dirt++){
-            dirty[dirt] += dirt%100;
-            tttmp[dirt%18] += dirty[dirt];
+            // diff_t += rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density);
+            cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                    m, n, k, alpha, A, k, B, n, beta, C, n);
+
+            clock_gettime(CLOCK_REALTIME, &end);
+            long seconds = end.tv_sec - start.tv_sec;
+            long nanoseconds = end.tv_nsec - start.tv_nsec;
+            diff_t += seconds + nanoseconds*1e-9;
         }
 
-        for(int ii =0; ii<18;ii++){
-            ressss+= tttmp[ii];
+    } else {
+
+        float ressss;
+        float tttmp[18];
+        int flushsz=200000;
+        diff_t = 0.0;
+        
+        for(int i = 0; i < ntrials; i++) {
+
+
+            float *dirty = (float *)malloc(flushsz * sizeof(float));
+            #pragma omp parallel for
+            for (int dirt = 0; dirt < flushsz; dirt++){
+                dirty[dirt] += dirt%100;
+                tttmp[dirt%18] += dirty[dirt];
+            }
+
+            for(int ii =0; ii<18;ii++){
+                ressss+= tttmp[ii];
+            }
+
+            clock_gettime(CLOCK_REALTIME, &start);
+
+            // diff_t += rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density);
+            cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                    m, n, k, alpha, A, k, B, n, beta, C, n);
+
+            clock_gettime(CLOCK_REALTIME, &end);
+            long seconds = end.tv_sec - start.tv_sec;
+            long nanoseconds = end.tv_nsec - start.tv_nsec;
+            diff_t += seconds + nanoseconds*1e-9;
+            free(dirty);
         }
-
-        clock_gettime(CLOCK_REALTIME, &start);
-
-        // diff_t += rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density);
-        cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
-                m, n, k, alpha, A, k, B, n, beta, C, n);
-
-        clock_gettime(CLOCK_REALTIME, &end);
-        long seconds = end.tv_sec - start.tv_sec;
-        long nanoseconds = end.tv_nsec - start.tv_nsec;
-        diff_t += seconds + nanoseconds*1e-9;
-
-        free(dirty);
     }
 
 

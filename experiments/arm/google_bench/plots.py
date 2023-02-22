@@ -10,20 +10,20 @@ from matplotlib import ticker as mticker
 
 
 
+
 def plot_rosko_vs_arm_dnn(fname = 'rosko_vs_arm_dlmc'):
 	plt.rcParams.update({'font.size': 12})
 	markers = ['o','v','s','d','^']
-	colors = ['b','g','aqua','k','m','r']
-	labels = ['TUMMY', 'ARMPL','ARMCL', 'CAKE']
-	gflops_armpl=[0]*776;gflops_rosko=[0]*776;dram_io_rosko=[0]*776;dram_io_armpl=[0]*776;
-	gflops_armcl=[0]*776; dram_io_armcl=[0]*776; dram_bw_rosko=[0]*776;dram_bw_armpl=[0]*776;
-	dram_bw_armcl=[0]*776;dram_io_cake=[0]*776; dram_bw_cake=[0]*776; gflops_cake=[0]*776;
-	time_armcl=[0]*776; time_armpl=[0]*776; time_rosko=[0]*776; time_cake=[0]*776
+	colors = ['r', 'm', 'k', 'b','g','aqua']
+	labels = ['Rosko', 'ARMPL','ARMCL']
+	gflops_armpl=[];gflops_rosko=[];dram_io_rosko=[];dram_io_armpl=[];
+	gflops_armcl=[]; dram_io_armcl=[]; dram_bw_rosko=[];dram_bw_armpl=[];
+	dram_bw_armcl=[];time_armcl=[]; time_armpl=[]; time_rosko=[];
 	#
-	df1 = pandas.read_csv('result_dlmc')
+	df1 = pandas.read_csv('result_dlmc_arm')
 	flops = []
 	#
-	for i in range(776):
+	for i in range(485):
 		# multiply by 64 bytes since external memory request non-cacheable 
 		# and L2-data cache refills/writeback PMUs
 		# in ARM are expressed in terms of number of cache lines
@@ -31,110 +31,79 @@ def plot_rosko_vs_arm_dnn(fname = 'rosko_vs_arm_dlmc'):
 		N = df1[(df1['algo'] == 'armpl') & (df1['id'] == i)]['N']._values[0]
 		M = df1[(df1['algo'] == 'armpl') & (df1['id'] == i)]['M']._values[0]
 		K = df1[(df1['algo'] == 'armpl') & (df1['id'] == i)]['K']._values[0]
-		#
-		# sparsity = (1 - (float(nz) / (M*K)))
-		# if sparsity <= 0.85 and sparsity >= 0.76:
-		# 	continue
-		#
 		if M > 30000 or K > 30000 or N > 30000:
-			flops.append(0)
 			continue
-		# if i in [96,193,290]:
-			# flops.append(0)
-			# continue
+		if (float(nz) / float(M*K)) >= 0.22:
+			continue
 		#
+		# flops.append(100*(1.0 - (nz / float(M*K))))
 		flops.append(nz)
 		# if i in [96,193,290]:
 		# 	# continue
 		# 	print(M,N,K,nz,i)
 		#
-		a = open('reports_arm_trans1/report_armpl_%d' % i,'r').read().split('\n')
+		a = open('reports_arm_trans/report_armpl_%d' % i,'r').read().split('\n')
 		cpu_time = df1[(df1['algo'] == 'armpl') & (df1['id'] == i)]['time']._values[0]
-		dram_io_armpl[i] = (((int(re.search(r'\d+', a[5]).group())*64.0))) / 1e9
-		dram_io_armpl[i] += (((int(re.search(r'\d+', a[6]).group())*64.0))) / 1e9
-		dram_io_armpl[i] -= 2*(M*K + K*N)*4 / 1e9 # read and write io due to A,B inits
-		dram_bw_armpl[i] = dram_io_armpl[i] / cpu_time
-		gflops_armpl[i] = (nz*N) / cpu_time
-		time_armpl[i] = cpu_time
+		tmp = (((int(re.search(r'\d+', a[5]).group())*64.0))) / 1e9
+		tmp -= 2*(M*K + K*N)*4 / 1e9 # read and write io due to A,B inits
+		dram_io_armpl.append(tmp)
+		dram_bw_armpl.append(tmp / cpu_time / 10)
+		gflops_armpl.append((nz*N) / cpu_time / 1e9)
+		time_armpl.append(cpu_time)
 		#
-		a = open('reports_arm_trans1/report_armcl_%d' % i,'r').read().split('\n')
+		a = open('reports_arm_trans/report_armcl_%d' % i,'r').read().split('\n')
 		cpu_time = df1[(df1['algo'] == 'armcl') & (df1['id'] == i)]['time']._values[0]
-		dram_io_armcl[i] = (((int(re.search(r'\d+', a[5]).group())*64.0))) / 1e9
-		dram_io_armcl[i] += (((int(re.search(r'\d+', a[6]).group())*64.0))) / 1e9
-		dram_io_armcl[i] -= 2*(M*K + K*N)*4 / 1e9
-		dram_bw_armcl[i] = dram_io_armcl[i] / cpu_time
-		gflops_armcl[i] = (nz*N) / cpu_time
-		time_armcl[i] = cpu_time
+		tmp = (((int(re.search(r'\d+', a[5]).group())*64.0))) / 1e9
+		tmp -= 2*(M*K + K*N)*4 / 1e9
+		dram_io_armcl.append(tmp)
+		dram_bw_armcl.append(tmp / cpu_time / 10)
+		gflops_armcl.append((nz*N) / (cpu_time) / 1e9)
+		time_armcl.append(cpu_time)
 		#
-		a = open('reports_arm_trans1/report_rosko_%d' % i,'r').read().split('\n')
+		a = open('reports_arm_trans/report_rosko_%d' % i,'r').read().split('\n')
 		cpu_time = df1[(df1['algo'] == 'rosko') & (df1['id'] == i)]['time']._values[0]
-		dram_io_rosko[i] = (((int(re.search(r'\d+', a[5]).group())*64.0))) / 1e9
-		dram_io_rosko[i] += (((int(re.search(r'\d+', a[6]).group())*64.0))) / 1e9
-		dram_io_rosko[i] -= 2*(nz + K*N)*4 / 1e9
-		dram_bw_rosko[i] = dram_io_rosko[i] / cpu_time
-		gflops_rosko[i] = (nz*N) / cpu_time
-		time_rosko[i] = cpu_time
+		tmp = (((int(re.search(r'\d+', a[5]).group())*64.0))) / 1e9
+		tmp -= 2*(nz + K*N)*4 / 1e9
+		dram_io_rosko.append(tmp)
+		dram_bw_rosko.append(tmp / cpu_time / 10)
+		gflops_rosko.append((nz*N) / cpu_time / 1e9)
+		time_rosko.append(cpu_time)
 		#
-		a = open('reports_arm_trans1/report_cake_%d' % i,'r').read().split('\n')
-		# cpu_time1 = float(re.search(r'\d+\.\d+', a[8]).group())
-		cpu_time = df1[(df1['algo'] == 'CAKE') & (df1['id'] == i)]['time']._values[0]
-		dram_io_cake[i] = (((int(re.search(r'\d+', a[5]).group())*64.0))) / 1e9
-		dram_io_cake[i] += (((int(re.search(r'\d+', a[6]).group())*64.0))) / 1e9
-		dram_io_cake[i] -= 2*(nz + K*N)*4 / 1e9
-		dram_bw_cake[i] = dram_io_cake[i] / cpu_time
-		gflops_cake[i] = (nz*N) / cpu_time
-		time_cake[i] = cpu_time
-		# if (dram_io_rosko[i] < dram_io_armpl[i]) and (dram_io_rosko[i] < dram_io_armcl[i]) \
+		# i+=1
+		# if (dram_io_rosko[i] < dram_io_mkl[i]) and (dram_io_rosko[i] < dram_io_armcl[i]) \
 		# and (gflops_rosko[i] > gflops_armpl[i]) and (gflops_rosko[i] > gflops_armcl[i]):
 		# 	print(i)
 		# #
-	# plt.subplot(1, 2, 1)
 	flops = np.log10(np.array(flops))
-	flops = [i for i in flops if i !=0 and i != np.inf and i != -np.inf]	
-	gflops_armcl = [i/1e9 for i in gflops_armcl if i !=0 and i != np.inf and i != -np.inf]
-	gflops_armpl = [i/1e9 for i in gflops_armpl if i !=0 and i != np.inf and i != -np.inf]
-	gflops_cake = [i/1e9 for i in gflops_cake if i !=0 and i != np.inf and i != -np.inf]
-	gflops_rosko = [i/1e9 for i in gflops_rosko if i !=0 and i != np.inf and i != -np.inf]
-	dram_io_armcl = [i for i in dram_io_armcl if i !=0 and i != np.inf and i != -np.inf]
-	dram_io_armpl = [i for i in dram_io_armpl if i !=0 and i != np.inf and i != -np.inf]
-	dram_io_cake = [i for i in dram_io_cake if i !=0 and i != np.inf and i != -np.inf]
-	dram_io_rosko = [i for i in dram_io_rosko if i !=0 and i != np.inf and i != -np.inf]
-	dram_bw_armcl = [i for i in dram_bw_armcl if i !=0 and i != np.inf and i != -np.inf]
-	dram_bw_armpl = [i for i in dram_bw_armpl if i !=0 and i != np.inf and i != -np.inf]
-	dram_bw_cake = [i for i in dram_bw_cake if i !=0 and i != np.inf and i != -np.inf]
-	dram_bw_rosko = [i for i in dram_bw_rosko if i !=0 and i != np.inf and i != -np.inf]
-	time_armcl = [i for i in time_armcl if i !=0 and i != np.inf and i != -np.inf]
-	time_armpl = [i for i in time_armpl if i !=0 and i != np.inf and i != -np.inf]
-	time_cake = [i for i in time_cake if i !=0 and i != np.inf and i != -np.inf]
-	time_rosko = [i for i in time_rosko if i !=0 and i != np.inf and i != -np.inf]
-	#
 	plt.figure(figsize = (6,4))
-	plt.scatter(flops, gflops_rosko, label = labels[0],  marker = markers[0], color = colors[5])
-	plt.scatter(flops, gflops_armpl, label = labels[1],  marker = markers[1], color = colors[4])
-	plt.scatter(flops, gflops_armcl, label = labels[2],  marker = markers[3], color = colors[3])
-	plt.scatter(flops, gflops_cake, label = labels[-1],  marker = markers[-1], color = colors[1])
+	plt.scatter(flops, gflops_rosko, label = labels[0],  marker = markers[0], color = colors[0], s=20)
+	plt.scatter(flops, gflops_armpl, label = labels[1],  marker = markers[1], color = colors[1], s=20)
+	plt.scatter(flops, gflops_armcl, label = labels[2],  marker = markers[3], color = colors[2], s=20)
 	#
 	plt.title('(a) Throughput for SpMM in\nTransformer Layers', fontsize = 24)
-	plt.xlabel("# of nonzeros (log10 scale)", fontsize = 24)
-	plt.xticks(np.arange(3.5,5.6,0.5), fontsize = 16)
+	plt.xlabel("# of nonzeroes (log scale)", fontsize = 24)
+	# plt.xticks(np.arange(3.5,5.6,0.5), fontsize = 16)
 	plt.yticks(fontsize = 16)
 	plt.ylabel("Throughput (GFLOPs/sec)", fontsize = 18)
 	plt.legend(loc = "upper left", prop={'size': 12})
 	plt.savefig("%s_tput.pdf" % fname, bbox_inches='tight')
+	speedup = np.array(gflops_rosko) / np.array(gflops_armpl)
+	print(gmean(speedup))
+	print(stats.describe(speedup))
+	print([i for i in speedup if i < 1.0 ])
 	plt.show()
 	plt.clf()
 	plt.close('all')
 	#
 	#
 	plt.figure(figsize = (6,4))
-	plt.scatter(flops, dram_io_armpl, label = labels[1],  marker = markers[1], color = colors[4])
-	plt.scatter(flops, dram_io_armcl, label = labels[2],  marker = markers[3], color = colors[3])
-	plt.scatter(flops, dram_io_cake, label = labels[-1],  marker = markers[-1], color = colors[1])
-	plt.scatter(flops, dram_io_rosko, label = labels[0],  marker = markers[0], color = colors[5])
+	plt.scatter(flops, dram_io_armpl, label = labels[1],  marker = markers[1], color = colors[1])
+	plt.scatter(flops, dram_io_armcl, label = labels[2],  marker = markers[2], color = colors[2])
+	plt.scatter(flops, dram_io_rosko, label = labels[0],  marker = markers[0], color = colors[0])
 	#
 	plt.title('(b) DRAM IO for SpMM in\nTransformer Layers', fontsize = 24)
 	plt.xlabel("# of nonzeros (log10 scale)", fontsize = 24)
-	plt.xticks(np.arange(3.5,5.6,0.5), fontsize = 16)
+	# plt.xticks(np.arange(3.5,5.6,0.5), fontsize = 16)
 	plt.yticks(fontsize = 16)
 	plt.ylabel("DRAM IO (GB)", fontsize = 24)
 	plt.legend(loc = "upper left", prop={'size': 12})
@@ -145,14 +114,13 @@ def plot_rosko_vs_arm_dnn(fname = 'rosko_vs_arm_dlmc'):
 	#
 	#
 	plt.figure(figsize = (6,4))
-	plt.scatter(flops, dram_bw_rosko, label = labels[0],  marker = markers[0], color = colors[5])
-	plt.scatter(flops, dram_bw_armpl, label = labels[1],  marker = markers[1], color = colors[4])
-	plt.scatter(flops, dram_bw_armcl, label = labels[2],  marker = markers[3], color = colors[3])
-	plt.scatter(flops, dram_bw_cake, label = labels[-1],  marker = markers[-1], color = colors[1])
+	plt.scatter(flops, dram_bw_rosko, label = labels[0],  marker = markers[0], color = colors[0])
+	plt.scatter(flops, dram_bw_armpl, label = labels[1],  marker = markers[1], color = colors[1])
+	plt.scatter(flops, dram_bw_armcl, label = labels[2],  marker = markers[2], color = colors[2])
 	#
 	plt.title('(c) DRAM BW for SpMM in\nTransformer Layers', fontsize = 24)
 	plt.xlabel("# of nonzeros (log10 scale)", fontsize = 24)
-	plt.xticks(np.arange(3.5,5.6,0.5), fontsize = 16)
+	# plt.xticks(np.arange(3.5,5.6,0.5), fontsize = 16)
 	plt.yticks(fontsize = 16)
 	plt.ylabel("DRAM BW (GB/sec)", fontsize = 24)
 	plt.legend(loc = "upper right", prop={'size': 12})
@@ -163,14 +131,13 @@ def plot_rosko_vs_arm_dnn(fname = 'rosko_vs_arm_dlmc'):
 	#
 	#
 	plt.figure(figsize = (6,4))
-	plt.scatter(time_armpl, dram_bw_armpl, label = labels[1],  marker = markers[1], color = colors[4])
-	plt.scatter(time_armcl, dram_bw_armcl, label = labels[2],  marker = markers[3], color = colors[3])
-	plt.scatter(time_cake, dram_bw_cake, label = labels[-1],  marker = markers[-1], color = colors[1])
-	plt.scatter(time_rosko, dram_bw_rosko, label = labels[0],  marker = markers[0], color = colors[5])
+	plt.scatter(time_rosko, dram_bw_rosko, label = labels[0],  marker = markers[0], color = colors[0])
+	plt.scatter(time_armpl, dram_bw_armpl, label = labels[1],  marker = markers[1], color = colors[1])
+	plt.scatter(time_armcl, dram_bw_armcl, label = labels[2],  marker = markers[2], color = colors[2])
 	#
 	plt.title('(c) BW Required to Attain\nTarget Runtime', fontsize = 24)
 	plt.xlabel("Runtime (sec)", fontsize = 24)
-	plt.xticks(np.arange(0,0.31,0.05), fontsize = 16)
+	# plt.xticks(np.arange(0,0.31,0.05), fontsize = 16)
 	plt.yticks(fontsize = 16)
 	plt.ylabel("DRAM BW (GB/sec)", fontsize = 24)
 	plt.legend(loc = "upper right", prop={'size': 12})
@@ -178,6 +145,8 @@ def plot_rosko_vs_arm_dnn(fname = 'rosko_vs_arm_dlmc'):
 	plt.show()
 	plt.clf()
 	plt.close('all')
+
+	
 
 
 plot_rosko_vs_arm_dnn()

@@ -10,10 +10,10 @@ gcc -I/opt/arm/armpl_21.0_gcc-10.2/include -fopenmp  arm_test.c -o test.o \
   -lm -o arm_test;
 
 
-
 # compile ARMCL sgemm test (NEON)
 export ARMCL_PATH=/home/ubuntu/ComputeLibrary;
 export LD_LIBRARY_PATH=$ARMCL_PATH/build:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH
 
 aarch64-linux-gnu-g++ -o neon_sgemm.o -c -Wall -DARCH_ARM -Wextra -pedantic \
 -Wdisabled-optimization -Wformat=2 -Winit-self -Wstrict-overflow=2 -Wswitch-default \
@@ -44,36 +44,34 @@ echo "algo,M,K,N,nz,id,time" >> result_dlmc
 for x in 7 8 9 95 98;
 do
 	for file in dlmc/transformer/magnitude_pruning/0.$x/*.smtx; 
+	do
 
 
-
-		./rosko_sgemm_test $file $i $NTRIALS 1; 
+		./rosko_sgemm_test $file $i $NTRIALS 1 0; 
 		# ./cake_sgemm_test $file $i $NTRIALS 1; 
-		./arm_test $file $i $NTRIALS 1; 
-		./neon_sgemm  $file $i $NTRIALS 1;
+		./arm_test $file $i $NTRIALS 1 0; 
+		./neon_sgemm  $file $i $NTRIALS 1 0;
 
-		perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
-		-o reports_arm_trans/report_rosko_$i ./rosko_sgemm_test $file $i 1 0;
+		perf stat -e l2d_cache_refill \
+		-o reports_arm_trans/report_rosko_$i ./rosko_sgemm_test $file $i $NTRIALS 0 1;
 
 		# perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
 		# -o reports_arm_trans/report_cake_$i ./cake_sgemm_test $file $i 1 0;
 
-		# perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
-		# -o reports_arm_trans/report_setup_cake_$i ./rosko_sgemm_test $file $i;
-
-		perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
-		-o reports_arm_trans/report_armpl_$i ./arm_test $file $i 1 0; 
+		perf stat -e l2d_cache_refill \
+		-o reports_arm_trans/report_armpl_$i ./arm_test $file $i $NTRIALS 0 1; 
 
 		# perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
 		# -o reports_arm_trans/report_setup_armpl_$i ./arm_test $file $i; 
 
-		perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
-		-o reports_arm_trans/report_armcl_$i ./neon_sgemm $file $i 1 0;
+		perf stat -e l2d_cache_refill \
+		-o reports_arm_trans/report_armcl_$i ./neon_sgemm $file $i $NTRIALS 0 1;
 
 		# perf stat -e l2d_cache_refill_rd,l2d_cache_refill_wr \
 		# -o reports_arm_trans/report_setup_armcl_$i ./neon_sgemm $file $i;
 
 		((i++));
+	done
 done
 # run matmul bench
 

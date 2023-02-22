@@ -12,14 +12,14 @@ float rand_gen() {
 int main( int argc, char** argv ) {
 	 // run_tests();
 
-	int M, K, N, p, nz, alg, ntrials = atoi(argv[3]), write_result = atoi(argv[4]);;
+	int M, K, N, p, nz, alg, ntrials = atoi(argv[3]), write_result = atoi(argv[4]);
 	struct timespec start, end;
 	double diff_t;
 
 	N = 2048; // fix N dimension for now (batch size = 8, seq len = 256)
 	p = 4; // 4 cores on rasbpi 4
 
-	int id = atoi(argv[2]);
+	int id = atoi(argv[2]), dram = atoi(argv[5]);
 
 	// read in sparse matrix A from google DNN benchmark
 	FILE *fptr;
@@ -97,31 +97,40 @@ int main( int argc, char** argv ) {
 
 
 
+	if(dram) {
+
+	    diff_t = 0.0;
+	    for(int i = 0; i < ntrials; i++) {
+			// diff_t += rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density);
+			diff_t += rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density, NULL, 0, NULL, 0, 1, 0, KMN, alg);
+	    }
+
+	} else {
+
+	    float ressss;
+	    float tttmp[18];
+	    int flushsz=200000;
+	    diff_t = 0.0;
+	    
+	    for(int i = 0; i < ntrials; i++) {
 
 
-    float ressss;
-    float tttmp[18];
-    int flushsz=200000;
-    diff_t = 0.0;
-    
-    for(int i = 0; i < ntrials; i++) {
+	        float *dirty = (float *)malloc(flushsz * sizeof(float));
+	        #pragma omp parallel for
+	        for (int dirt = 0; dirt < flushsz; dirt++){
+	            dirty[dirt] += dirt%100;
+	            tttmp[dirt%18] += dirty[dirt];
+	        }
 
+	        for(int ii =0; ii<18;ii++){
+	            ressss+= tttmp[ii];
+	        }
 
-        float *dirty = (float *)malloc(flushsz * sizeof(float));
-        #pragma omp parallel for
-        for (int dirt = 0; dirt < flushsz; dirt++){
-            dirty[dirt] += dirt%100;
-            tttmp[dirt%18] += dirty[dirt];
-        }
-
-        for(int ii =0; ii<18;ii++){
-            ressss+= tttmp[ii];
-        }
-
-		// diff_t += rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density);
-		diff_t += rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density, NULL, 0, NULL, 0, 1, 0, KMN, alg);
-        free(dirty);
-    }
+			// diff_t += rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density);
+			diff_t += rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density, NULL, 0, NULL, 0, 1, 0, KMN, alg);
+	        free(dirty);
+	    }
+	}
 
 	printf("rosko,%d,%d,%d,%d,%d,%f\n",M,K,N,nz,id, diff_t / ntrials);
 

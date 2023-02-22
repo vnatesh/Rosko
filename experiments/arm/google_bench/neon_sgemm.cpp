@@ -54,6 +54,7 @@ public:
         id = atoi(argv[2]);
         ntrials = atoi(argv[3]);
         write_result = atoi(argv[4]);
+        dram = atoi(argv[5]);
 
 		fptr = fopen(argv[1], "r");
 		if (fptr == NULL) {
@@ -119,38 +120,57 @@ public:
         // use p cores for experiment
         NEScheduler::get().set_num_threads(p);
 
-        float ressss;
-        float tttmp[18];
-        int flushsz=200000;
-        diff_t = 0.0;
-        
-        for(int i = 0; i < ntrials; i++) {
 
+        if(dram) {
 
-            float *dirty = (float *)malloc(flushsz * sizeof(float));
-            #pragma omp parallel for
-            for (int dirt = 0; dirt < flushsz; dirt++){
-                dirty[dirt] += dirt%100;
-                tttmp[dirt%18] += dirty[dirt];
+            diff_t = 0.0;
+            for(int i = 0; i < ntrials; i++) {
+
+                clock_gettime(CLOCK_REALTIME, &start);
+
+                // diff_t += rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density);
+                sgemm.run();
+
+                clock_gettime(CLOCK_REALTIME, &end);
+                long seconds = end.tv_sec - start.tv_sec;
+                long nanoseconds = end.tv_nsec - start.tv_nsec;
+                diff_t += seconds + nanoseconds*1e-9;
             }
 
-            for(int ii =0; ii<18;ii++){
-                ressss+= tttmp[ii];
+        } else {
+
+            float ressss;
+            float tttmp[18];
+            int flushsz=200000;
+            diff_t = 0.0;
+            
+            for(int i = 0; i < ntrials; i++) {
+
+
+                float *dirty = (float *)malloc(flushsz * sizeof(float));
+                #pragma omp parallel for
+                for (int dirt = 0; dirt < flushsz; dirt++){
+                    dirty[dirt] += dirt%100;
+                    tttmp[dirt%18] += dirty[dirt];
+                }
+
+                for(int ii =0; ii<18;ii++){
+                    ressss+= tttmp[ii];
+                }
+
+                clock_gettime(CLOCK_REALTIME, &start);
+
+                // diff_t += rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density);
+                sgemm.run();
+
+                clock_gettime(CLOCK_REALTIME, &end);
+                long seconds = end.tv_sec - start.tv_sec;
+                long nanoseconds = end.tv_nsec - start.tv_nsec;
+                diff_t += seconds + nanoseconds*1e-9;
+
+                free(dirty);
             }
-
-            clock_gettime(CLOCK_REALTIME, &start);
-
-            // diff_t += rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density);
-            sgemm.run();
-
-            clock_gettime(CLOCK_REALTIME, &end);
-            long seconds = end.tv_sec - start.tv_sec;
-            long nanoseconds = end.tv_nsec - start.tv_nsec;
-            diff_t += seconds + nanoseconds*1e-9;
-
-            free(dirty);
         }
-
 
         printf("sgemm time: %f \n", diff_t / ntrials); 
 
@@ -183,6 +203,7 @@ private:
     int 		nz;
     int id;
     int write_result;
+    int dram;
     int ntrials;
     bool        is_fortran{};
     std::string output_filename{};
