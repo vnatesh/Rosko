@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ -z ${CAKE_HOME+x} ]; 
+if [ ! -d "CAKE_on_CPU" ]; 
 then
 	git clone https://github.com/vnatesh/CAKE_on_CPU.git
 	cd CAKE_on_CPU
@@ -28,4 +28,3 @@ fi
 source ./env.sh
 make -f rosko_kernels.mk
 make
-
