@@ -108,6 +108,8 @@ void csr_to_ob_A_sp(float* vals, int* colind_csr, int* rowptr_csr, int* nnz_tile
 }
 
 
+
+
 void pack_ob_A_sp(float* A, float* A_p, char* nnz_outer, int* k_inds, char* loc_m, 
    int M, int K, int m1, int m2, int m_c, int k_c, int m_r, bool pad) {
 
@@ -117,7 +119,7 @@ void pack_ob_A_sp(float* A, float* A_p, char* nnz_outer, int* k_inds, char* loc_
    int mr_bins = m_r + 1;
    int** cnt = (int**) malloc(mr_bins * sizeof(int*));
    int* cnt_inds = (int*) malloc(mr_bins * sizeof(int));
-   // int cnt_inds[7]; // = (int*) malloc(7 * sizeof(int));
+
 
    for(int i = 0; i < mr_bins; i++) {
       cnt[i] = (int*) malloc(k_c * sizeof(int));

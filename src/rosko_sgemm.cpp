@@ -151,7 +151,7 @@ double rosko_sgemm(float* A, float* B, float* C, int M, int N, int K, int p,
 
 
 
-
+// rosko-packed matrix A is fully compressed and not stored within the full dense matrix
 double rosko_sgemm_compressed(char* fname, float* B, float* C, int M, int N, int K, int p, 
 	cake_cntx_t* cake_cntx, float density, char* argv[], sp_pack_t* sp_pack,
 	bool packedA, bool packedB, float alpha, float beta, enum sched sch, int alg) {
@@ -239,7 +239,7 @@ double rosko_sgemm_compressed(char* fname, float* B, float* C, int M, int N, int
 
 	clock_gettime(CLOCK_REALTIME, &start);
 
-	schedule_KMN_sp_test(sp_pack, B_p, C_p, M, N, K, p, cake_cntx, x);
+	schedule_KMN_sp_compressed(sp_pack, B_p, C_p, M, N, K, p, cake_cntx, x);
 
     clock_gettime(CLOCK_REALTIME, &end);
     seconds = end.tv_sec - start.tv_sec;
@@ -281,6 +281,104 @@ double rosko_sgemm_compressed(char* fname, float* B, float* C, int M, int N, int
 
 	return times;
 }
+
+
+
+
+
+double rosko_sgemm_online(float* A, float* B, float* C, int M, int N, int K, int p, 
+	cake_cntx_t* cake_cntx, float density, char* argv[], 
+	bool packedA, sp_pack_t* sp_pack, bool packedB, 
+	float alpha, float beta, enum sched sch, int alg) {
+
+
+	struct timespec start, end, start1, end1;
+	long seconds, nanoseconds;
+	double diff_t, times;
+	float *A_p[p], *B_p, *C_p[p];
+	char *loc_m[p], *nnz_outer[p];
+	int *k_inds[p];
+
+	sch = KMN;
+
+	if(cake_cntx == NULL) {
+		cake_cntx = cake_query_cntx();
+	}
+
+	blk_dims_t* x = (blk_dims_t*) malloc(sizeof(blk_dims_t));
+	init_sparse_block_dims(M, N, K, p, x, cake_cntx, sch, argv, density, 4, alg);
+	omp_set_num_threads(p);
+
+	if(DEBUG) printf("m_r = %d, n_r = %d\n\n", cake_cntx->mr, cake_cntx->nr);
+	if(DEBUG) printf("mc = %d, kc = %d, nc = %d, alpha_n = %f\n", x->m_c, x->k_c, x->n_c, cake_cntx->alpha_n);
+
+
+
+	for(int i = 0; i < p; i++) {
+
+		if(posix_memalign((void**) &A_p[i], 64, x->m_c * x->k_c * sizeof(float))) {
+			printf("posix memalign error\n");
+			exit(1);
+		}
+
+
+		loc_m[i] = (char*) calloc(x->m_c * x->k_c, sizeof(char));
+		k_inds[i] = (int*) calloc(x->m_c * x->k_c / cake_cntx->mr, sizeof(int));
+		nnz_outer[i] = (char*) calloc(x->m_c * x->k_c / cake_cntx->mr, sizeof(char));
+
+
+		// if(posix_memalign((void**) &loc_m[i], 64, x->m_c * x->k_c * sizeof(char))) {
+		// 	printf("posix memalign error\n");
+		// 	exit(1);
+		// }
+
+		// if(posix_memalign((void**) &k_inds[i], 64, x->m_c * x->k_c * sizeof(int) / cake_cntx->mr)) {
+		// 	printf("posix memalign error\n");
+		// 	exit(1);
+		// }
+
+		// if(posix_memalign((void**) &nnz_outer[i], 64, x->m_c * x->k_c * sizeof(char) / cake_cntx->mr)) {
+		// 	printf("posix memalign error\n");
+		// 	exit(1);
+		// }
+
+		C_p[i] = (float*) calloc(x->m_c * x->n_c, sizeof(float));
+	}
+
+	if(posix_memalign((void**) &B_p, 64, x->k_c * x->n_c * sizeof(float))) {
+		printf("posix memalign error\n");
+		exit(1);
+	}
+
+	clock_gettime(CLOCK_REALTIME, &start);
+
+	schedule_KMN_sp_online(A, B, C, A_p, loc_m, k_inds, nnz_outer,
+						   B_p, C_p, M, N, K, p, cake_cntx, x);
+
+    clock_gettime(CLOCK_REALTIME, &end);
+    seconds = end.tv_sec - start.tv_sec;
+    nanoseconds = end.tv_nsec - start.tv_nsec;
+    diff_t = seconds + nanoseconds*1e-9;
+	if(DEBUG) printf("GEMM time: %f \n", diff_t); 	// exit(1);
+	// print_packed_C(C_p, M, N, m_c, n_c);
+	// unpack_C(C, C_p, M, N, m_c, n_c, n_r, m_r, p);
+	times = diff_t;
+ 
+
+	for(int i = 0; i < p; i++) {
+		free(A_p[i]);
+		free(nnz_outer[i]);
+		free(loc_m[i]);
+		free(k_inds[i]);
+		free(C_p[i]);
+	}
+
+	free(B_p);
+	free(x);
+
+	return times;
+}
+
 
 
 

@@ -22,6 +22,36 @@ int run_tests_sparse() {
 				for(n = 0; n < num_tests; n++) {
 					
 
+
+
+					M = Ms[m];
+					K = Ks[k];
+					N = Ns[n];
+
+					A = (float*) malloc(M * K * sizeof( float ));
+					B = (float*) malloc(K * N * sizeof( float ));
+					C = (float*) calloc(M * N , sizeof( float ));
+				    srand(time(NULL));
+
+				    rand_sparse(A, M, K, 0.5);
+					rand_init(B, K, N);
+
+// printf("K-first p=%d M=%d K=%d N=%d\n",p,M,K,N);
+
+					rosko_sgemm_online(A, B, C, M, N, K, p, cake_cntx, 0.5, NULL, 0, NULL, 0, 1, 0, KMN, 2);
+					if(cake_sgemm_checker(A, B, C, N, M, K)) {
+						printf("TESTS FAILED on K-first p=%d M=%d K=%d N=%d\n",p,M,K,N);
+						cnt++;
+					}
+
+					free(A);
+					free(B);
+					free(C);
+
+
+
+
+
 					M = Ms[m];
 					K = Ks[k];
 					N = Ns[n];
