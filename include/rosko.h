@@ -40,3 +40,25 @@ void schedule_KMN_sp_online(float* A, float* B, float* C, float** A_p,
 	int M, int N, int K, int p, cake_cntx_t* cake_cntx, blk_dims_t* x);
 
 
+
+
+double rosko_sgemm_online_B(float* A, float* B, float* C, int M, int N, int K, int p, 
+	cake_cntx_t* cake_cntx, float density, char* argv[] = NULL, bool packedA = 0, 
+	sp_pack_t* sp_pack = NULL, bool packedB = 0, float alpha = 1, float beta = 0, 
+	enum sched sch = NA, int alg = 2);
+
+void schedule_KMN_sp_online_B(sp_pack_t* sp_pack, float* B, float* B_p, float* C_p, int M, int N, int K, int p, 
+	cake_cntx_t* cake_cntx, blk_dims_t* x);
+
+
+
+
+
+double rosko_sgemm_online_BC(float* A, float* B, float* C, int M, int N, int K, int p, 
+	cake_cntx_t* cake_cntx, float density, char* argv[] = NULL, bool packedA = 0, 
+	sp_pack_t* sp_pack = NULL, bool packedB = 0, float alpha = 1, float beta = 0, 
+	enum sched sch = NA, int alg = 2);
+
+void schedule_KMN_sp_online_BC(sp_pack_t* sp_pack, float* B, float* B_p, float* C, float** C_p, int M, int N, int K, int p, 
+	cake_cntx_t* cake_cntx, blk_dims_t* x);
+
