@@ -46,7 +46,8 @@ int main( int argc, char** argv ) {
 
 	blk_dims_t* x = (blk_dims_t*) malloc(sizeof(blk_dims_t));
 	init_sparse_block_dims(M, N, K, p, x, cake_cntx, KMN, NULL, density, 4, alg);
-	
+	omp_set_num_threads(p);
+
 
 	clock_gettime(CLOCK_REALTIME, &start);
 

@@ -26,7 +26,6 @@ double rosko_sgemm(float* A, float* B, float* C, int M, int N, int K, int p,
 	blk_dims_t* x = (blk_dims_t*) malloc(sizeof(blk_dims_t));
 
 
-	clock_gettime(CLOCK_REALTIME, &start1);
 
 	init_sparse_block_dims(M, N, K, p, x, cake_cntx, sch, argv, density, 4, alg);
 	omp_set_num_threads(p);
@@ -52,6 +51,11 @@ double rosko_sgemm(float* A, float* B, float* C, int M, int N, int K, int p,
 		diff_t = seconds + nanoseconds*1e-9;
 		if(DEBUG) printf("A sparse pack time: %f \n", diff_t ); 
 	}
+
+
+	clock_gettime(CLOCK_REALTIME, &start1);
+
+
 
 	if(packedB) {
 		B_p = B;

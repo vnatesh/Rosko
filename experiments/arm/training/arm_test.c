@@ -102,7 +102,7 @@ int main(int argc, char* argv[])  {
         free(dirty);
     }
 
-    fprintf(fp, "%s,dense,%d,%d,%d,%f,%f\n", argv[7], m, k, n, sp, diff_t / ntrials);
+    fprintf(fp, "%s,dense,%d,%d,%d,%f,%f,%f\n", argv[7], m, k, n, sp, 0.0, diff_t / ntrials);
     fclose(fp);
     printf("sgemm time: %f \n", diff_t / ntrials); 
 
