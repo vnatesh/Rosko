@@ -125,12 +125,12 @@ void file_to_sp_pack(sp_pack_t* sp_pack, char* fname) {
 sp_pack_t* malloc_sp_pack2(int M, int K, cake_cntx_t* cake_cntx) {
 
 	sp_pack_t* sp_pack = (sp_pack_t*) malloc(sizeof(sp_pack_t));
-	sp_pack->A_sp_p = (float*) calloc(M*K, sizeof(float)); // storing only nonzeros of A                                        
-	sp_pack->loc_m = (char*) calloc(M*K, sizeof(char)); // array for storing M dim C writeback location for each nnz in A
+	sp_pack->A_sp_p = (float*) calloc((M*K), sizeof(float)); // storing only nonzeros of A                                        
+	sp_pack->loc_m = (char*) calloc((M*K), sizeof(char)); // array for storing M dim C writeback location for each nnz in A
 	           // each value ranges from 0 to mr-1
-	sp_pack->nnz_outer = (char*) calloc(M*K /  cake_cntx->mr, sizeof(char)); // storing number of nonzeros 
+	sp_pack->nnz_outer = (char*) calloc(((M*K) / cake_cntx->mr), sizeof(char)); // storing number of nonzeros 
 	                                                 // in each outer prod col of A
-	sp_pack->k_inds = (int*) calloc(M*K /  cake_cntx->mr , sizeof(int)); // storing kc_ind 
+	sp_pack->k_inds = (int*) calloc(((M*K) / cake_cntx->mr) , sizeof(int)); // storing kc_ind 
 	                                                 // of each outer prod col of A
 	sp_pack->M = M;
 	sp_pack->K = K;
@@ -158,8 +158,8 @@ void sp_pack_to_file2(sp_pack_t* sp_pack, cake_cntx_t* cake_cntx,
 
 	fwrite(&tmp, sizeof(int), 4, fptr);
 	fwrite(sp_pack->loc_m, sizeof(char), M*K, fptr);
-	fwrite(sp_pack->nnz_outer, sizeof(char), M*K / cake_cntx->mr, fptr);
-	fwrite(sp_pack->k_inds, sizeof(int), M*K / cake_cntx->mr, fptr);
+	fwrite(sp_pack->nnz_outer, sizeof(char), ((M*K) / cake_cntx->mr), fptr);
+	fwrite(sp_pack->k_inds, sizeof(int), ((M*K) / cake_cntx->mr), fptr);
 	fwrite(sp_pack->A_sp_p, sizeof(float), M*K, fptr);
 
 	fclose(fptr);
