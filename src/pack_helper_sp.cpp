@@ -107,6 +107,63 @@ void file_to_sp_pack(sp_pack_t* sp_pack, char* fname) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+// sp_pack_to_file2(sp_pack, x->M_padded, K, fname);
+
+// write uncompressed matrix packed in rosko format to binary file
+// M,K,nnz,nnz_cols,ntiles,loc_m,nnz_outer,k_inds,A_sp_p,nnz_tiles,num_col_tile
+void sp_pack_to_file2(sp_pack_t* sp_pack,cake_cntx_t* cake_cntx, 
+	int M, int K, char* fname) {
+
+	FILE *fptr = fopen(fname, "wb");
+
+	int tmp[4];
+	tmp[0] = M;
+	tmp[1] = K;
+	tmp[2] = cake_cntx->mr;
+	tmp[3] = cake_cntx->nr;
+
+	fwrite(&tmp, sizeof(int), 4, fptr);
+	fwrite(sp_pack->loc_m, sizeof(char), M*K, fptr);
+	fwrite(sp_pack->nnz_outer, sizeof(char), M*K / cake_cntx->mr, fptr);
+	fwrite(sp_pack->k_inds, sizeof(int), M*K / cake_cntx->mr, fptr);
+	fwrite(sp_pack->A_sp_p, sizeof(float), M*K, fptr);
+
+	fclose(fptr);
+}
+
+
+void file_to_sp_pack2(sp_pack_t* sp_pack, char* fname) {
+
+	FILE *fptr = fopen(fname, "rb");
+
+	int tmp[4];
+	fread(&tmp, sizeof(int), 4, fptr);
+	sp_pack->M = tmp[0];
+	sp_pack->K = tmp[1];
+	sp_pack->mr = tmp[2];
+	sp_pack->nr = tmp[3];
+
+	fread(sp_pack->loc_m, sizeof(char), x->M*sp_pack->K, fptr);
+	fread(sp_pack->nnz_outer, sizeof(char), sp_pack->M*sp_pack->K / sp_pack->mr, fptr);
+	fread(sp_pack->k_inds, sizeof(int), sp_pack->M*sp_pack->K / sp_pack->mr, fptr);
+	fread(sp_pack->A_sp_p, sizeof(float), sp_pack->M*sp_pack->K, fptr);
+	fclose(fptr);
+}
+
+
+
+
 void free_csr(csr_t* x) {
 	free(x->rowptr);
 	free(x->colind);

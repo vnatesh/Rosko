@@ -29,6 +29,7 @@ SRC_FILES =  $(wildcard $(ROSKO_HOME)/src/*.cpp)
 
 ifeq ($(UNAME_P),aarch64)
 	TARGETS = rosko_armv8
+	CFLAGS_tmp		  += -fopenmp
 else ifeq ($(UNAME_P),x86_64)
 	TARGETS = rosko_haswell
 	CFLAGS_tmp		  += -O3 -g -mavx -mfma -fopenmp

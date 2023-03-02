@@ -24,6 +24,8 @@ typedef struct sp_pack_t {
    int ntiles; // total number of mr x kc tiles in sparse matrix
    int M;
    int K;
+   int mr;
+   int nr;
 } sp_pack_t;
 
 
