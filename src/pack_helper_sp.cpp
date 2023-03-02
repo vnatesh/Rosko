@@ -154,7 +154,7 @@ void file_to_sp_pack2(sp_pack_t* sp_pack, char* fname) {
 	sp_pack->mr = tmp[2];
 	sp_pack->nr = tmp[3];
 
-	fread(sp_pack->loc_m, sizeof(char), x->M*sp_pack->K, fptr);
+	fread(sp_pack->loc_m, sizeof(char),sp_pack->M*sp_pack->K, fptr);
 	fread(sp_pack->nnz_outer, sizeof(char), sp_pack->M*sp_pack->K / sp_pack->mr, fptr);
 	fread(sp_pack->k_inds, sizeof(int), sp_pack->M*sp_pack->K / sp_pack->mr, fptr);
 	fread(sp_pack->A_sp_p, sizeof(float), sp_pack->M*sp_pack->K, fptr);
