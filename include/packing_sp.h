@@ -39,4 +39,5 @@ void free_csr(csr_t* x);
 void file_to_sp_pack2(sp_pack_t* sp_pack, char* fname);
 void sp_pack_to_file2(sp_pack_t* sp_pack,cake_cntx_t* cake_cntx, 
 	int M, int K, char* fname);
+sp_pack_t* malloc_sp_pack2(int M, int K, cake_cntx_t* cake_cntx);
 
