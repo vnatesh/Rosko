@@ -118,11 +118,34 @@ void file_to_sp_pack(sp_pack_t* sp_pack, char* fname) {
 
 
 
-// sp_pack_to_file2(sp_pack, x->M_padded, K, fname);
+
+
+// malloc_sp_pack2(x->M_padded, K, cake_cntx);
+
+sp_pack_t* malloc_sp_pack2(int M, int K, cake_cntx_t* cake_cntx) {
+
+	sp_pack_t* sp_pack = (sp_pack_t*) malloc(sizeof(sp_pack_t));
+	sp_pack->A_sp_p = (float*) calloc(M*K, sizeof(float)); // storing only nonzeros of A                                        
+	sp_pack->loc_m = (char*) calloc(M*K, sizeof(char)); // array for storing M dim C writeback location for each nnz in A
+	           // each value ranges from 0 to mr-1
+	sp_pack->nnz_outer = (char*) calloc(M*K /  cake_cntx->mr, sizeof(char)); // storing number of nonzeros 
+	                                                 // in each outer prod col of A
+	sp_pack->k_inds = (int*) calloc(M*K /  cake_cntx->mr , sizeof(int)); // storing kc_ind 
+	                                                 // of each outer prod col of A
+	sp_pack->M = M;
+	sp_pack->K = K;
+	sp_pack->mr = cake_cntx->mr;
+	sp_pack->nr = cake_cntx->nr;
+
+	return sp_pack;
+}
+
+
+// sp_pack_to_file2(sp_pack, cake_cntx, x->M_padded, K, fname);
 
 // write uncompressed matrix packed in rosko format to binary file
 // M,K,nnz,nnz_cols,ntiles,loc_m,nnz_outer,k_inds,A_sp_p,nnz_tiles,num_col_tile
-void sp_pack_to_file2(sp_pack_t* sp_pack,cake_cntx_t* cake_cntx, 
+void sp_pack_to_file2(sp_pack_t* sp_pack, cake_cntx_t* cake_cntx, 
 	int M, int K, char* fname) {
 
 	FILE *fptr = fopen(fname, "wb");
