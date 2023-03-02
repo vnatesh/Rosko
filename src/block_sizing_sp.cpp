@@ -112,8 +112,8 @@ cache_dims_t* get_sparse_cache_dims(int M, int N, int K, int p,
 			// kc_tmp / (d*mr)
 
 			kc_L2 = (d*mr < 1) ? kc_tmp / (d*mr) : kc_tmp;
-
-
+			kc_L2 = kc_L2 > K ? K : kc_L2;
+			
 			// d*p*mc*kc_L2 + nr*kc_L2 + p^2*mc^2 <= L3 (A/B should be LRU on average, C stationary)
 			a_q = p*p;
 			b_q = 3.0*d*p*kc_L2;
