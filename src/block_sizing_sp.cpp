@@ -123,6 +123,16 @@ cache_dims_t* get_sparse_cache_dims(int M, int N, int K, int p,
 		}
 
 
+		if(alg == 3) {
+			float d = density, alpha = cake_cntx->alpha_n;
+			// tiling only at L3
+			// d*p*mc*kc + alpha*p*mc*kc + alpha*p^2*mc^2 <= L3 (A/B should be LRU on average, C stationary)
+			float coeff = d*p + alpha*p + alpha*p*p;
+			kc_L2 = (int) sqrt((((float) cake_cntx->L3) / (type_size*2.0)) / coeff);
+			mc_L3 = kc_L2 - (kc_L2 % mr);
+		}
+
+
 		mc_ret = mc_L3;
 		if(M < p*mr) {
 			mc_ret = mr;
