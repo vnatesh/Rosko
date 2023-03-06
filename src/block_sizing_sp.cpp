@@ -27,6 +27,7 @@ cache_dims_t* get_sparse_cache_dims(int M, int N, int K, int p,
 			cake_cntx_t* cake_cntx, enum sched sch, 
 			char* argv[], float density, float type_size, int alg) {
 
+
 	int mc, mc_ret, nc_ret, a, mc_L2 = 0, mc_L3 = 0, kc_L1 = 0;
 	int max_threads = cake_cntx->ncores; // 2-way hyperthreaded
 	int mr = cake_cntx->mr;
@@ -108,10 +109,10 @@ cache_dims_t* get_sparse_cache_dims(int M, int N, int K, int p,
 			float d = density;
 			// first find kc assuming all B rows are accessed
 			// d*mr*kc + kc*nr + mr*nr <= L2
-			int kc_tmp = ((((float) cake_cntx->L2) / (type_size*2)) - (mr*nr)) / (d*mr + nr);
+			float kc_tmp = ((((float) cake_cntx->L2) / (type_size*2)) - (mr*nr)) / (d*mr + nr);
 			// kc_tmp / (d*mr)
 
-			kc_L2 = (d*mr < 1) ? kc_tmp / (d*mr) : kc_tmp;
+			kc_L2 = (d*mr < 1) ? (int) (kc_tmp / (d*mr)) : (int) kc_tmp;
 			kc_L2 = kc_L2 > K ? K : kc_L2;
 			
 			// d*p*mc*kc_L2 + nr*kc_L2 + p^2*mc^2 <= L3 (A/B should be LRU on average, C stationary)
@@ -136,7 +137,7 @@ cache_dims_t* get_sparse_cache_dims(int M, int N, int K, int p,
 		mc_ret = mc_L3;
 		if(M < p*mr) {
 			mc_ret = mr;
-		} else if(M < p*mc) {
+		} else if(M < p*mc_ret) {
 			
 			a = (M / p);
 			if(a < mr) {
@@ -146,6 +147,7 @@ cache_dims_t* get_sparse_cache_dims(int M, int N, int K, int p,
 				mc_ret = a;
 			}
 		}
+
 
 		// spMM is always K-first so using nc_ret from KMN
 		nc_ret = (int) (p*mc_ret);
@@ -163,7 +165,6 @@ cache_dims_t* get_sparse_cache_dims(int M, int N, int K, int p,
 
 		blk_ret->n_c = nc_ret;
 	} 
-
 
 	return blk_ret;
 }
@@ -183,6 +184,7 @@ void init_sparse_block_dims(int M, int N, int K, int p,
     x->n_c = cache_dims->n_c;
     x->sch = cache_dims->sch;
     free(cache_dims);
+
 
 	switch(x->sch) {
 

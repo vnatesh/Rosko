@@ -82,12 +82,24 @@ void sp_pack_to_file(sp_pack_t* sp_pack, char* fname) {
 
 
 
-void file_to_sp_pack(sp_pack_t* sp_pack, char* fname) {
+sp_pack_t* file_to_sp_pack(int N, int p, cake_cntx_t* cake_cntx, enum sched sch, int alg, char* fname) {
 
 	FILE *fptr = fopen(fname, "rb");
 
 	int tmp[5];
 	fread(&tmp, sizeof(int), 5, fptr);
+	int M = tmp[0];
+	int K = tmp[1];
+	int nnz = tmp[2];
+	int nnz_cols = tmp[3];
+	int ntiles = tmp[4];
+
+	float density = ((float) nnz) / ((float) (((float) M) * ((float) K)));
+
+	blk_dims_t* x = (blk_dims_t*) malloc(sizeof(blk_dims_t));
+	init_sparse_block_dims(M, N, K, p, x, cake_cntx, sch, NULL, density, 4, alg);
+	sp_pack_t* sp_pack = malloc_sp_pack(M, K, nnz, x, cake_cntx);
+
 	sp_pack->M = tmp[0];
 	sp_pack->K = tmp[1];
 	sp_pack->nnz = tmp[2];
@@ -101,6 +113,9 @@ void file_to_sp_pack(sp_pack_t* sp_pack, char* fname) {
 	fread(sp_pack->nnz_tiles, sizeof(int), sp_pack->ntiles, fptr);
 	fread(sp_pack->num_col_tile, sizeof(int), sp_pack->ntiles, fptr);
 	fclose(fptr);
+	free(x);
+	
+	return sp_pack;
 }
 
 

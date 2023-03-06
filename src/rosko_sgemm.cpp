@@ -184,13 +184,14 @@ double rosko_sgemm_compressed(char* fname, float* B, float* C, int M, int N, int
     if(DEBUG) printf("mc = %d, kc = %d, nc = %d, alpha_n = %f\n", x->m_c, x->k_c, x->n_c, cake_cntx->alpha_n);
 
 	if(sp_pack == NULL) {
-
 		csr = file_to_csr(fname);
 		sp_pack_t* sp_pack = malloc_sp_pack(M, K, csr->rowptr[M], x, cake_cntx);
 		pack_A_csr_to_sp_k_first(csr, M, K, csr->rowptr[M], p, sp_pack, x, cake_cntx);
 		free_csr(csr);
 	} 
 
+
+	clock_gettime(CLOCK_REALTIME, &start1);
 
 	if(packedB) {
 		B_p = B;
@@ -253,7 +254,7 @@ double rosko_sgemm_compressed(char* fname, float* B, float* C, int M, int N, int
 	if(DEBUG) printf("GEMM time: %f \n", diff_t); 	// exit(1);
 	// print_packed_C(C_p, M, N, m_c, n_c);
 	// unpack_C(C, C_p, M, N, m_c, n_c, n_r, m_r, p);
-	times = diff_t;
+	// times = diff_t;
 
 	clock_gettime(CLOCK_REALTIME, &start);
 
@@ -274,6 +275,7 @@ double rosko_sgemm_compressed(char* fname, float* B, float* C, int M, int N, int
     diff_t = seconds + nanoseconds*1e-9;
 	if(DEBUG) printf("full gemm time: %f \n", diff_t); 	// exit(1);
 
+	times = diff_t;
 
 	if(!packedA) {
 		free_sp_pack(sp_pack);

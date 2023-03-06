@@ -30,7 +30,7 @@ def write_csr(csr, fname):
 
 
 data = RedditDataset()
-adj_scipy_csr = data.graph.adjacency_matrix_scipy(fmt='csr')
+adj_scipy_csr = data._graph.adjacency_matrix(scipy_fmt = 'csr')
 write_csr(adj_scipy_csr, 'reddit_data')
 
 

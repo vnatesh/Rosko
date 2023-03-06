@@ -37,3 +37,17 @@ cd ..
 git clone https://github.com/amazon-science/FeatGraph.git
 export PYTHONPATH=$PWD/FeatGraph/python:${PYTHONPATH}
 
+
+
+# download and install deep graph library (dgl)
+git clone --recurse-submodules https://github.com/dmlc/dgl.git
+git submodule update --init --recursive
+cd dgl
+mkdir build
+cd build
+cmake ..
+make -j4
+
+cd ../python
+python setup.py install
+cd ../..
