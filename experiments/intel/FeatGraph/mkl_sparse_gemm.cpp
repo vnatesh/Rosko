@@ -96,8 +96,35 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
     std::vector<fp, mkl_allocator<fp, 64>> a;
 
     // sparse matrix A
-    srand(time(NULL));
-    generate_random_sparse_matrix<fp, intType>(nrows, ncols, density_val, ia, ja, a);
+    // srand(time(NULL));
+    // generate_random_sparse_matrix<fp, intType>(nrows, ncols, density_val, ia, ja, a);
+    // int M, K, nz;
+
+    FILE *fptr = fopen(argv[4], "rb");
+    if (fptr == NULL) {
+       perror("fopen");
+       exit(EXIT_FAILURE);
+    }
+    int tmp[3];
+    fread(&tmp, sizeof(int), 3, fptr);
+    int M = tmp[0];
+    int K = tmp[1];
+    int nz = tmp[2];
+    // int* rowptr = (int*) malloc((M + 1) * sizeof(int));
+    // int* colind = (int*) malloc(nz * sizeof(int));
+    // float* vals = (float*) malloc(nz * sizeof(float));
+    // fread(rowptr, sizeof(int), (M + 1), fptr);
+    // fread(colind, sizeof(int), nz, fptr);
+    // fread(vals, sizeof(float), nz, fptr);
+    ia.resize(M + 1);
+    ja.resize(nz);
+    a.resize(nz);
+    fread(&ia[0], ia.size()*sizeof(intType), 1, fptr);
+    fread(&ja[0], ja.size()*sizeof(intType), 1, fptr);
+    fread(&a[0], a.size()*sizeof(fp), 1, fptr);
+    fclose(fptr);
+
+
 
     clock_gettime(CLOCK_REALTIME, &end);
     seconds = end.tv_sec - start.tv_sec;
@@ -376,7 +403,7 @@ int main(int argc, char* argv[]) {
             std::cout << "Running tests on " << sycl_device_names[*it] << ".\n";
 
             std::cout << "\tRunning with single precision real data type:" << std::endl;
-            status = run_sparse_matrix_dense_matrix_multiply_example<float, std::int32_t>(my_dev, M, K, N, density, ntrials, char* argv[]);
+            status = run_sparse_matrix_dense_matrix_multiply_example<float, std::int32_t>(my_dev, M, K, N, density, ntrials, argv);
             if (status != 0)
                 return status;
 

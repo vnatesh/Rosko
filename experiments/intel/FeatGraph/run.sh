@@ -8,6 +8,13 @@ export PYTHONPATH=$PWD/FeatGraph/python:${PYTHONPATH}
 export TVM_NUM_THREADS=10
 # export GOMP_CPU_AFFINITY="0 1 2 3 4 5 6 7 8 9";
 
+x=$PWD
+sudo cp mkl_sparse_gemm.cpp /opt/intel/oneapi/mkl/2021.1.1/examples/sycl/spblas
+cd /opt/intel/oneapi/mkl/2021.1.1/examples/sycl
+make sointel64 examples="spblas/mkl_sparse_gemm" sycl_devices=cpu
+cp _results/intel64_so_tbb/spblas/mkl_sparse_gemm.out $x
+cd $x
+
 
 python3.8 write_csr.py
 make
@@ -40,6 +47,8 @@ do
 	python3.8 feat_test.py --dataset data/ogbn-proteins_csr.npz \
 	--feat-len $len --target x86 --nruns $NTRIALS --setup 0 > feat_ogbn_$len 
 
+	./mkl_sparse_gemm.out $len $NCORES $NTRIALS reddit_data 0 0
+	./mkl_sparse_gemm.out $len $NCORES $NTRIALS ogbn-proteins 0 0
 
 	# vtune --collect memory-access -data-limit=0 \
 	# 	-result-dir=$PWD/prof_result \

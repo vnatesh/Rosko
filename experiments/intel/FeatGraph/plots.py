@@ -7,6 +7,8 @@ import os
 import re
 import sys
 from matplotlib import ticker as mticker
+from scipy import stats
+from scipy.stats import gmean
 
 
 
@@ -14,21 +16,29 @@ def plot_rosko_gnn(fname = 'rosko_gnn'):
 	plt.rcParams.update({'font.size': 12})
 	markers = ['o','v','s','d','^']
 	colors = ['r', 'b', 'g', 'k','g','m']
-	labels1 = ['Rosko','FeatGraph', 'MKL']
+	labels = ['Rosko','FeatGraph', 'MKL_CSR']
 	barWidth = 0.15
 	#
 	df1 = pandas.read_csv('result_gnn')
 	feat_lens = [32, 64, 128, 256, 512]
+	speedup1 = []
+	speedup2 = []
 	#
 	#
 	for file in ['reddit', 'ogbn']:
 		#
 		feat_time=[];opt=[];dram_bw_rosko=[];dram_bw_feat=[]
-		rosko_time = df1[df1['file'] == '%s_packed' % file]['time'].values
-		M = df1[df1['file'] == '%s_packed' % file]['M'].values
-		K = df1[df1['file'] == '%s_packed' % file]['K'].values
-		flops = (1.0 - df1[df1['file'] == '%s_packed' % file]['sp'].values / 100.0)*M*K*np.array(feat_lens) / 1e9
+		rosko_time = df1[(df1['algo'] == 'rosko') & (df1['file'] == '%s_packed' % file)]['time'].values
+		M = df1[(df1['algo'] == 'rosko') & (df1['file'] == '%s_packed' % file)]['M'].values
+		K = df1[(df1['algo'] == 'rosko') & (df1['file'] == '%s_packed' % file)]['K'].values
+		flops = (1.0 - df1[(df1['algo'] == 'rosko') & (df1['file'] == '%s_packed' % file)]['sp'].values / 100.0)*M*K*np.array(feat_lens) / 1e9
 		rosko_flops = flops / rosko_time
+		#
+		mkl_time = df1[(df1['algo'] == 'mkl') & (df1['file'] == '%s_packed' % file)]['time'].values
+		M = df1[(df1['algo'] == 'mkl') & (df1['file'] == '%s_packed' % file)]['M'].values
+		K = df1[(df1['algo'] == 'mkl') & (df1['file'] == '%s_packed' % file)]['K'].values
+		flops = (1.0 - df1[(df1['algo'] == 'mkl') & (df1['file'] == '%s_packed' % file)]['sp'].values / 100.0)*M*K*np.array(feat_lens) / 1e9
+		mkl_flops = flops / mkl_time
 		#
 		for j in range(len(feat_lens)):
 			a = open('feat_%s_%d' % (file,feat_lens[j]),'r').read()
@@ -75,22 +85,29 @@ def plot_rosko_gnn(fname = 'rosko_gnn'):
 			#
 		feat_flops = flops / np.array(feat_time)
 		plt.figure(figsize = (6,4))
-		plt.title('Rosko vs. FeatGraph Throughput', fontsize = 20)
+		plt.title('GNN SpMM Throughput\non %s Dataset' % file.capitalize(), fontsize = 20)
 		# plt.plot(feat_lens, rosko_flops_reddit, color ='r', label = labels[0])
 		# plt.plot(feat_lens, feat_flops_reddit, color ='m', label =labels[1])
 		br1 = np.arange(len(feat_lens))
 		br2 = [x + barWidth for x in br1]
+		br3 = [x + barWidth for x in br2]
 		plt.bar(br1, rosko_flops, color ='r', width = barWidth,
 		        edgecolor ='grey', label = labels[0])
 		plt.bar(br2, feat_flops, color ='m', width = barWidth,
 		        edgecolor ='grey', label =labels[1])
+		plt.bar(br3, mkl_flops, color ='b', width = barWidth,
+		        edgecolor ='grey', label =labels[2])
 		plt.xlabel("Feature Length", fontsize = 20)
 		# plt.xticks(feat_lens)
 		plt.xticks([r + barWidth for r in range(len(feat_lens))],
 	        feat_lens, fontsize = 14)
 		plt.yticks(fontsize = 16)
 		plt.ylabel("Throughput (GFLOPs/sec)", fontsize = 20)
-		# plt.savefig("%s.pdf" % fname, bbox_inches='tight')
+		if file == 'reddit':
+			plt.legend(loc = "upper right", prop={'size': 12})
+		else:
+			plt.legend(loc = "lower left", prop={'size': 12})			
+		plt.savefig("%s_%s_tput.pdf" % (file,fname), bbox_inches='tight')
 		plt.show()
 		plt.clf()
 		plt.close('all')
@@ -118,6 +135,13 @@ def plot_rosko_gnn(fname = 'rosko_gnn'):
 		plt.close('all')
 		print(opt)
 		print
+		speedup1 += list(np.array(rosko_flops) / np.array(mkl_flops))
+		speedup2 += list(np.array(rosko_flops) / np.array(feat_flops))
+		#
+	print("speedup over mkl = %f" %  gmean(speedup1))
+	print(stats.describe(speedup1))
+	print("speedup over featgraph = %f" % gmean(speedup2))
+	print(stats.describe(speedup2))
 
 
 
