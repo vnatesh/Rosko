@@ -57,8 +57,12 @@ cache_dims_t* get_sparse_cache_dims(int M, int N, int K, int p,
 	} else if(density > 0.0000001) {
 		
 		double k_f; // fraction of row vecs of B that must be loaded for mrxkcxnr outer product
-		int kc_L2;
+		int kc_ret;
+		float size_fact = 2.5; // total pack size expressed as factor of only A_sp (e.g., 2.5 times nnz vals)
+		float a_q, b_q, c_q, d = density, alpha = cake_cntx->alpha_n;
+		double a_coeff = (d/mr) * ((int) ceil(d * mr)) ;
 		cake_cntx->alpha_n = 1.0;
+		
 		// 3*d*mr*kc + nr*k_f*kc + mr*nr <= L2 (roughly 3*4 = 12 bytes for each float nnz val due to metadata)
 		// k_f = clamp_val(density * mr, 0, 1);
 		// kc_L1 = (int) (((((double) cake_cntx->L1) / (type_size)) - 
@@ -81,13 +85,12 @@ cache_dims_t* get_sparse_cache_dims(int M, int N, int K, int p,
 		// printf("sparsity-aware tiling\n");
 
 		if(alg == 0) {
-			double a_coeff = (density/mr) * ((int) ceil(density * mr)) ;
 
 			mc_L2 = (int)  ((-b + sqrt(b*b + 4*a_coeff*(((double) cake_cntx->L2) / (type_size)))) / (2.0*a_coeff)) ;
 			mc_L2 -= (mc_L2 % mr);
 
 			mc_L3 = (int) sqrt((((double) cake_cntx->L3) / (type_size))  
-			/ (max_threads * (a_coeff + cake_cntx->alpha_n + cake_cntx->alpha_n*max_threads)));
+			/ (p * (a_coeff + alpha + alpha*p)));
 			mc_L3 -= (mc_L3 % mr);
 		}
 
@@ -95,64 +98,114 @@ cache_dims_t* get_sparse_cache_dims(int M, int N, int K, int p,
 		if(alg == 1) {
 			// 3*d*p*mc*kc + alpha*p*mc*kc + alpha*p^2*mc^2 <= L3
 			mc_L3 = (int) sqrt((((double) cake_cntx->L3) / (type_size))  
-			/ (p * (3.0*density + cake_cntx->alpha_n + cake_cntx->alpha_n*p)));
+			/ (p * (size_fact*d + alpha + alpha*p)));
 			mc_L3 -= (mc_L3 % mr);
 
 			// 3*d*mc*kc + kc*nr + mc*nr <= L2
-			kc_L2 = (int) (((((double) cake_cntx->L2) / (type_size)) - 
-				(nr*mc_L3)) / (3.0*density*mc_L3 + nr));
+			kc_ret = (int) (((((double) cake_cntx->L2) / (type_size)) - 
+				(nr*mc_L3)) / (size_fact*d*mc_L3 + nr));
 		}
 
 
 		if(alg == 2) {
-			float a_q, b_q, c_q;
-			float d = density;
 			// first find kc assuming all B rows are accessed
 			// d*mr*kc + kc*nr + mr*nr <= L2
 			float kc_tmp = ((((float) cake_cntx->L2) / (type_size*2)) - (mr*nr)) / (d*mr + nr);
 			// kc_tmp / (d*mr)
 
-			kc_L2 = (d*mr < 1) ? (int) (kc_tmp / (d*mr)) : (int) kc_tmp;
-			kc_L2 = kc_L2 > K ? K : kc_L2;
+			kc_ret = (d*mr < 1) ? (int) (kc_tmp / (d*mr)) : (int) kc_tmp;
+			kc_ret = kc_ret > K ? K : kc_ret;
 			
-			// d*p*mc*kc_L2 + nr*kc_L2 + p^2*mc^2 <= L3 (A/B should be LRU on average, C stationary)
+			// d*p*mc*kc_ret + nr*kc_ret + p^2*mc^2 <= L3 (A/B should be LRU on average, C stationary)
 			a_q = p*p;
-			b_q = 3.0*d*p*kc_L2;
-			c_q = (((float) cake_cntx->L3) / (type_size)) - nr*kc_L2;
+			b_q = size_fact*d*p*kc_ret;
+			c_q = (((float) cake_cntx->L3) / (type_size)) - nr*kc_ret;
 			mc_L3 = (int) ((-b_q + sqrt(b_q*b_q + 4*a_q*c_q)) / (2.0*a_q));
 			mc_L3 -= (mc_L3 % mr);
 		}
 
 
 		if(alg == 3) {
-			float d = density, alpha = cake_cntx->alpha_n;
 			// tiling only at L3
-			// d*p*mc*kc + alpha*p*mc*kc + alpha*p^2*mc^2 <= L3 (A/B should be LRU on average, C stationary)
-			float coeff = d*p + alpha*p + alpha*p*p;
-			kc_L2 = (int) sqrt((((float) cake_cntx->L3) / (type_size*2.0)) / coeff);
-			mc_L3 = kc_L2 - (kc_L2 % mr);
+			// 2.5*d*p*mc*kc + alpha*p*mc*kc + alpha*p^2*mc^2 <= L3 (A/B should be LRU on average, C stationary)
+			float coeff = size_fact*d*p + alpha*p + alpha*p*p;
+			kc_ret = (int) sqrt((((float) cake_cntx->L3) / (type_size*2.0)) / coeff);
+			mc_L3 = kc_ret - (kc_ret % mr);
 		}
 
 
-		mc_ret = mc_L3;
-		if(M < p*mr) {
-			mc_ret = mr;
-		} else if(M < p*mc_ret) {
-			
-			a = (M / p);
-			if(a < mr) {
-				mc_ret = mr;
-			} else {
-				a += (mr - (a % mr));
-				mc_ret = a;
+		// If nc is going to be larger than N, set nc to N and re-compute mc
+		if((p*mc_L3) > N) {
+
+			nc_ret = N;
+			nc_ret -= (nc_ret % nr);
+
+			if(alg == 0) {
+
+				a_q = size_fact*a_coeff*p;
+				b_q = alpha*nc_ret*(1 + p);
+				c_q = (((float) cake_cntx->L3) / (type_size));
+				mc_L3 = (int) ((-b_q + sqrt(b_q*b_q + 4*a_q*c_q)) / (2.0*a_q));
+				mc_L3 -= (mc_L3 % mr);
 			}
+
+			if(alg == 2) {
+
+				// d*p*mc*kc_ret + nr*kc_ret + p*mc*nc_ret <= L3 (A/B should be LRU on average, C stationary)
+				a_q = size_fact*d*p*kc_ret;
+				b_q = p*nc_ret;
+				c_q = (((float) cake_cntx->L3) / (type_size)) - nr*kc_ret;
+				mc_L3 = (int) (c_q / (a_q + b_q));
+				mc_L3 -= (mc_L3 % mr);
+			}
+
+			if(alg == 3) {
+
+				a_q = d*p;
+				b_q = alpha*nc_ret*(1 + p);
+				c_q = (((float) cake_cntx->L3) / (type_size));
+				mc_L3 = (int) ((-b_q + sqrt(b_q*b_q + 4*a_q*c_q)) / (2.0*a_q));
+				mc_L3 -= (mc_L3 % mr);
+			}
+
+			mc_ret = mc_L3;
+			if(M < p*mr) {
+				mc_ret = mr;
+			} else if(M < p*mc_ret) {
+				
+				a = (M / p);
+				if(a < mr) {
+					mc_ret = mr;
+				} else {
+					a += (mr - (a % mr));
+					mc_ret = a;
+				}
+			}
+
+			nc_ret = nc_ret == 0 ? nr : nc_ret;
+
+		} else {
+
+			mc_ret = mc_L3;
+			if(M < p*mr) {
+				mc_ret = mr;
+			} else if(M < p*mc_ret) {
+				
+				a = (M / p);
+				if(a < mr) {
+					mc_ret = mr;
+				} else {
+					a += (mr - (a % mr));
+					mc_ret = a;
+				}
+			}
+
+			// spMM is always K-first so using nc_ret from KMN
+			nc_ret = (int) (p*mc_ret);
+			nc_ret -= (nc_ret % nr);
+			nc_ret = nc_ret == 0 ? nr : nc_ret;
 		}
 
-
-		// spMM is always K-first so using nc_ret from KMN
-		nc_ret = (int) (p*mc_ret);
-		nc_ret -= (nc_ret % nr);
-		nc_ret = nc_ret == 0 ? nr : nc_ret;
 
 
 		if(alg == 0) {
@@ -160,7 +213,7 @@ cache_dims_t* get_sparse_cache_dims(int M, int N, int K, int p,
 			blk_ret->k_c = mc_L2 < K ? mc_L2 : K;
 		} else {
 			blk_ret->m_c = mc_ret;
-			blk_ret->k_c = kc_L2;
+			blk_ret->k_c = kc_ret;
 		}
 
 		blk_ret->n_c = nc_ret;
