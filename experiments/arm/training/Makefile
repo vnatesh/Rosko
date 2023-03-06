@@ -28,7 +28,7 @@ UNAME_P := $(shell uname -p)
 SRC_FILES =  $(wildcard $(ROSKO_HOME)/src/*.cpp)
 
 ifeq ($(UNAME_P),aarch64)
-	TARGETS = rosko_armv8
+	TARGETS = rosko_armv8 svd_test
 	CFLAGS_tmp		  += -fopenmp
 else ifeq ($(UNAME_P),x86_64)
 	TARGETS = rosko_haswell
@@ -56,6 +56,9 @@ rosko_armv8: $(wildcard *.h) $(wildcard *.c)
 
 rosko_haswell: $(wildcard *.h) $(wildcard *.c)
 	g++ $(CFLAGS) rosko_sgemm_test.cpp $(LIBS) -o rosko_sgemm_test
+	
+svd_test: $(wildcard *.h) $(wildcard *.c)
+	g++ $(CFLAGS) svd_test.cpp $(LIBS) -o svd_test
 
 clean:
 	rm -rf *.o *.so

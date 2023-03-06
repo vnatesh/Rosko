@@ -35,6 +35,8 @@ do
 		./rosko_sgemm_test $M $K $N $NCORES $sp $NTRIALS $layer
 		./arm_test $M $K $N $NCORES $sp $NTRIALS $layer
 
+		./svd_test $M $K $N $NCORES $sp $NTRIALS $layer
+
 		# rm -rf mkl;
 	done < $INPUT
 	# IFS=$OLDIFS
