@@ -4,7 +4,7 @@
 // make; ./cake_sgemm_test 512 10 10 ogbn-proteins  
 
 int main( int argc, char** argv ) {
-
+// run_tests_sparse_test();
 	int M, K, N, p, nz, mr, nr, ntrials, dram, setup;
 	struct timespec start, end;
 	double diff_t;

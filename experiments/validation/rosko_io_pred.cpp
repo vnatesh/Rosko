@@ -34,7 +34,7 @@ float rosko_cpu_DRAM_accesses(int M1, int K1, int N1, int p, float d, char* argv
 
 	cake_cntx_t* cake_cntx = cake_query_cntx();
 
-	if(density > 0.0001) {
+	if(d > 0.0001) {
 		update_mr_nr(cake_cntx, MR_MAX, NR_MAX);
 		if(MR_MIN == 6 && NR_MIN == 16) {
 			alg = 0;

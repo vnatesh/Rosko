@@ -31,8 +31,8 @@ do
 	./write_rosko $len $NCORES reddit_data reddit_packed
 	./write_rosko $len $NCORES ogbn-proteins ogbn_packed
 
-	./rosko_sgemm_test $len $NCORES $NTRIALS reddit_packed 0
-	./rosko_sgemm_test $len $NCORES $NTRIALS ogbn_packed 0
+	./rosko_sgemm_test $len $NCORES $NTRIALS reddit_packed 0 0
+	./rosko_sgemm_test $len $NCORES $NTRIALS ogbn_packed 0 0
 
 	python3.8 feat_test.py --dataset data/reddit_csr_float32.npz  \
 	--feat-len $len --target x86 --nruns $NTRIALS --setup 0 > feat_reddit_$len
