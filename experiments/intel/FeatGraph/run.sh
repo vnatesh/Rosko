@@ -50,12 +50,8 @@ do
 	./mkl_sparse_gemm.out $len $NCORES $NTRIALS reddit_data 0 0
 	./mkl_sparse_gemm.out $len $NCORES $NTRIALS ogbn-proteins 0 0
 
-	# vtune --collect memory-access -data-limit=0 \
-	# 	-result-dir=$PWD/prof_result \
-	#  	$PWD/sparse_gemm.out $file $n 0 $NTRIALS 1; 
-	# vtune -report summary -r prof_result -format csv \
-	# 	-report-output reports/report_mkl_${file##*/}-$n.csv -csv-delimiter comma;
-	# rm -rf prof_result;
+
+
 
 
 	vtune --collect memory-access -data-limit=0 \
@@ -129,6 +125,41 @@ do
 	rm -rf rosko_result;
 
 
+
+
+
+
+	vtune --collect memory-access -data-limit=0 \
+		-result-dir=$PWD/rosko_result \
+		 $PWD/mkl_sparse_gemm.out $len $NCORES 1 reddit_packed 1 1;
+	vtune -report summary -r rosko_result -format csv \
+		-report-output reports/report_mkl_reddit_setup_$len.csv -csv-delimiter comma;
+	rm -rf rosko_result;
+
+
+	vtune --collect memory-access -data-limit=0 \
+		-result-dir=$PWD/rosko_result \
+		 $PWD/mkl_sparse_gemm.out $len $NCORES 1 ogbn_packed 1 1;
+	vtune -report summary -r rosko_result -format csv \
+		-report-output reports/report_mkl_ogbn_setup_$len.csv -csv-delimiter comma;
+	rm -rf rosko_result;
+
+
+
+	vtune --collect memory-access -data-limit=0 \
+		-result-dir=$PWD/rosko_result \
+		 $PWD/mkl_sparse_gemm.out $len $NCORES 1 reddit_packed 1 0;
+	vtune -report summary -r rosko_result -format csv \
+		-report-output reports/report_mkl_reddit_$len.csv -csv-delimiter comma;
+	rm -rf rosko_result;
+
+
+	vtune --collect memory-access -data-limit=0 \
+		-result-dir=$PWD/rosko_result \
+		 $PWD/mkl_sparse_gemm.out $len $NCORES 1 ogbn_packed 1 0;
+	vtune -report summary -r rosko_result -format csv \
+		-report-output reports/report_mkl_ogbn_$len.csv -csv-delimiter comma;
+	rm -rf rosko_result;
 done
 
 

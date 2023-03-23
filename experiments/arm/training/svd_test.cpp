@@ -149,7 +149,7 @@ void test_cake(int M, int N, int K,  int p, int ntrials, float sp, char* layer) 
 	FILE *fp;
 	fp = fopen(fname, "a");
 	fprintf(fp, "%s,cake,%d,%d,%d,%f,%f,%f\n", layer, M, K, N, sp, 0.0, diff_t / ntrials);
-    fprintf(fp, "%s,cake_dram,%d,%d,%d,%d,%f,%f\n",layer, M, K, N, sp, 0.0, cake_dram);
+    fprintf(fp, "%s,cake_dram,%d,%d,%d,%f,%f,%f\n",layer, M, K, N, sp, 0.0, cake_dram);
 	fclose(fp);
 
 	// cake_sgemm_checker(A, B, C, N, M, K);
@@ -237,7 +237,7 @@ void test_rosko(int M, int N, int K,  int p, int ntrials, float sp, char* layer)
 	FILE *fp;
 	fp = fopen(fname, "a");
 	fprintf(fp, "%s,rosko,%d,%d,%d,%f,%f,%f\n", layer, M, K, N, sp, 0.0, diff_t / ntrials);
-    fprintf(fp, "%s,rosko_dram,%d,%d,%d,%d,%f,%f\n",layer, M, K, N, sp, 0.0, rosko_dram);
+    fprintf(fp, "%s,rosko_dram,%d,%d,%d,%f,%f,%f\n",layer, M, K, N, sp, 0.0, rosko_dram);
 	fclose(fp);
 
 	// cake_sgemm_checker(A, B, C, N, M, K);
@@ -360,7 +360,7 @@ void test_svd_UV_Data(int M, int N, int K, int p, int ntrials, float sp, float s
 	FILE *fp;
 	fp = fopen(fname, "a");
 	fprintf(fp, "%s,svd_1_rosko,%d,%d,%d,%f,%f,%f\n", layer, M, K, N, sp, svd, diff_t / ntrials);
-    fprintf(fp, "%s,svd_1_dram,%d,%d,%d,%d,%f,%f\n",layer, M, K, N, sp, svd, svd_1_dram);
+    fprintf(fp, "%s,svd_1_dram,%d,%d,%d,%f,%f,%f\n",layer, M, K, N, sp, svd, svd_1_dram);
 	fclose(fp);
 
 	// cake_sgemm_checker(A, B, C, N, M, K);

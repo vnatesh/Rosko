@@ -71,6 +71,8 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
     struct timespec start, end;
     long seconds, nanoseconds;
     double diff_t, times;
+    int dram = atoi(argv[5]);
+    int setup = atoi(argv[6]);
 
 
     // printf("start sparseMM\n");
@@ -200,62 +202,88 @@ int run_sparse_matrix_dense_matrix_multiply_example(const cl::sycl::device &dev,
     // create and initialize handle for a Sparse Matrix in CSR format
     oneapi::mkl::sparse::matrix_handle_t handle;
 
-    try {
+    if(setup) exit(1);
 
+    try {
 
         float ressss;
         float tttmp[18];
         int flushsz=10000000;
         diff_t = 0.0;
 
-        for(int i = 0; i < ntrials; i++) {
+        if(dram) {
 
+            for(int i = 0; i < ntrials; i++) {
 
+                oneapi::mkl::sparse::init_matrix_handle(&handle);
 
-            oneapi::mkl::sparse::init_matrix_handle(&handle);
+                oneapi::mkl::sparse::set_csr_data(handle, nrows, ncols, oneapi::mkl::index_base::zero,
+                                                  ia_buffer, ja_buffer, a_buffer);
 
-            oneapi::mkl::sparse::set_csr_data(handle, nrows, ncols, oneapi::mkl::index_base::zero,
-                                              ia_buffer, ja_buffer, a_buffer);
+                clock_gettime(CLOCK_REALTIME, &start);
 
+                // add oneapi::mkl::sparse::gemm to execution queue
+                oneapi::mkl::sparse::gemm(main_queue, transpose_val, alpha, handle, b_buffer, columns, ldb,
+                                          beta, c_buffer, ldc);
 
-            float *dirty = (float *)malloc(flushsz * sizeof(float));
-            #pragma omp parallel for
-            for (int dirt = 0; dirt < flushsz; dirt++){
-                dirty[dirt] += dirt%100;
-                tttmp[dirt%18] += dirty[dirt];
+                clock_gettime(CLOCK_REALTIME, &end);
+                seconds = end.tv_sec - start.tv_sec;
+                nanoseconds = end.tv_nsec - start.tv_nsec;
+                diff_t += seconds + nanoseconds*1e-9;
+
+                oneapi::mkl::sparse::release_matrix_handle(&handle);
             }
 
-            for(int ii =0; ii<18;ii++){
-                ressss+= tttmp[ii];
+        } else {
+
+            for(int i = 0; i < ntrials; i++) {
+
+                oneapi::mkl::sparse::init_matrix_handle(&handle);
+
+                oneapi::mkl::sparse::set_csr_data(handle, nrows, ncols, oneapi::mkl::index_base::zero,
+                                                  ia_buffer, ja_buffer, a_buffer);
+
+                float *dirty = (float *)malloc(flushsz * sizeof(float));
+                #pragma omp parallel for
+                for (int dirt = 0; dirt < flushsz; dirt++){
+                    dirty[dirt] += dirt%100;
+                    tttmp[dirt%18] += dirty[dirt];
+                }
+
+                for(int ii =0; ii<18;ii++){
+                    ressss+= tttmp[ii];
+                }
+
+
+                clock_gettime(CLOCK_REALTIME, &start);
+
+                // add oneapi::mkl::sparse::gemm to execution queue
+                oneapi::mkl::sparse::gemm(main_queue, transpose_val, alpha, handle, b_buffer, columns, ldb,
+                                          beta, c_buffer, ldc);
+
+                clock_gettime(CLOCK_REALTIME, &end);
+                seconds = end.tv_sec - start.tv_sec;
+                nanoseconds = end.tv_nsec - start.tv_nsec;
+                diff_t += seconds + nanoseconds*1e-9;
+
+                oneapi::mkl::sparse::release_matrix_handle(&handle);
+
+                free(dirty);
             }
-
-
-            clock_gettime(CLOCK_REALTIME, &start);
-
-            // add oneapi::mkl::sparse::gemm to execution queue
-            oneapi::mkl::sparse::gemm(main_queue, transpose_val, alpha, handle, b_buffer, columns, ldb,
-                                      beta, c_buffer, ldc);
-
-            clock_gettime(CLOCK_REALTIME, &end);
-            seconds = end.tv_sec - start.tv_sec;
-            nanoseconds = end.tv_nsec - start.tv_nsec;
-            diff_t += seconds + nanoseconds*1e-9;
-
-            oneapi::mkl::sparse::release_matrix_handle(&handle);
-
-            free(dirty);
         }
 
             // oneapi::mkl::sparse::release_matrix_handle(&handle);
 
         printf("sparse gemm time: %f \n", diff_t / ntrials); 
 
-        char fname[50];
-        snprintf(fname, sizeof(fname), "result_gnn");
-        FILE *fp1;
-        fp1 = fopen(fname, "a");
-        fprintf(fp1, "mkl,%s,%d,%d,%d,%d,%f,%f\n",argv[4],nrows,ncols,columns,10,(1-density_val)*100,diff_t / ntrials);
-        fclose(fp1);        
+        if(!dram) {
+            char fname[50];
+            snprintf(fname, sizeof(fname), "result_gnn");
+            FILE *fp1;
+            fp1 = fopen(fname, "a");
+            fprintf(fp1, "mkl,%s,%d,%d,%d,%d,%f,%f\n",argv[4],nrows,ncols,columns,10,(1-density_val)*100,diff_t / ntrials);
+            fclose(fp1);
+        }        
     }
 
     catch (cl::sycl::exception const &e) {

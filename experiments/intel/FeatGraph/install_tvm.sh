@@ -12,7 +12,7 @@ mkdir build
 cp cmake/config.cmake build
 cd build
 
-# modify build/config.cmake to add
+# modify build/config.cmake to add llvm directory (using tiramisu llvm)
 sed -i.bak '/set(USE_LLVM OFF)/d' config.cmake
 echo "set(USE_LLVM /home/vnatesh/tiramisu/3rdParty/llvm/build/bin/llvm-config)"  >> config.cmake
 

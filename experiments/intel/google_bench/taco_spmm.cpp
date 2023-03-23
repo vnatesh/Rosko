@@ -149,14 +149,36 @@ int main(int argc, char* argv[]) {
   C.compile(stmt);
   C.assemble();
 
-  clock_gettime(CLOCK_REALTIME, &start);
 
-  C.compute();
+  float ressss;
+  float tttmp[18];
+  int flushsz=10000000;
+  diff_t = 0.0;
   
-  clock_gettime(CLOCK_REALTIME, &end);
-  seconds = end.tv_sec - start.tv_sec;
-  nanoseconds = end.tv_nsec - start.tv_nsec;
-  diff_t = seconds + nanoseconds*1e-9;
+  for(int i = 0; i < ntrials; i++) {
+
+      float *dirty = (float *)malloc(flushsz * sizeof(float));
+      #pragma omp parallel for
+      for (int dirt = 0; dirt < flushsz; dirt++){
+          dirty[dirt] += dirt%100;
+          tttmp[dirt%18] += dirty[dirt];
+      }
+
+      for(int ii =0; ii<18;ii++){
+          ressss+= tttmp[ii];
+      }
+
+      clock_gettime(CLOCK_REALTIME, &start);
+
+      C.compute();
+      
+      clock_gettime(CLOCK_REALTIME, &end);
+      seconds = end.tv_sec - start.tv_sec;
+      nanoseconds = end.tv_nsec - start.tv_nsec;
+      diff_t += seconds + nanoseconds*1e-9;
+
+      free(dirty);
+  }
 
 
 
@@ -165,7 +187,7 @@ int main(int argc, char* argv[]) {
       snprintf(fname1, sizeof(fname1), "result_dlmc");
       FILE *fp2;
       fp2 = fopen(fname1, "a");
-      fprintf(fp2, "taco,%d,%d,%d,%d,%d,%f\n",M,K,N,nz,id, diff_t);
+      fprintf(fp2, "taco,%d,%d,%d,%d,%d,%f\n",M,K,N,nz,id, diff_t / ntrials);
       fclose(fp2);
   }
 

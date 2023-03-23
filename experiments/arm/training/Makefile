@@ -18,7 +18,7 @@ CFLAGS_blis := $(CFLAGS)
 CFLAGS_blis		  += -I$(BLIS_INC_PATH)
 
 # rosko shared library
-LIBS      := -L$(ROSKO_HOME) -lrosko -L$(CAKE_HOME) -lcake
+LIBS      := -L$(ROSKO_HOME) -lrosko -lrosko_kernels -L$(CAKE_HOME) -lcake
 ROSKO_SRC := $(ROSKO_HOME)/src
 
 
@@ -56,7 +56,7 @@ rosko_armv8: $(wildcard *.h) $(wildcard *.c)
 
 rosko_haswell: $(wildcard *.h) $(wildcard *.c)
 	g++ $(CFLAGS) rosko_sgemm_test.cpp $(LIBS) -o rosko_sgemm_test
-	
+
 svd_test: $(wildcard *.h) $(wildcard *.c)
 	g++ $(CFLAGS) svd_test.cpp $(LIBS) -o svd_test
 
