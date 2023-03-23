@@ -4,7 +4,7 @@
 
 
 
-void schedule_KMN_sp_compressed(sp_pack_t* sp_pack, float* B_p, float* C_p, int M, int N, int K, int p, 
+void schedule_KMN_sp_compressed(sp_pack_t* sp_pack, float* B_p, float* C, float** C_p, int M, int N, int K, int p, 
 	cake_cntx_t* cake_cntx, blk_dims_t* x) {
 
 	// copy over block dims to local vars to avoid readibility ussiues with x->
@@ -21,6 +21,7 @@ void schedule_KMN_sp_compressed(sp_pack_t* sp_pack, float* B_p, float* C_p, int 
 
 	int m, k, n; //, m_start, m_end, m_inc, k_start, k_end, k_inc;
 	int m_cb, n_c_t, p_used, core;
+	int m1, n1, C_offset = 0;
 
     // rsc = 1; csc = m_r;
 	float* A_p = sp_pack->A_sp_p;
@@ -35,12 +36,14 @@ void schedule_KMN_sp_compressed(sp_pack_t* sp_pack, float* B_p, float* C_p, int 
 	// 	Mb, Nb, k_c, k_c1, m_c, n_c, m_c1, n_c1);
 
 
-
 	for(n = 0; n < Nb; n++) {
 
-		n_c_t = n_c;
 		if((n == Nb - 1) && n_pad) {
 			n_c_t = n_c1;
+			n1 = (N - (N % n_c));
+		} else {
+			n_c_t = n_c;
+			n1 = n*n_c;
 		}
 
 		for(m = 0; m < Mb; m++) {
@@ -48,9 +51,11 @@ void schedule_KMN_sp_compressed(sp_pack_t* sp_pack, float* B_p, float* C_p, int 
 			if((m == Mb - 1) && m_pad) {
 				p_used = p_l;
 				m_cb = m_r*mr_rem ; //M % (p*m_c);
+				m1 = (M - (M % (p*m_c)));
 			} else {
 				p_used = p;
 				m_cb = p_used*m_c;
+				m1 = m*p*m_c;
 			}
 
 			// pragma omp here (i_c loop)
@@ -92,8 +97,8 @@ void schedule_KMN_sp_compressed(sp_pack_t* sp_pack, float* B_p, float* C_p, int 
 
 							kernel_map_sp_new[m_map][n_map](
 									&A_p[nnz_tile], 
-									&B_p[b_ind + n_reg*k_c_t*n_r], 
-									&C_p[c_ind + n_reg*m_c_t*n_r + m_reg*m_r*n_r], 
+									&B_p[b_ind + n_reg*k_c_t*n_r],
+									&C_p[core][n_reg*m_c_t*n_r + m_reg*m_r*n_r], 
 									m_r, n_r, num_col_tile[tile_ind + m_reg + 1] - num_col, 
 									&nnz_outer[num_col],
 									&k_inds[num_col], 
@@ -102,6 +107,28 @@ void schedule_KMN_sp_compressed(sp_pack_t* sp_pack, float* B_p, float* C_p, int 
 						}
 					}
 				}
+			}
+
+
+			C_offset = m*p*m_c*N + n*n_c;
+
+			#pragma omp parallel for private(core)
+			for(core = 0; core < p_used; core++) {
+
+				int m_c_t, m_c_x;
+
+				if((m == Mb - 1) && m_pad) {
+					m_c_t = (core == (p_l - 1) ? m_c1_last_core : m_c1);
+					m_c_x = m_c1;
+				} else {
+					m_c_t = m_c;
+					m_c_x = m_c;
+				}
+
+				unpack_ob_C_single_buf(&C[C_offset + core*m_c_x*N], C_p[core], 
+					M, N, m1, n1, core*m_c_x, m_c_t, n_c_t, m_r, n_r);
+
+				memset(C_p[core], 0, m_c * n_c * sizeof(float));
 			}
 		}
 	}
