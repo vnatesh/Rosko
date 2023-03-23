@@ -25,7 +25,7 @@ void rosko_mr_nr(cake_cntx_t* cake_cntx, float density) {
 
 cache_dims_t* get_sparse_cache_dims(int M, int N, int K, int p, 
 			cake_cntx_t* cake_cntx, enum sched sch, 
-			char* argv[], float density, float type_size, int alg) {
+			char* argv[], float density, float type_size, int alg, int mcu, int kcu, int ncu) {
 
 
 	int mc, mc_ret, nc_ret, a, mc_L2 = 0, mc_L3 = 0, kc_L1 = 0;
@@ -43,26 +43,23 @@ cache_dims_t* get_sparse_cache_dims(int M, int N, int K, int p,
 
 
 	// user-defined tile sizes
-	int ss = 0;
-	if(argv) {
-		ss = atoi(argv[5]);
-	}
-
-	if(ss) {
+	if(mcu && ncu && kcu) {
 		// printf("user-defined tiling\n");
-		blk_ret->m_c = atoi(argv[6]);
-		blk_ret->k_c = atoi(argv[7]);
-		blk_ret->n_c = atoi(argv[8]);
+		blk_ret->m_c = mcu;
+		blk_ret->k_c = kcu;
+		blk_ret->n_c = ncu;
+		cake_cntx->alpha_n = 1.0;
 	// sparsity-aware tiling when A matrix is sparse
 	} else if(density > 0.0000001) {
 		
 		double k_f; // fraction of row vecs of B that must be loaded for mrxkcxnr outer product
 		int kc_ret;
 		float size_fact = 2.5; // total pack size expressed as factor of only A_sp (e.g., 2.5 times nnz vals)
-		float a_q, b_q, c_q, d = density, alpha = cake_cntx->alpha_n;
-		double a_coeff = (d/mr) * ((int) ceil(d * mr)) ;
+		float alpha, a_q, b_q, c_q, d = density; 
+		// double a_coeff = (d/mr) * ((int) ceil(d * mr)) ;
+		double a_coeff = size_fact*d;
 		cake_cntx->alpha_n = 1.0;
-		
+		alpha = cake_cntx->alpha_n;
 		// 3*d*mr*kc + nr*k_f*kc + mr*nr <= L2 (roughly 3*4 = 12 bytes for each float nnz val due to metadata)
 		// k_f = clamp_val(density * mr, 0, 1);
 		// kc_L1 = (int) (((((double) cake_cntx->L1) / (type_size)) - 
@@ -86,6 +83,7 @@ cache_dims_t* get_sparse_cache_dims(int M, int N, int K, int p,
 
 		if(alg == 0) {
 
+			// 
 			mc_L2 = (int)  ((-b + sqrt(b*b + 4*a_coeff*(((double) cake_cntx->L2) / (type_size)))) / (2.0*a_coeff)) ;
 			mc_L2 -= (mc_L2 % mr);
 
@@ -141,8 +139,9 @@ cache_dims_t* get_sparse_cache_dims(int M, int N, int K, int p,
 			nc_ret -= (nc_ret % nr);
 
 			if(alg == 0) {
-
-				a_q = size_fact*a_coeff*p;
+				// d*p*mc*kc + kc*nc_ret + p*mc*nc_ret <= L3 
+				// a_q = size_fact*a_coeff*p;
+				a_q = size_fact*d*p;
 				b_q = alpha*nc_ret*(1 + p);
 				c_q = (((float) cake_cntx->L3) / (type_size));
 				mc_L3 = (int) ((-b_q + sqrt(b_q*b_q + 4*a_q*c_q)) / (2.0*a_q));
@@ -172,7 +171,7 @@ cache_dims_t* get_sparse_cache_dims(int M, int N, int K, int p,
 			if(M < p*mr) {
 				mc_ret = mr;
 			} else if(M < p*mc_ret) {
-				
+
 				a = (M / p);
 				if(a < mr) {
 					mc_ret = mr;
@@ -209,7 +208,7 @@ cache_dims_t* get_sparse_cache_dims(int M, int N, int K, int p,
 
 
 		if(alg == 0) {
-			blk_ret->m_c = mc_L3 < M ? mc_L3 : mr;
+			blk_ret->m_c = mc_L3 < M ? mc_ret : mr;
 			blk_ret->k_c = mc_L2 < K ? mc_L2 : K;
 		} else {
 			blk_ret->m_c = mc_ret;
@@ -219,6 +218,7 @@ cache_dims_t* get_sparse_cache_dims(int M, int N, int K, int p,
 		blk_ret->n_c = nc_ret;
 	} 
 
+	// printf("yo %d %d %d %d\n", blk_ret->m_c, blk_ret->k_c, blk_ret->n_c, alg);
 	return blk_ret;
 }
 
@@ -226,12 +226,12 @@ cache_dims_t* get_sparse_cache_dims(int M, int N, int K, int p,
 
 void init_sparse_block_dims(int M, int N, int K, int p, 
 	blk_dims_t* x, cake_cntx_t* cake_cntx, enum sched sch, 
-	char* argv[], float density, float type_size, int alg) {
+	char* argv[], float density, float type_size, int alg, int mcu, int kcu, int ncu) {
 
 	int m_r = cake_cntx->mr;
 	int n_r = cake_cntx->nr;
 	cache_dims_t* cache_dims = get_sparse_cache_dims(M, N, K, p, 
-									cake_cntx, sch, argv, density, type_size, alg);
+									cake_cntx, sch, argv, density, type_size, alg, mcu, kcu, ncu);
     x->m_c = cache_dims->m_c;
 	x->k_c = cache_dims->k_c;
     x->n_c = cache_dims->n_c;
