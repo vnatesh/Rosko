@@ -109,28 +109,18 @@ void csr_to_ob_A_sp(float* vals, int* colind_csr, int* rowptr_csr, int* nnz_tile
 
 
 
-
+// packing without density-based reordering
 void pack_ob_A_sp(float* A, float* A_p, char* nnz_outer, int* k_inds, char* loc_m, 
    int M, int K, int m1, int m2, int m_c, int k_c, int m_r, bool pad) {
 
-   int nnz_col, ind_blk, outer_ind = 0, a_ind = 0;
+   int nnz_col, ind_blk, outer_ind = 0, a_ind = 0, empty = 0;
    float a_tmp = 0;
 
-   int mr_bins = m_r + 1;
-   int** cnt = (int**) malloc(mr_bins * sizeof(int*));
-   int* cnt_inds = (int*) malloc(mr_bins * sizeof(int));
-
-
-   for(int i = 0; i < mr_bins; i++) {
-      cnt[i] = (int*) malloc(k_c * sizeof(int));
-   }
-
    if(pad) {
-
       for(int m3 = 0; m3 < m_c; m3 += m_r) {
 
-         ind_blk = 0;
-         memset(cnt_inds, 0, mr_bins*sizeof(int));
+          ind_blk = 0;
+          empty = 0;
 
          for(int i = 0; i < k_c; i++) {
 
@@ -138,58 +128,38 @@ void pack_ob_A_sp(float* A, float* A_p, char* nnz_outer, int* k_inds, char* loc_
 
             for(int j = 0; j < m_r; j++) {
 
-               if((m1 + m2 + m3 + j) < M) {
+               if((m1 + m2 + m3 + j) >=  M) {
+                  A_p[a_ind + ind_blk] = 0.0;
+               } else {
 
-                  if(A[m3*K + i + j*K] != 0) {
+                  a_tmp = A[m3*K + i + j*K];
+                  if(a_tmp != 0) {
+                     A_p[a_ind + ind_blk] = a_tmp;
+                     loc_m[a_ind + ind_blk++] = j;
                      nnz_col++;
                   }
                }
+
             }
 
-            cnt[nnz_col][cnt_inds[nnz_col]++] = i;
+            if(nnz_col) {
+              k_inds[outer_ind] = i;
+              nnz_outer[outer_ind++] = nnz_col;
+            } else {
+              empty++;
+            }           
          }
 
-         // reorder columns in A in descending order of their densities
-         for(int c = m_r; c > 0; c--) {
-       
-            if(!cnt_inds[c]) {
-               // ind_blk += 6;
-               continue;
-            }
-
-            for(int i = 0; i < cnt_inds[c]; i++) {
-
-               for(int j = 0; j < m_r; j++) {
-
-                  if((m1 + m2 + m3 + j) >=  M) {
-                     A_p[a_ind + ind_blk] = 0.0;
-                  } else {
-
-                     a_tmp = A[m3*K + cnt[c][i] + j*K];
-                     if(a_tmp != 0) {
-                        A_p[a_ind + ind_blk] = a_tmp;
-                        loc_m[a_ind + ind_blk++] = j;
-                     }
-                  }
-               }
-
-               k_inds[outer_ind] = cnt[c][i];
-               nnz_outer[outer_ind++] = c;
-            }
-
-         }
-
-         outer_ind += cnt_inds[0]; // skip ahead over cols with 0 nonzeros
+         outer_ind += empty; // skip ahead over cols with 0 nonzeros
          a_ind += m_r*k_c;
-      }
+      }     
    } 
 
    else {
-
       for(int m3 = 0; m3 < m_c; m3 += m_r) {
 
          ind_blk = 0;
-         memset(cnt_inds, 0, mr_bins*sizeof(int));
+         empty = 0;
 
          for(int i = 0; i < k_c; i++) {
 
@@ -197,107 +167,54 @@ void pack_ob_A_sp(float* A, float* A_p, char* nnz_outer, int* k_inds, char* loc_
 
             for(int j = 0; j < m_r; j++) {
 
-               if(A[m3*K + i + j*K] != 0) {
+               a_tmp = A[m3*K + i + j*K];
+               if(a_tmp != 0) {
+                  A_p[a_ind + ind_blk] = a_tmp;
+                  loc_m[a_ind + ind_blk++] = j;
                   nnz_col++;
                }
             }
 
-            cnt[nnz_col][cnt_inds[nnz_col]++] = i;
+            if(nnz_col) {
+              k_inds[outer_ind] = i;
+              nnz_outer[outer_ind++] = nnz_col;
+            } else {
+              empty++;
+            }           
          }
 
 
-         for(int c = m_r; c > 0; c--) {
-
-            if(!cnt_inds[c]) {
-               // ind_blk += 6;
-               continue;
-            }
-
-            for(int i = 0; i < cnt_inds[c]; i++) {
-
-               for(int j = 0; j < m_r; j++) {
-
-                  // A_p[a_ind + ind_blk] = A[m3*K + cnt[c][i] + j*K];
-                  // loc_m[a_ind + ind_blk++] = j;
-                  
-                  a_tmp = A[m3*K + cnt[c][i] + j*K];
-                  if(a_tmp != 0) {
-                     A_p[a_ind + ind_blk] = a_tmp;
-                     loc_m[a_ind + ind_blk++] = j;
-                  }
-               }
-
-               k_inds[outer_ind] = cnt[c][i];
-               nnz_outer[outer_ind++] = c;
-            }
-
-         }
-
-         outer_ind += cnt_inds[0]; // skip ahead over cols with 0 nonzeros
+         outer_ind += empty; // skip ahead over cols with 0 nonzeros
          a_ind += m_r*k_c;
-      }
+      }     
    }
-
-   for(int i = 0; i < mr_bins; i++) {
-      free(cnt[i]);
-   }
-
-   free(cnt);
-   free(cnt_inds);
 }
 
 
-// // packing without density-based reordering
+
+//// packing with density-based reordering
+
 // void pack_ob_A_sp(float* A, float* A_p, char* nnz_outer, int* k_inds, char* loc_m, 
 //    int M, int K, int m1, int m2, int m_c, int k_c, int m_r, bool pad) {
 
-//    int nnz_col, ind_blk, outer_ind = 0, a_ind = 0, empty = 0;
+//    int nnz_col, ind_blk, outer_ind = 0, a_ind = 0;
 //    float a_tmp = 0;
 
+//    int mr_bins = m_r + 1;
+//    int** cnt = (int**) malloc(mr_bins * sizeof(int*));
+//    int* cnt_inds = (int*) malloc(mr_bins * sizeof(int));
+
+
+//    for(int i = 0; i < mr_bins; i++) {
+//       cnt[i] = (int*) malloc(k_c * sizeof(int));
+//    }
+
 //    if(pad) {
-//       for(int m3 = 0; m3 < m_c; m3 += m_r) {
 
-//           ind_blk = 0;
-//           empty = 0;
-
-//          for(int i = 0; i < k_c; i++) {
-
-//             nnz_col = 0;
-
-//             for(int j = 0; j < m_r; j++) {
-
-//                if((m1 + m2 + m3 + j) >=  M) {
-//                   A_p[a_ind + ind_blk] = 0.0;
-//                } else {
-
-//                   a_tmp = A[m3*K + i + j*K];
-//                   if(a_tmp != 0) {
-//                      A_p[a_ind + ind_blk] = a_tmp;
-//                      loc_m[a_ind + ind_blk++] = j;
-//                      nnz_col++;
-//                   }
-//                }
-
-//             }
-
-//             if(nnz_col) {
-//               k_inds[outer_ind] = i;
-//               nnz_outer[outer_ind++] = nnz_col;
-//             } else {
-//               empty++;
-//             }           
-//          }
-
-//          outer_ind += empty; // skip ahead over cols with 0 nonzeros
-//          a_ind += m_r*k_c;
-//       }     
-//    } 
-
-//    else {
 //       for(int m3 = 0; m3 < m_c; m3 += m_r) {
 
 //          ind_blk = 0;
-//          empty = 0;
+//          memset(cnt_inds, 0, mr_bins*sizeof(int));
 
 //          for(int i = 0; i < k_c; i++) {
 
@@ -305,28 +222,114 @@ void pack_ob_A_sp(float* A, float* A_p, char* nnz_outer, int* k_inds, char* loc_
 
 //             for(int j = 0; j < m_r; j++) {
 
-//                a_tmp = A[m3*K + i + j*K];
-//                if(a_tmp != 0) {
-//                   A_p[a_ind + ind_blk] = a_tmp;
-//                   loc_m[a_ind + ind_blk++] = j;
+//                if((m1 + m2 + m3 + j) < M) {
+
+//                   if(A[m3*K + i + j*K] != 0) {
+//                      nnz_col++;
+//                   }
+//                }
+//             }
+
+//             cnt[nnz_col][cnt_inds[nnz_col]++] = i;
+//          }
+
+//          // reorder columns in A in descending order of their densities
+//          for(int c = m_r; c > 0; c--) {
+       
+//             if(!cnt_inds[c]) {
+//                // ind_blk += 6;
+//                continue;
+//             }
+
+//             for(int i = 0; i < cnt_inds[c]; i++) {
+
+//                for(int j = 0; j < m_r; j++) {
+
+//                   if((m1 + m2 + m3 + j) >=  M) {
+//                      A_p[a_ind + ind_blk] = 0.0;
+//                   } else {
+
+//                      a_tmp = A[m3*K + cnt[c][i] + j*K];
+//                      if(a_tmp != 0) {
+//                         A_p[a_ind + ind_blk] = a_tmp;
+//                         loc_m[a_ind + ind_blk++] = j;
+//                      }
+//                   }
+//                }
+
+//                k_inds[outer_ind] = cnt[c][i];
+//                nnz_outer[outer_ind++] = c;
+//             }
+
+//          }
+
+//          outer_ind += cnt_inds[0]; // skip ahead over cols with 0 nonzeros
+//          a_ind += m_r*k_c;
+//       }
+//    } 
+
+//    else {
+
+//       for(int m3 = 0; m3 < m_c; m3 += m_r) {
+
+//          ind_blk = 0;
+//          memset(cnt_inds, 0, mr_bins*sizeof(int));
+
+//          for(int i = 0; i < k_c; i++) {
+
+//             nnz_col = 0;
+
+//             for(int j = 0; j < m_r; j++) {
+
+//                if(A[m3*K + i + j*K] != 0) {
 //                   nnz_col++;
 //                }
 //             }
 
-//             if(nnz_col) {
-//               k_inds[outer_ind] = i;
-//               nnz_outer[outer_ind++] = nnz_col;
-//             } else {
-//               empty++;
-//             }           
+//             cnt[nnz_col][cnt_inds[nnz_col]++] = i;
 //          }
 
 
-//          outer_ind += empty; // skip ahead over cols with 0 nonzeros
+//          for(int c = m_r; c > 0; c--) {
+
+//             if(!cnt_inds[c]) {
+//                // ind_blk += 6;
+//                continue;
+//             }
+
+//             for(int i = 0; i < cnt_inds[c]; i++) {
+
+//                for(int j = 0; j < m_r; j++) {
+
+//                   // A_p[a_ind + ind_blk] = A[m3*K + cnt[c][i] + j*K];
+//                   // loc_m[a_ind + ind_blk++] = j;
+                  
+//                   a_tmp = A[m3*K + cnt[c][i] + j*K];
+//                   if(a_tmp != 0) {
+//                      A_p[a_ind + ind_blk] = a_tmp;
+//                      loc_m[a_ind + ind_blk++] = j;
+//                   }
+//                }
+
+//                k_inds[outer_ind] = cnt[c][i];
+//                nnz_outer[outer_ind++] = c;
+//             }
+
+//          }
+
+//          outer_ind += cnt_inds[0]; // skip ahead over cols with 0 nonzeros
 //          a_ind += m_r*k_c;
-//       }     
+//       }
 //    }
+
+//    for(int i = 0; i < mr_bins; i++) {
+//       free(cnt[i]);
+//    }
+
+//    free(cnt);
+//    free(cnt_inds);
 // }
+
 
 
 
