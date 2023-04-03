@@ -22,7 +22,7 @@ do
 	for n in {256..10240..512}
 	do
 
-		./rosko_sgemm_test $n $n $n 1 $i 1;
+		./rosko_sgemm_test $n $n 1 $i csr_file rosko_file;
 
 	done
 done

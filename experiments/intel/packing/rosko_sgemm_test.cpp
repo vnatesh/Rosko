@@ -75,8 +75,11 @@ int main( int argc, char** argv ) {
     snprintf(fname, sizeof(fname), "result_pack");
     FILE *fp;
     fp = fopen(fname, "a");
-    fprintf(fp, "rosko,%d,%d,%d,%d,%f\n",M,K,N,sp,rosko_bw);
-    fprintf(fp, "mkl,%d,%d,%d,%d,%f\n",M,K,N,sp,csr_bw);
+    fprintf(fp, "rosko bw,%d,%d,%d,%d,%f\n",M,K,N,sp,rosko_bw);
+    fprintf(fp, "mkl bw,%d,%d,%d,%d,%f\n",M,K,N,sp,csr_bw);
+    fprintf(fp, "rosko time,%d,%d,%d,%d,%f\n",M,K,N,sp,rosko_time);
+    fprintf(fp, "mkl time,%d,%d,%d,%d,%f\n",M,K,N,sp,csr_time);
+
     fclose(fp);
 	
 
