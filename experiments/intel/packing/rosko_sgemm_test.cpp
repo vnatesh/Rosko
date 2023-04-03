@@ -63,10 +63,23 @@ int main( int argc, char** argv ) {
 	int rosko_bytes = buffer.st_size;
 	printf("rosko bytes: %d \n", rosko_bytes); 
 
-	// (1 read of M*K matrix A) + (write nonzeros and indexing arrays)
+
+
+	// (1 read of M*K matrix A) + (writing nonzeros and indexing arrays)
 	float csr_bw = ((float) (csr_bytes + M*K*4)) / csr_time / 1e9;
 	float rosko_bw = ((float) (rosko_bytes + M*K*4)) / rosko_time / 1e9;
 	printf("rosko bw = %f, csr bw = %f\n", rosko_bw, csr_bw);
+
+
+    char fname[50];
+    snprintf(fname, sizeof(fname), "result_pack");
+    FILE *fp;
+    fp = fopen(fname, "a");
+    fprintf(fp, "rosko,%d,%d,%d,%d,%f\n",M,K,N,sp,rosko_bw);
+    fprintf(fp, "mkl,%d,%d,%d,%d,%f\n",M,K,N,sp,csr_bw);
+    fclose(fp);
+	
+
 
 	free_sp_pack(sp_pack1);
 	free_csr(csr);
