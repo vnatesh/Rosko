@@ -30,7 +30,7 @@ void sp_pack_to_file(sp_pack_t* sp_pack, char* fname);
 // void file_to_sp_pack(sp_pack_t* sp_pack, char* fname);
 sp_pack_t* file_to_sp_pack(int N, int p, cake_cntx_t* cake_cntx, enum sched sch, int alg, char* fname);
 
-int mat_to_csr_file(float* A, int M, int K, char* fname);
+double mat_to_csr_file(float* A, int M, int K, char* fname);
 void test_csr_convert(int M, int K, float sparsity);
 csr_t* file_to_csr(char* fname);
 void csr_to_mat(float* A, int M, int K, int* rowptr, float* vals, int* colind);
@@ -41,4 +41,8 @@ void file_to_sp_pack2(sp_pack_t* sp_pack, char* fname);
 void sp_pack_to_file2(sp_pack_t* sp_pack,cake_cntx_t* cake_cntx, 
 	int M, int K, char* fname);
 sp_pack_t* malloc_sp_pack2(int M, int K, cake_cntx_t* cake_cntx);
+
+
+float* file_to_mat(char* fname);
+void mat_to_file(float* A, int M, int K, char* fname);
 

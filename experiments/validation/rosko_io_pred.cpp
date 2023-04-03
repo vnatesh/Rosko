@@ -31,6 +31,7 @@ float cake_cpu_DRAM_accesses(int M1, int K1, int N1, int p, char* argv[]) {
 float rosko_cpu_DRAM_accesses(int M1, int K1, int N1, int p, float d, char* argv[]) {
 	
 	int alg;
+	float dram_acc;
 
 	cake_cntx_t* cake_cntx = cake_query_cntx();
 
@@ -78,14 +79,22 @@ float rosko_cpu_DRAM_accesses(int M1, int K1, int N1, int p, float d, char* argv
 	// C stationary, IO caused by reading A/B during gemm, A metadata, and B/C packing
 	// Assumes A is pre-packed
 	// A = A_sp (4) + loc_m (1) + nnz_outer (1)+ k_inds (4) = 2.5 bytes/val on avg
-	float dram_acc = (((2.5*d*M*K*Nb + N*K*Mb) + 4.0*M*N + 2.0*K*N) / 1e9)*4.0; // arm
+	float dram_acc1 = (((2.5*d*M*K*Nb + N*K*Mb) + 4.0*M*N + 2.0*K*N) / 1e9)*4.0; // arm
 
 
 	// On systems with high DRAM BW, 
 	// We don't have to fit block in cache. We can use large blocks, allow cache misses and extra mem accesses
 	// and we can do this if there's enough dram BW.  
 	//IO Caused by read/write C, A/B reads during gemm, A metadata, and B/C packing
-	dram_acc = (((2.5*d*M*K*Nb + N*K*Mb + 2.0*M*N*Kb) + 2.0*M*N + 2.0*K*N) / 1e9)*4.0; // intel
+	float dram_acc2 = (((2.5*d*M*K*Nb + N*K*Mb + 2.0*M*N*Kb) + 2.0*M*N + 2.0*K*N) / 1e9)*4.0; // intel
+
+
+	if(MR_MIN == 6 && NR_MIN == 16) {
+		dram_acc = dram_acc2;
+	} else {
+		dram_acc = dram_acc1;
+	}
+
 
 	free(x);
 	free(cake_cntx);

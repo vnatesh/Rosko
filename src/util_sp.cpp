@@ -163,17 +163,17 @@ int run_tests_sparse_test() {
 
 					char fname[50];
 					snprintf(fname, sizeof(fname), "convert_test");
-					int nz = mat_to_csr_file(A, M, K, fname);
+					mat_to_csr_file(A, M, K, fname);
 					
 					csr_t* csr = file_to_csr(fname);
 					float density = ((float) csr->rowptr[M]) / ((float) (((float) M) * ((float) K)));
 					
-// printf("density = %f, nz = %d, max_threads = %d\n",density , nz, max_threads);
+// printf("density = %f, nz = %d, max_threads = %d\n",density , csr->rowptr[M], max_threads);
 					blk_dims_t* x = (blk_dims_t*) malloc(sizeof(blk_dims_t));
 					cake_cntx_t* cake_cntx = cake_query_cntx();
 					init_sparse_block_dims(M, N, K, p, x, cake_cntx, KMN, NULL, density);
-					sp_pack_t* sp_pack = malloc_sp_pack(M, K, nz, x, cake_cntx);
-					pack_A_csr_to_sp_k_first(csr, M, K, nz, p, sp_pack, x, cake_cntx);
+					sp_pack_t* sp_pack = malloc_sp_pack(M, K, csr->rowptr[M], x, cake_cntx);
+					pack_A_csr_to_sp_k_first(csr, M, K, csr->rowptr[M], p, sp_pack, x, cake_cntx);
 
 					// printf("heyyyyy\n");
 					rosko_sgemm_compressed(fname, B, C, M, N, K, p, cake_cntx, density, NULL, sp_pack, 1, 0, 1, 0, KMN, 2);
@@ -211,7 +211,9 @@ int run_tests_sparse_test() {
 // randomized sparse matrix in range [-1,1] 
 // with sparsity % of values that are zero
 // i.e., threshold pruning
-void rand_sparse(float* mat, int r, int c, float sparsity) {
+int rand_sparse(float* mat, int r, int c, float sparsity) {
+	
+	int nz = 0;
 
 	for(int i = 0; i < r*c; i++) {
 		int x = rand();
@@ -219,8 +221,11 @@ void rand_sparse(float* mat, int r, int c, float sparsity) {
 			mat[i] = 0;
 		} else {
 			mat[i] =  (float) x / ((float) RAND_MAX)*2.0 - 1.0;
+			nz++;
 		}
-	}	
+	}
+
+	return nz;	
 }
 
 

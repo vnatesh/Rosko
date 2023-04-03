@@ -21,12 +21,12 @@ def plot_rosko_gnn(fname = 'rosko_gnn'):
 	#
 	df1 = pandas.read_csv('result_gnn')
 	feat_lens = [32, 64, 128, 256, 512]
-	speedup1 = []
-	speedup2 = []
 	#
 	#
 	for file in ['reddit', 'ogbn']:
 		#
+		speedup1 = []
+		speedup2 = []
 		feat_time=[];opt=[];dram_bw_rosko=[];dram_bw_feat=[];dram_bw_mkl=[]
 		rosko_time = df1[(df1['algo'] == 'rosko') & (df1['file'] == '%s_packed' % file)]['time'].values
 		M = df1[(df1['algo'] == 'rosko') & (df1['file'] == '%s_packed' % file)]['M'].values
@@ -115,10 +115,10 @@ def plot_rosko_gnn(fname = 'rosko_gnn'):
 		br3 = [x + barWidth for x in br2]
 		plt.bar(br1, rosko_flops, color ='r', width = barWidth,
 		        edgecolor ='grey', label = labels[0])
-		plt.bar(br2, feat_flops, color ='m', width = barWidth,
-		        edgecolor ='grey', label =labels[1])
-		plt.bar(br3, mkl_flops, color ='b', width = barWidth,
+		plt.bar(br2, mkl_flops, color ='b', width = barWidth,
 		        edgecolor ='grey', label =labels[2])
+		plt.bar(br3, feat_flops, color ='m', width = barWidth,
+		        edgecolor ='grey', label =labels[1])
 		plt.xlabel("Feature Length", fontsize = 20)
 		# plt.xticks(feat_lens)
 		plt.xticks([r + barWidth for r in range(len(feat_lens))],
@@ -141,13 +141,13 @@ def plot_rosko_gnn(fname = 'rosko_gnn'):
 		# plt.plot(feat_lens, feat_flops_reddit, color ='m', label =labels[1])
 		br1 = np.arange(len(feat_lens))
 		br2 = [x + barWidth for x in br1]
-		br3 = [x + barWidth for x in br2]
+		# br3 = [x + barWidth for x in br2]
 		plt.bar(br1, dram_bw_rosko, color ='r', width = barWidth,
 		        edgecolor ='grey', label = labels[0])
 		plt.bar(br2, dram_bw_feat, color ='m', width = barWidth,
 		        edgecolor ='grey', label =labels[1])
-		plt.bar(br3, dram_bw_mkl, color ='b', width = barWidth,
-		        edgecolor ='grey', label =labels[2])
+		# plt.bar(br3, dram_bw_mkl, color ='b', width = barWidth,
+		#         edgecolor ='grey', label =labels[2])
 		plt.xlabel("Feature Length", fontsize = 20)
 		# plt.xticks(feat_lens)
 		plt.xticks([r + barWidth for r in range(len(feat_lens))],
@@ -158,16 +158,16 @@ def plot_rosko_gnn(fname = 'rosko_gnn'):
 			plt.legend(loc = "upper right", prop={'size': 12})
 		else:
 			plt.legend(loc = "lower left", prop={'size': 12})			
-		# plt.savefig("%s.pdf" % fname, bbox_inches='tight')
+		plt.savefig("%s_%s_dram.pdf" % (file, fname), bbox_inches='tight')
 		plt.show()
 		plt.clf()
 		plt.close('all')
-		speedup1 += list(np.array(rosko_flops) / np.array(mkl_flops))
-		speedup2 += list(np.array(rosko_flops) / np.array(feat_flops))
+		speedup1 = list(np.array(rosko_flops) / np.array(mkl_flops))
+		speedup2 = list(np.array(rosko_flops) / np.array(feat_flops))
 		#
-		print("speedup over mkl = %f" %  gmean(speedup1))
+		print("%s speedup over mkl = %f" %  (file,gmean(speedup1)))
 		print(stats.describe(speedup1))
-		print("speedup over featgraph = %f" % gmean(speedup2))
+		print("%s speedup over featgraph = %f" % (file,gmean(speedup2)))
 		print(stats.describe(speedup2))
 
 

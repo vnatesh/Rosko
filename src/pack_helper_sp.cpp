@@ -131,6 +131,38 @@ sp_pack_t* file_to_sp_pack(int N, int p, cake_cntx_t* cake_cntx, enum sched sch,
 
 
 
+void mat_to_file(float* A, int M, int K, char* fname) {
+	
+	FILE *fptr = fopen(fname, "wb");
+	fwrite(A, sizeof(float), M*K, fptr);
+	fclose(fptr);
+}
+
+
+
+float* file_to_mat(char* fname) {
+
+	int M, K;
+
+	FILE *fptr = fopen(fname, "rb");
+	if (fptr == NULL) {
+	   perror("fopen");
+	   exit(EXIT_FAILURE);
+	}
+
+	int tmp[2];
+	fread(&tmp, sizeof(int), 2, fptr);
+
+	M = tmp[0];
+	K = tmp[1];
+	float* vals = (float*) malloc(M*K * sizeof(float));
+	fread(vals, sizeof(float), M*K, fptr);
+	printf("M = %d K\n", M, K);
+   	fclose(fptr);
+   	return vals;
+}
+
+
 
 
 
@@ -210,7 +242,13 @@ void free_csr(csr_t* x) {
 }
 
 
-int mat_to_csr_file(float* A, int M, int K, char* fname) {
+double mat_to_csr_file(float* A, int M, int K, char* fname) {
+
+	struct timespec start, end;
+	long seconds, nanoseconds;
+	double diff_t, times;
+
+	clock_gettime(CLOCK_REALTIME, &start);
 
 	float* vals = (float*) malloc(M * K * sizeof(float));
 	int* colind = (int*) malloc(M * K * sizeof(int));
@@ -222,7 +260,8 @@ int mat_to_csr_file(float* A, int M, int K, char* fname) {
 
 	for(int i = 0; i < M; i++) {
 		for(int j = 0; j < K; j++) {
-			float tmp = A[i*K + j];
+			// float tmp = A[i*K + j]; // assumes A stored row-major
+			float tmp = A[i + j*M]; // assumes A stored col-major
 			if(tmp != 0) {
 				vals[nz] = tmp;
 				colind[nz] = j;
@@ -232,6 +271,12 @@ int mat_to_csr_file(float* A, int M, int K, char* fname) {
 
 		rowptr[i+1] = nz;
 	}
+
+
+	clock_gettime(CLOCK_REALTIME, &end);
+	seconds = end.tv_sec - start.tv_sec;
+	nanoseconds = end.tv_nsec - start.tv_nsec;
+	diff_t = seconds + nanoseconds*1e-9;
 
 	int tmp[3];
 	tmp[0] = M;
@@ -245,7 +290,7 @@ int mat_to_csr_file(float* A, int M, int K, char* fname) {
 
 	fclose(fptr);
 	free(rowptr); free(vals); free(colind);
-	return nz;
+	return diff_t;
 }
 
 
