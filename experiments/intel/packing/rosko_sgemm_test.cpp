@@ -1,77 +1,82 @@
 #include "rosko.h"
-
-
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 
 int main( int argc, char** argv ) {
-	 // run_tests();
 
-    if(argc < 3) {
-        printf("Enter M, K, and N\n");
-        exit(1);
-    }
-
-	int M, K, N, p, sp, write_result;
+	int M, K, N, p, sp, nz, mr, nr, ntrials;
 	struct timespec start, end;
-	double diff_t;
+	long seconds, nanoseconds;
+	float density;
+	struct stat buffer;
+	enum sched sch = KMN;
+	csr_t* csr;
 
 	M = atoi(argv[1]);
 	K = atoi(argv[2]);
-	N = atoi(argv[3]);
-	p = atoi(argv[4]);
-	sp = atoi(argv[5]);
-	write_result = atoi(argv[6]);
+	N = 10000;
+	p = atoi(argv[3]);
+	sp = atoi(argv[4]);
 
 	printf("M = %d, K = %d, N = %d, cores = %d, sparsity = %f\n", M,K,N,p, ((float) sp) / 100.0);
 
 	float* A = (float*) malloc(M * K * sizeof( float ));
-	float* B = (float*) malloc(K * N * sizeof( float ));
-	float* C = (float*) calloc(M * N , sizeof( float ));
-
-	// initialize A and B
     srand(time(NULL));
-	rand_sparse(A, M, K, ((float) sp) / 100.0);
-	// rand_sparse_gaussian(A, M, K, 0, 1);
-	// rand_init(A, M, K);
-	// print_array(A, M*K);
-	// exit(1);
-	rand_init(B, K, N);
-
+	nz = rand_sparse(A, M, K, ((float) sp) / 100.0);
+	density = ((float) nz) / ((float) (((float) M) * ((float) K)));
 	cake_cntx_t* cake_cntx = cake_query_cntx();
-	
-	int iters = 20;
-	// if(M < 1792) {
-	// 	iters = 20;
-	// }
-	double ret;
+	update_mr_nr(cake_cntx, 30, 128);
+
+
+	// measure MKL-CSR packing DRAM bw
+	double csr_time = mat_to_csr_file(A, M, K, argv[5]);
+	stat(argv[5], &buffer);
+	int csr_bytes = buffer.st_size;
+	csr = file_to_csr(argv[5]);
+	printf("csr pack time: %f \n", csr_time); 
+	printf("csr bytes: %d \n", csr_bytes); 
+
+
+
+
+	// measure Rosko packing DRAM bw
+	blk_dims_t* x = (blk_dims_t*) malloc(sizeof(blk_dims_t));
+	init_sparse_block_dims(M, N, K, p, x, cake_cntx, sch, NULL, density, 4, 0);
+	size_t A_sz = cake_sgemm_packed_A_size(M, K, p, x, cake_cntx, sch) / sizeof(float);
+    float* A_p = (float*) calloc(A_sz, sizeof(float));
+	sp_pack_t* sp_pack = (sp_pack_t*) malloc(sizeof(sp_pack_t));
+
 	clock_gettime(CLOCK_REALTIME, &start);
+	pack_A_sp_k_first(A, A_p, M, K, p, sp_pack, x, cake_cntx);
+	clock_gettime(CLOCK_REALTIME, &end);
+	seconds = end.tv_sec - start.tv_sec;
+	nanoseconds = end.tv_nsec - start.tv_nsec;
+	double rosko_time = seconds + nanoseconds*1e-9;
+	printf("rosko pack time: %f \n", rosko_time); 
 
-	for(int i = 0; i < iters; i++) {
-		ret = rosko_sgemm(A, B, C, M, N, K, p, cake_cntx);
-	}
+	sp_pack_t* sp_pack1 = malloc_sp_pack(M, K, nz, x, cake_cntx);
+	pack_A_csr_to_sp_k_first(csr, M, K, nz, p, sp_pack1, x, cake_cntx);
+	sp_pack_to_file(sp_pack1, argv[6]);
+	stat(argv[6], &buffer);
+	int rosko_bytes = buffer.st_size;
+	printf("rosko bytes: %d \n", rosko_bytes); 
 
-    clock_gettime(CLOCK_REALTIME, &end);
-    long seconds = end.tv_sec - start.tv_sec;
-    long nanoseconds = end.tv_nsec - start.tv_nsec;
-    diff_t = seconds + nanoseconds*1e-9;
-	printf("sp_sgemm time: %f \n", diff_t/iters); 
+	// (1 read of M*K matrix A) + (write nonzeros and indexing arrays)
+	float csr_bw = ((float) (csr_bytes + M*K*4)) / csr_time / 1e9;
+	float rosko_bw = ((float) (rosko_bytes + M*K*4)) / rosko_time / 1e9;
+	printf("rosko bw = %f, csr bw = %f\n", rosko_bw, csr_bw);
 
-	if(write_result) {
-	    char fname[50];
-	    snprintf(fname, sizeof(fname), "result_pack");
-	    FILE *fp;
-	    fp = fopen(fname, "a");
-	    fprintf(fp, "rosko,%d,%d,%d,%d,%f\n",M,K,N,sp,diff_t/iters);
-	    fclose(fp);
-	}
-	// cake_sgemm_checker(A, B, C, N, M, K);
-	
+	free_sp_pack(sp_pack1);
+	free_csr(csr);
 	free(A);
-	free(B);
-	free(C);
-
+	free(A_p);
+	free(sp_pack);
+	free(x);
 	return 0;
 }
+
 
 
 
