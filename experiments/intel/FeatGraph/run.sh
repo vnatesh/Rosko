@@ -31,7 +31,7 @@ NCORES=10
 # cd ../..
 
 
-echo "algo,file,M,K,N,p,sp,time" >> results
+echo "algo,file,M,K,N,p,sp,time" >> result_gnn
 
 for len in 32 64 128 256 512;
 do

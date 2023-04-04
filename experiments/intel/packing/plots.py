@@ -22,8 +22,12 @@ def plot_rosko_vs_intel_pack(fname = 'rosko_vs_intel_pack'):
 	#
 	plt.figure(figsize = (6,4))
 	for i in range(len(sparsity)):
-		plt.plot(N, dft[(dft['algo'] == 'mkl time') & (dft['sp'] == sparsity[i])]['bw'], label = labels[i*2], marker = markers[i], color = colors[0])
-		plt.plot(N, dft[(dft['algo'] == 'rosko time') & (dft['sp'] == sparsity[i])]['bw'], label = labels[i*2+1],  marker = markers[i], color = colors[3])
+		q = (dft[(dft['algo'] == 'mkl time') & (dft['sp'] == sparsity[i]) & (dft['store'] == 0)]['bw'].values \
+		+ dft[(dft['algo'] == 'mkl time') & (dft['sp'] == sparsity[i]) & (dft['store'] == 1)]['bw'].values) / 2.0
+		plt.plot(N, q, label = labels[i*2], marker = markers[i], color = colors[0])
+		q = (dft[(dft['algo'] == 'rosko time') & (dft['sp'] == sparsity[i]) & (dft['store'] == 0)]['bw'].values \
+		+ dft[(dft['algo'] == 'rosko time') & (dft['sp'] == sparsity[i]) & (dft['store'] == 1)]['bw'].values) / 2.0
+		plt.plot(N, q, label = labels[i*2+1],  marker = markers[i], color = colors[3])
 	#
 	plt.ticklabel_format(useOffset=False, style='plain')
 	plt.title('(a) Packing Runtime in \nRosko vs MKL-CSR', fontsize = 24)
@@ -39,15 +43,19 @@ def plot_rosko_vs_intel_pack(fname = 'rosko_vs_intel_pack'):
 	#
 	plt.figure(figsize = (6,4))
 	for i in range(len(sparsity)):
-		plt.plot(N, dft[(dft['algo'] == 'mkl bw') & (dft['sp'] == sparsity[i])]['bw'], label = labels[i*2], marker = markers[i], color = colors[0])
-		plt.plot(N, dft[(dft['algo'] == 'rosko bw') & (dft['sp'] == sparsity[i])]['bw'], label = labels[i*2+1],  marker = markers[i], color = colors[3])
+		q = (dft[(dft['algo'] == 'mkl bw') & (dft['sp'] == sparsity[i]) & (dft['store'] == 0)]['bw'].values \
+		+ dft[(dft['algo'] == 'mkl bw') & (dft['sp'] == sparsity[i]) & (dft['store'] == 1)]['bw'].values) / 2.0
+		plt.plot(N, q, label = labels[i*2], marker = markers[i], color = colors[0])
+		q = (dft[(dft['algo'] == 'rosko bw') & (dft['sp'] == sparsity[i]) & (dft['store'] == 0)]['bw'].values \
+		+ dft[(dft['algo'] == 'rosko bw') & (dft['sp'] == sparsity[i]) & (dft['store'] == 1)]['bw'].values) / 2.0
+		plt.plot(N, q, label = labels[i*2+1],  marker = markers[i], color = colors[3])
 	#
 	plt.title('(b) Packing DRAM Bandwidth Usage \n in Rosko vs MKL-CSR', fontsize = 24)
 	plt.xlabel("N", fontsize = 24)
 	plt.xticks(range(0,10001,2000), fontsize = 18)
 	plt.yticks(np.arange(0,1.5,0.5), fontsize = 20)
 	plt.ylabel("DRAM Bw (GB/s)", fontsize = 24)
-	plt.legend(loc = "lower right", prop={'size': 12})
+	plt.legend(loc = "lower right", prop={'size': 14})
 	plt.savefig("%s_dram.pdf" % fname, bbox_inches='tight')
 	plt.show()
 	plt.clf()

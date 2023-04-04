@@ -178,3 +178,114 @@ plot_rosko_gnn()
 
 
 
+
+
+def plot_rosko_gnn_load(fname = 'rosko_gnn_load'):
+	plt.rcParams.update({'font.size': 12})
+	markers = ['o','v','s','d','^']
+	colors = ['r', 'm', 'g', 'k','g','b']
+	labels = ['Rosko','FeatGraph', 'MKL_CSR']
+	barWidth = 0.15
+	#
+	df1 = pandas.read_csv('result_gnn_load')
+	cores = range(1,11)
+	feat_len = 512
+	#
+	plt.figure(figsize = (6,4))
+	plt.title('Scaling Throughput With\nAdditional CPU Cores', fontsize = 20)
+	#
+	files = ['reddit', 'ogbn']
+	for i in range(len(files)):
+		#
+		speedup2 = []
+		feat_time=[]
+		rosko_time = df1[(df1['algo'] == 'rosko') & (df1['file'] == '%s_packed' % files[i])]['time'].values
+		M = df1[(df1['algo'] == 'rosko') & (df1['file'] == '%s_packed' % files[i])]['M'].values
+		K = df1[(df1['algo'] == 'rosko') & (df1['file'] == '%s_packed' % files[i])]['K'].values
+		flops = (1.0 - df1[(df1['algo'] == 'rosko') & (df1['file'] == '%s_packed' % files[i])]['sp'].values / 100.0)*M*K*feat_len / 1e9
+		rosko_flops = flops / rosko_time
+		# rosko_flops /= rosko_flops[0]
+		#
+		for j in cores:
+			a = open('feat_%s_%d' % (files[i],j),'r').read()
+			feat_time.append(min(map(float,re.findall(r'\d+\.\d+',a))))
+			#
+		feat_flops = flops / np.array(feat_time)
+		# feat_flops /= feat_flops[0]
+		plt.plot(cores, rosko_flops, label = labels[0] + ' ' + files[i], marker = markers[i], color = colors[0])
+		plt.plot(cores, feat_flops, label = labels[1] + ' ' + files[i], marker = markers[i], color = colors[1])
+		speedup2 = list(np.array(rosko_flops) / np.array(feat_flops))
+		print("%s speedup over featgraph = %f" % (files[i],gmean(speedup2)))
+		print(stats.describe(speedup2))
+	plt.xlabel("Number of Cores", fontsize = 20)
+	plt.xticks(cores)
+	plt.yticks(fontsize = 16)
+	plt.ylabel("Throughput (GFLOPs/sec)", fontsize = 16)
+	plt.legend(loc = "upper left", prop={'size': 12})
+	plt.savefig("%s.pdf" % (fname), bbox_inches='tight')
+	plt.show()
+	plt.clf()
+	plt.close('all')
+
+
+
+plot_rosko_gnn_load()
+
+
+
+
+
+def rosko_gnn_speedup(fname = 'rosko_gnn_speedup'):
+	plt.rcParams.update({'font.size': 12})
+	markers = ['o','v','s','d','^']
+	colors = ['r', 'm', 'g', 'k','g','b']
+	labels = ['Rosko','FeatGraph', 'Ideal']
+	barWidth = 0.15
+	#
+	df1 = pandas.read_csv('result_gnn_load')
+	cores = range(1,11)
+	feat_len = 512
+	#
+	plt.figure(figsize = (6,4))
+	plt.title('Speedup in Throughput', fontsize = 20)
+	#
+	files = ['reddit', 'ogbn']
+	for i in range(len(files)):
+		#
+		speedup2 = []
+		feat_time=[]
+		rosko_time = df1[(df1['algo'] == 'rosko') & (df1['file'] == '%s_packed' % files[i])]['time'].values
+		M = df1[(df1['algo'] == 'rosko') & (df1['file'] == '%s_packed' % files[i])]['M'].values
+		K = df1[(df1['algo'] == 'rosko') & (df1['file'] == '%s_packed' % files[i])]['K'].values
+		flops = (1.0 - df1[(df1['algo'] == 'rosko') & (df1['file'] == '%s_packed' % files[i])]['sp'].values / 100.0)*M*K*feat_len / 1e9
+		rosko_flops = flops / rosko_time
+		rosko_flops /= rosko_flops[0]
+		#
+		for j in cores:
+			a = open('feat_%s_%d' % (files[i],j),'r').read()
+			feat_time.append(min(map(float,re.findall(r'\d+\.\d+',a))))
+			#
+		feat_flops = flops / np.array(feat_time)
+		feat_flops /= feat_flops[0]
+		plt.plot(cores, rosko_flops, label = labels[0] + ' ' + files[i], marker = markers[i], color = colors[0])
+		plt.plot(cores, feat_flops, label = labels[1] + ' ' + files[i], marker = markers[i], color = colors[1])
+		speedup2 = list(np.array(rosko_flops) / np.array(feat_flops))
+		print("%s speedup over featgraph = %f" % (files[i],gmean(speedup2)))
+		print(stats.describe(speedup2))
+	plt.plot(cores, cores, label = labels[2], color = colors[3], linestyle = 'dashed')
+	plt.xlabel("Number of Cores", fontsize = 20)
+	plt.xticks(cores)
+	plt.yticks(fontsize = 16)
+	plt.ylabel("Speedup over Single-core", fontsize = 16)
+	plt.legend(loc = "upper left", prop={'size': 12})
+	plt.savefig("%s.pdf" % (fname), bbox_inches='tight')
+	plt.show()
+	plt.clf()
+	plt.close('all')
+
+
+
+rosko_gnn_speedup()
+
+
+

@@ -6,7 +6,7 @@
 
 int main( int argc, char** argv ) {
 
-	int M, K, N, p, sp, nz, mr, nr, ntrials;
+	int M, K, N, p, sp, nz, mr, nr, ntrials, store;
 	struct timespec start, end;
 	long seconds, nanoseconds;
 	float density;
@@ -19,6 +19,7 @@ int main( int argc, char** argv ) {
 	N = 10000;
 	p = atoi(argv[3]);
 	sp = atoi(argv[4]);
+	store = atoi(argv[7]);
 
 	printf("M = %d, K = %d, N = %d, cores = %d, sparsity = %f\n", M,K,N,p, ((float) sp) / 100.0);
 
@@ -31,7 +32,7 @@ int main( int argc, char** argv ) {
 
 
 	// measure MKL-CSR packing DRAM bw
-	double csr_time = mat_to_csr_file(A, M, K, argv[5]);
+	double csr_time = mat_to_csr_file(A, M, K, argv[5], store);
 	stat(argv[5], &buffer);
 	int csr_bytes = buffer.st_size;
 	csr = file_to_csr(argv[5]);
@@ -49,7 +50,7 @@ int main( int argc, char** argv ) {
 	sp_pack_t* sp_pack = (sp_pack_t*) malloc(sizeof(sp_pack_t));
 
 	clock_gettime(CLOCK_REALTIME, &start);
-	pack_A_sp_k_first(A, A_p, M, K, p, sp_pack, x, cake_cntx);
+	pack_A_sp_k_first(A, A_p, M, K, p, sp_pack, x, cake_cntx, store);
 	clock_gettime(CLOCK_REALTIME, &end);
 	seconds = end.tv_sec - start.tv_sec;
 	nanoseconds = end.tv_nsec - start.tv_nsec;
@@ -75,10 +76,10 @@ int main( int argc, char** argv ) {
     snprintf(fname, sizeof(fname), "result_pack");
     FILE *fp;
     fp = fopen(fname, "a");
-    fprintf(fp, "rosko bw,%d,%d,%d,%d,%f\n",M,K,N,sp,rosko_bw);
-    fprintf(fp, "mkl bw,%d,%d,%d,%d,%f\n",M,K,N,sp,csr_bw);
-    fprintf(fp, "rosko time,%d,%d,%d,%d,%f\n",M,K,N,sp,rosko_time);
-    fprintf(fp, "mkl time,%d,%d,%d,%d,%f\n",M,K,N,sp,csr_time);
+    fprintf(fp, "rosko bw,%d,%d,%d,%d,%d,%f\n",store,M,K,N,sp,rosko_bw);
+    fprintf(fp, "mkl bw,%d,%d,%d,%d,%d,%f\n",store,M,K,N,sp,csr_bw);
+    fprintf(fp, "rosko time,%d,%d,%d,%d,%d,%f\n",store,M,K,N,sp,rosko_time);
+    fprintf(fp, "mkl time,%d,%d,%d,%d,%d,%f\n",store,M,K,N,sp,csr_time);
 
     fclose(fp);
 	
