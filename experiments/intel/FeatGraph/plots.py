@@ -106,8 +106,8 @@ def plot_rosko_gnn(fname = 'rosko_gnn'):
 			#
 			#
 		feat_flops = flops / np.array(feat_time)
-		plt.figure(figsize = (6,4))
-		plt.title('GNN SpMM Throughput\non %s Dataset' % file.capitalize(), fontsize = 20)
+		plt.figure(figsize = (10,4))
+		plt.title('(b) GNN SpMM Throughput on %s Dataset' % file.capitalize(), fontsize = 20)
 		# plt.plot(feat_lens, rosko_flops_reddit, color ='r', label = labels[0])
 		# plt.plot(feat_lens, feat_flops_reddit, color ='m', label =labels[1])
 		br1 = np.arange(len(feat_lens))
@@ -122,9 +122,9 @@ def plot_rosko_gnn(fname = 'rosko_gnn'):
 		plt.xlabel("Feature Length", fontsize = 20)
 		# plt.xticks(feat_lens)
 		plt.xticks([r + barWidth for r in range(len(feat_lens))],
-	        feat_lens, fontsize = 14)
+	        feat_lens, fontsize = 16)
 		plt.yticks(fontsize = 16)
-		plt.ylabel("Throughput (GFLOPs/sec)", fontsize = 20)
+		plt.ylabel("Throughput (GFLOPs/sec)", fontsize = 18)
 		if file == 'reddit':
 			plt.legend(loc = "upper right", prop={'size': 12})
 		else:
@@ -191,8 +191,8 @@ def plot_rosko_gnn_load(fname = 'rosko_gnn_load'):
 	cores = range(1,11)
 	feat_len = 512
 	#
-	plt.figure(figsize = (6,4))
-	plt.title('Scaling Throughput With\nAdditional CPU Cores', fontsize = 20)
+	plt.figure(figsize = (10,4))
+	plt.title('(a) Scaling Throughput With Additional Cores', fontsize = 20)
 	#
 	files = ['reddit', 'ogbn']
 	for i in range(len(files)):
@@ -218,7 +218,7 @@ def plot_rosko_gnn_load(fname = 'rosko_gnn_load'):
 		print("%s speedup over featgraph = %f" % (files[i],gmean(speedup2)))
 		print(stats.describe(speedup2))
 	plt.xlabel("Number of Cores", fontsize = 20)
-	plt.xticks(cores)
+	plt.xticks(cores, fontsize = 16)
 	plt.yticks(fontsize = 16)
 	plt.ylabel("Throughput (GFLOPs/sec)", fontsize = 16)
 	plt.legend(loc = "upper left", prop={'size': 12})
@@ -246,8 +246,8 @@ def rosko_gnn_speedup(fname = 'rosko_gnn_speedup'):
 	cores = range(1,11)
 	feat_len = 512
 	#
-	plt.figure(figsize = (6,4))
-	plt.title('Speedup in Throughput', fontsize = 20)
+	plt.figure(figsize = (10,4))
+	plt.title('(b) Speedup in Throughput', fontsize = 20)
 	#
 	files = ['reddit', 'ogbn']
 	for i in range(len(files)):
@@ -274,7 +274,7 @@ def rosko_gnn_speedup(fname = 'rosko_gnn_speedup'):
 		print(stats.describe(speedup2))
 	plt.plot(cores, cores, label = labels[2], color = colors[3], linestyle = 'dashed')
 	plt.xlabel("Number of Cores", fontsize = 20)
-	plt.xticks(cores)
+	plt.xticks(cores, fontsize = 16)
 	plt.yticks(fontsize = 16)
 	plt.ylabel("Speedup over Single-core", fontsize = 16)
 	plt.legend(loc = "upper left", prop={'size': 12})

@@ -37,9 +37,9 @@ int main( int argc, char** argv ) {
 	
 	if(density > 0.05) {
 		update_mr_nr(cake_cntx, 20, 72);
-		alg = 0;
+		alg = 3;
 	} else {
-		update_mr_nr(cake_cntx, 8, 12);
+		update_mr_nr(cake_cntx, 20, 72);
 		alg = 2;
 	}
 

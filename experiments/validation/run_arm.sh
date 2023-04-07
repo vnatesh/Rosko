@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-compile arm_test with ARMPL
+# compile arm_test with ARMPL
 gcc -I/opt/arm/armpl_21.0_gcc-10.2/include -fopenmp  arm_test.c -o test.o \
   /opt/arm/armpl_21.0_gcc-10.2/lib/libarmpl_lp64_mp.a  -L{ARMPL_DIR}/lib \
   -lm -o arm_test;
@@ -95,6 +95,29 @@ mv results results_arm_test;
 mv reports reports_arm_test;
 
 
+
+
+
+
+
+
+# compile taco 
+export TACO_PATH=$PWD/taco/build/lib;
+export LD_LIBRARY_PATH=$TACO_PATH:$LD_LIBRARY_PATH
+
+g++ -std=c++11 -fopenmp -pthread -O3 -DNDEBUG -DTACO -I taco/include -L$PWD/taco/build/lib taco_spmm.cpp -o taco_spmm -ltaco
+
+echo "algo,M,K,N,p,sp,time" >> results
+
+
+./arm_test 2048 2048 2048 $NCORES 0 $NTRIALS
+
+for sp in 55 60 65 70 75 80 82 85 87 90 92 95 97 99 99.9
+do
+	./rosko_sgemm_test 2048 2048 2048 $NCORES $sp 1 1 1 pack $NTRIALS 0 orig
+	./taco_spmm 2048 2048 2048 $NCORES 1 $sp
+	rm rand.mtx
+done
 
 
 # for p in 2 3 4 5 6 7 8 9 10

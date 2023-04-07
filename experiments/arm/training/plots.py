@@ -216,11 +216,12 @@ def plot_rosko_arm_full(fname = 'arm_training_full', ntrials=1):
 	markers = ['o','v','s','d','^']
 	colors = ['b','g','aqua','k','m','r']
 	labels = ['Rosko_opt', 'Rosko','ARMPL']
-	df1 = pandas.read_csv('results_arm_train')
+	df1 = pandas.read_csv('results_arm_train_1')
 	barWidth = 0.2
-	sps = [70,80,90,95]
+	sps = [70,80,90,95,98]
 	rosko_full = []; rosko_opt_full = []; dense_full = []
-	models = ['Resnet', 'Mobilenet']
+	models = ['ResNet-18', 'MobileNetV2']
+	models1 = ['ResNet-18', 'MobileNetV2', 'VGG-19']
 	for model in models:
 		rosko = []
 		dense = []
@@ -235,23 +236,23 @@ def plot_rosko_arm_full(fname = 'arm_training_full', ntrials=1):
 		rosko_full.append(70*dense[0] + sum(rosko) + 100*rosko[-1])
 		rosko_opt_full.append(70*dense[0] + sum(rosko_opt) + 100*rosko_opt[-1])
 		dense_full.append(200*dense[0])
-	rosko_full = [dense_full[i] / rosko_full[i] for i in range(len(dense_full))]
+	#
+	dense_full.append(dense_full[-1])
+	rosko_opt_full.append(rosko_opt_full[-1])
+	# rosko_full = [dense_full[i] / rosko_full[i] for i in range(len(dense_full))]
 	rosko_opt_full = [dense_full[i] / rosko_opt_full[i] for i in range(len(dense_full))]
 	dense_full = [dense_full[i] / dense_full[i] for i in range(len(dense_full))]
-	br1 = np.arange(len(rosko_full))
+	br1 = np.arange(len(dense_full))
 	br2 = [x + barWidth for x in br1]
-	br3 = [x + barWidth for x in br2]
 	plt.figure(figsize = (12,5))
 	plt.bar(br1, rosko_opt_full, color ='r', width = barWidth,
-	        edgecolor ='grey', label = labels[0])
-	plt.bar(br2, rosko_full, color ='m', width = barWidth,
-	        edgecolor ='grey', label =labels[1])
-	plt.bar(br3, dense_full, color ='g', width = barWidth,
+	        edgecolor ='grey', label = labels[1])
+	plt.bar(br2, dense_full, color ='m', width = barWidth,
 	        edgecolor ='grey', label =labels[2])
 	plt.title('Rosko Speedup in End-to-End Training Time', fontsize = 24)
 	plt.ylabel('Speedup w.r.t Dense', fontsize = 24)
-	plt.xticks([r + barWidth for r in range(len(models))],
-	        models, rotation = 60, fontsize = 24)
+	plt.xticks([r + barWidth for r in range(len(models1))],
+	        models1, rotation = 0, fontsize = 24)
 	plt.yticks(fontsize = 24)
 	plt.legend(loc = "lower left", fontsize = 20)
 	plt.savefig("%s.pdf" % (fname), bbox_inches='tight')

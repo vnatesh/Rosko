@@ -13,15 +13,13 @@ from matplotlib import ticker as mticker
 
 
 
-
-
 def plot_rosko_vs_intel_test(fname = 'rosko_vs_intel_test', ntrials = 10):
 	plt.rcParams.update({'font.size': 12})
 	markers = ['o','v','s','d','^']
 	colors = ['r', 'b', 'g', 'k','g','m']
 	barWidth = 0.15
 	#
-	df1 = pandas.read_csv('results_intel_test')
+	df1 = pandas.read_csv('results_intel_test1')
 	# sps = [80, 85, 90, 95, 98]
 	sps = [80, 90, 98]
 	labels1 = ['Rosko Measured','Rosko Modelled', 'MKL']
@@ -46,16 +44,16 @@ def plot_rosko_vs_intel_test(fname = 'rosko_vs_intel_test', ntrials = 10):
 			K = df1[(df1['algo'] == 'rosko') & (df1['p'] == p)]['K']._values[0]
 			nz = (1.0 - (float(sp) / 100.0))*M*K
 			flops.append(nz) 
-			df2 = pandas.read_csv('reports_intel_test/report_rosko_%d-%d.csv' % (p,sp) ,skiprows=17,skipfooter=16)
+			df2 = pandas.read_csv('reports_intel_test1/report_rosko_%d-%d.csv' % (p,sp) ,skiprows=17,skipfooter=16)
 			cpu_time = df1[(df1['algo'] == 'rosko') & (df1['p'] == p) & (df1['sp'] == sp)]['time']._values[0]
 			dram_bw = df2['Average']._values[0]
 			gflops_rosko.append((nz*N) / cpu_time / 1e9)
-			df2 = pandas.read_csv('reports_intel_test/report_rosko_%d-%d.csv' % (p,sp),skipfooter=20)
+			df2 = pandas.read_csv('reports_intel_test1/report_rosko_%d-%d.csv' % (p,sp),skipfooter=20)
 			elapsed = df2[df2['Metric Name'] == 'Elapsed Time']['Metric Value']._values[0]
 			#
-			df3 = pandas.read_csv('reports_intel_test/report_setup_%d-%d.csv' % (p,sp) ,skiprows=17,skipfooter=16)
+			df3 = pandas.read_csv('reports_intel_test1/report_setup_%d-%d.csv' % (p,sp) ,skiprows=17,skipfooter=16)
 			dram_bw1 = df3['Average']._values[0]
-			df3 = pandas.read_csv('reports_intel_test/report_setup_%d-%d.csv' % (p,sp),skipfooter=20)
+			df3 = pandas.read_csv('reports_intel_test1/report_setup_%d-%d.csv' % (p,sp),skipfooter=20)
 			elapsed1 = df3[df3['Metric Name'] == 'Elapsed Time']['Metric Value']._values[0]
 			dram_bw = ((dram_bw*elapsed) - (dram_bw1*elapsed1)) / (elapsed-elapsed1)
 			dram_bw_rosko.append(dram_bw)
@@ -66,13 +64,16 @@ def plot_rosko_vs_intel_test(fname = 'rosko_vs_intel_test', ntrials = 10):
 		rosko_pred_dram.append(dram_bw_rosko_pred)
 		rosko_pred_times.append(time_rosko)
 		rosko_dram.append(dram_bw_rosko)
+		print(np.mean(dram_bw_rosko_pred / np.array(dram_bw_rosko)))
+		if sp == 98:
+			print((dram_bw_rosko_pred, dram_bw_rosko))
 		# arm_dram.append(dram_bw_armpl)
 	#
 	#
 	#
 	plot_lines = []
 	plt.figure(figsize = (6,4))
-	plt.title('Intel i9 DRAM Bandwidth', fontsize = 20)
+	plt.title('(c) Rosko DRAM Bandwidth\nUsage on Intel i9 CPU', fontsize = 20)
 	for i in range(len(sps)):
 		l1, = plt.plot(cores, rosko_dram[i], color = colors[i])
 		l2, = plt.plot(cores, rosko_pred_dram[i], color = colors[i], linestyle = 'dashed')
@@ -80,7 +81,7 @@ def plot_rosko_vs_intel_test(fname = 'rosko_vs_intel_test', ntrials = 10):
 	legend1 = plt.legend(plot_lines[0], labels1, loc='upper left', prop={'size': 12})
 	plt.legend([l[0] for l in plot_lines], labels2, loc='lower right', prop={'size': 12})
 	plt.gca().add_artist(legend1)
-	plt.xlabel("# of cores", fontsize = 20)
+	plt.xlabel("Number of Cores", fontsize = 20)
 	plt.xticks(cores)
 	plt.yticks(fontsize = 16)
 	plt.ylim(0,max(list(itertools.chain.from_iterable(rosko_dram+rosko_pred_dram)))*1.05)
@@ -94,6 +95,7 @@ def plot_rosko_vs_intel_test(fname = 'rosko_vs_intel_test', ntrials = 10):
 
 
 plot_rosko_vs_intel_test()
+
 
 
 
@@ -176,19 +178,21 @@ def plot_rosko_vs_arm_test(fname = 'rosko_vs_arm_test', ntrials = 1):
 	#
 	plot_lines = []
 	plt.figure(figsize = (6,4))
-	plt.title('Cortex A53 DRAM Bandwidth', fontsize = 20)
+	plt.title('(d) Rosko DRAM Bandwidth Usage\non ARM Cortex-A53 CPU', fontsize = 20)
 	for i in range(len(sps)):
 		l1, = plt.plot(cores, rosko_dram[i], color = colors[i])
 		l2, = plt.plot(cores, rosko_pred_dram[i], color = colors[i], linestyle = 'dashed')
-		l3, = plt.plot(cores, arm_dram[-1], marker = markers[1], color = colors[-1])
-		plot_lines.append([l1, l2, l3])
+		# l3, = plt.plot(cores, arm_dram[-1], marker = markers[1], color = colors[-1])
+		# plot_lines.append([l1, l2, l3])
+		plot_lines.append([l1, l2])
 	legend1 = plt.legend(plot_lines[0], labels1, loc='upper left', prop={'size': 12})
-	plt.legend([l[0] for l in plot_lines], labels2, loc='center left', prop={'size': 12})
+	plt.legend([l[0] for l in plot_lines], labels2, loc='lower right', prop={'size': 12})
 	plt.gca().add_artist(legend1)
-	plt.xlabel("# of cores", fontsize = 20)
+	plt.xlabel("Number of Cores", fontsize = 20)
 	plt.xticks(cores)
 	plt.yticks(fontsize = 16)
-	plt.ylim(0,max(list(itertools.chain.from_iterable(rosko_dram+rosko_pred_dram+arm_dram))))
+	# plt.ylim(0,max(list(itertools.chain.from_iterable(rosko_dram+rosko_pred_dram+arm_dram))))
+	plt.ylim(0,max(list(itertools.chain.from_iterable(rosko_dram+rosko_pred_dram))))
 	plt.ylabel("DRAM BW (GB/sec)", fontsize = 20)
 	plt.savefig("%s.pdf" % fname, bbox_inches='tight')
 	plt.show()
@@ -200,6 +204,89 @@ def plot_rosko_vs_arm_test(fname = 'rosko_vs_arm_test', ntrials = 1):
 
 plot_rosko_vs_arm_test()
 
+
+
+
+
+
+def plot_rosko_vs_intel_valid(fname = 'rosko_vs_intel_valid', ntrials = 10):
+	plt.rcParams.update({'font.size': 12})
+	markers = ['o','v','s','d','^']
+	colors = ['r', 'b', 'g', 'k','g','m']
+	labels = ['Rosko','MKL-Dense', 'MKL-CSR', 'TACO']
+	df1 = pandas.read_csv('results_valid_intel')
+	M = df1[(df1['algo'] == 'mkl')]['M']._values[0]
+	K = df1[(df1['algo'] == 'mkl')]['K']._values[0]
+	sps = [75, 80, 82, 85, 87, 90, 92, 95, 97, 99, 99.9]
+	# mkl = [(1.0 - (sps[i] / 100.0))*M*K / df1[(df1['algo'] == 'mkl')]['time']._values[0] for i in range(len(sps))]
+	# rosko = [(1.0 - (sps[i] / 100.0))*M*K / df1[(df1['algo'] == 'rosko')]['time']._values[i] for i in range(len(sps))]
+	# mkl_csr = [(1.0 - (sps[i] / 100.0))*M*K / df1[(df1['algo'] == 'mkl_csr')]['time']._values[i] for i in range(len(sps))]
+	mkl = len(sps)*[df1[(df1['algo'] == 'mkl')]['time']._values[0]]
+	rosko = df1[(df1['algo'] == 'rosko')]['time']._values
+	mkl_csr = df1[(df1['algo'] == 'mkl_csr')]['time']._values
+	taco = df1[(df1['algo'] == 'taco')]['time']._values
+	plt.figure(figsize = (6,4))
+	plt.title('(a) SpMM Runtime at Various\nSparsities on Intel i9', fontsize = 20)
+	plt.plot(sps, rosko[1:], color = colors[0], label = labels[0])
+	plt.plot(sps, mkl, color = colors[1], label = labels[1])
+	plt.plot(sps, taco[1:], color = colors[2], label = labels[3])
+	plt.plot(sps, mkl_csr[1:], color = colors[3], label = labels[2])
+	plt.legend(loc = "lower left", prop={'size': 12})
+	plt.xlabel("Sparsity (%)", fontsize = 20)
+	plt.xticks(fontsize = 16)
+	plt.ylim(0,max(mkl_csr[9:]))
+	plt.yticks(fontsize = 16)
+	plt.ylabel("Runtime (sec)", fontsize = 20)
+	plt.savefig("%s.pdf" % fname, bbox_inches='tight')
+	plt.show()
+	plt.clf()
+	plt.close('all')
+
+
+
+plot_rosko_vs_intel_valid()
+
+
+
+
+
+def plot_rosko_vs_arm_valid(fname = 'rosko_vs_arm_valid', ntrials = 10):
+	plt.rcParams.update({'font.size': 12})
+	markers = ['o','v','s','d','^']
+	colors = ['r', 'b', 'g', 'k','g','m']
+	labels = ['Rosko','ARMPL', 'TACO']
+	df1 = pandas.read_csv('results_valid_arm')
+	M = df1[(df1['algo'] == 'armpl')]['M']._values[0]
+	K = df1[(df1['algo'] == 'armpl')]['K']._values[0]
+	sps = [55, 60, 65, 70, 75, 80, 82, 85, 87, 90, 92, 95, 97, 99, 99.9]
+	# mkl = [(1.0 - (sps[i] / 100.0))*M*K / df1[(df1['algo'] == 'mkl')]['time']._values[0] for i in range(len(sps))]
+	# rosko = [(1.0 - (sps[i] / 100.0))*M*K / df1[(df1['algo'] == 'rosko')]['time']._values[i] for i in range(len(sps))]
+	# mkl_csr = [(1.0 - (sps[i] / 100.0))*M*K / df1[(df1['algo'] == 'mkl_csr')]['time']._values[i] for i in range(len(sps))]
+	armpl = len(sps)*[df1[(df1['algo'] == 'armpl')]['time']._values[0]]
+	rosko = df1[(df1['algo'] == 'rosko')]['time']._values
+	taco = df1[(df1['algo'] == 'taco')]['time']._values
+	plt.figure(figsize = (6,4))
+	plt.title('(b) SpMM Runtime at Various\nSparsities on ARM Cortex A-53', fontsize = 20)
+	plt.plot(sps, rosko, color = colors[0], label = labels[0])
+	plt.plot(sps, armpl, color = colors[1], label = labels[1])
+	plt.plot(sps, taco, color = colors[2], label = labels[2])
+	plt.legend(loc = "lower left", prop={'size': 12})
+	plt.xlabel("Sparsity (%)", fontsize = 20)
+	plt.xticks(fontsize = 16)
+	plt.ylim(0,max(taco[11:]))
+	plt.yticks(fontsize = 16)
+	plt.ylabel("Runtime (sec)", fontsize = 20)
+	plt.savefig("%s.pdf" % fname, bbox_inches='tight')
+	plt.show()
+	plt.clf()
+	plt.close('all')
+
+
+
+plot_rosko_vs_arm_valid()
+
+
+#-------------------------------------------------------------------------#
 
 
 
