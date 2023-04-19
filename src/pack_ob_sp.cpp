@@ -4,7 +4,7 @@
 
 
 
-void csr_to_ob_A_sp(float* vals, int* colind_csr, int* rowptr_csr, int* nnz_tiles, int* num_col_tile,
+void csr_to_ob_A_sp(float* vals, int* colind_csr, int* rowptr_csr, int* nnz_tiles, int* num_vec_tile,
    char* nnz_outer, int* k_inds, char* loc_m, float* A_p, int M, int m1, int m2, int k1,
    int m_c, int k_c, int m_r, int nz_in, int col_tile_in, int* ret) {
          
@@ -91,8 +91,8 @@ void csr_to_ob_A_sp(float* vals, int* colind_csr, int* rowptr_csr, int* nnz_tile
        *nnz_tiles = nz_in + a_ind;
        nnz_tiles++;
 
-       *num_col_tile = col_tile_in + outer_ind;
-       num_col_tile++;
+       *num_vec_tile = col_tile_in + outer_ind;
+       num_vec_tile++;
        free(A);
    }
 
@@ -110,7 +110,7 @@ void csr_to_ob_A_sp(float* vals, int* colind_csr, int* rowptr_csr, int* nnz_tile
 
 
 // packing without density-based reordering
-void pack_ob_A_sp(float* A, float* A_p, char* nnz_outer, int* k_inds, char* loc_m, 
+void pack_ob_A_sp(float* A, float* A_p, char* nnz_outer, int* k_inds, char* loc_m,
    int M, int K, int m1, int m2, int m_c, int k_c, int m_r, bool pad) {
 
    int nnz_col, ind_blk, outer_ind = 0, a_ind = 0, empty = 0;
@@ -160,7 +160,7 @@ void pack_ob_A_sp(float* A, float* A_p, char* nnz_outer, int* k_inds, char* loc_
 
          ind_blk = 0;
          empty = 0;
-
+         
          for(int i = 0; i < k_c; i++) {
 
             nnz_col = 0;
@@ -183,12 +183,200 @@ void pack_ob_A_sp(float* A, float* A_p, char* nnz_outer, int* k_inds, char* loc_
             }           
          }
 
-
-         outer_ind += empty; // skip ahead over cols with 0 nonzeros
-         a_ind += m_r*k_c;
+        outer_ind += empty; // skip ahead over cols with 0 nonzeros
+        a_ind += m_r*k_c;
       }     
    }
 }
+
+
+
+
+
+
+
+
+
+// packing without density-based reordering
+void pack_ob_A_crisko(float* A, float* A_p, char* nnz_outer, int* k_inds, char* loc_m, int* num_vec_tile,
+   int M, int K, int m1, int m2, int m_c, int k_c, int m_r, bool pad) {
+
+   int nnz_col, ind_blk, vec_cnt, outer_ind = 0, a_ind = 0, empty = 0;
+   float a_tmp = 0;
+
+   if(pad) {
+      for(int m3 = 0; m3 < m_c; m3 += m_r) {
+
+          ind_blk = 0;
+          empty = 0;
+          vec_cnt = 0;
+
+         for(int i = 0; i < k_c; i++) {
+
+            nnz_col = 0;
+
+            for(int j = 0; j < m_r; j++) {
+
+               if((m1 + m2 + m3 + j) >=  M) {
+                  A_p[a_ind + ind_blk] = 0.0;
+               } else {
+
+                  a_tmp = A[m3*K + i + j*K];
+                  if(a_tmp != 0) {
+                     A_p[a_ind + ind_blk] = a_tmp;
+                     loc_m[a_ind + ind_blk++] = j;
+                     nnz_col++;
+                  }
+               }
+
+            }
+
+            if(nnz_col) {
+              k_inds[outer_ind] = i;
+              nnz_outer[outer_ind++] = nnz_col;
+              vec_cnt++;
+            } else {
+              empty++;
+            }           
+         }
+
+         *num_vec_tile++ = vec_cnt;
+         outer_ind += empty; // skip ahead over cols with 0 nonzeros
+         a_ind += m_r*k_c;
+      }     
+   } 
+
+   else {
+      for(int m3 = 0; m3 < m_c; m3 += m_r) {
+
+         ind_blk = 0;
+         empty = 0;
+         vec_cnt = 0;
+         
+         for(int i = 0; i < k_c; i++) {
+
+            nnz_col = 0;
+
+            for(int j = 0; j < m_r; j++) {
+
+               a_tmp = A[m3*K + i + j*K];
+               if(a_tmp != 0) {
+                  A_p[a_ind + ind_blk] = a_tmp;
+                  loc_m[a_ind + ind_blk++] = j;
+                  nnz_col++;
+               }
+            }
+
+            if(nnz_col) {
+              vec_cnt++;
+              k_inds[outer_ind] = i;
+              nnz_outer[outer_ind++] = nnz_col;
+            } else {
+              empty++;
+            }           
+         }
+
+        *num_vec_tile++ = vec_cnt;
+        outer_ind += empty; // skip ahead over cols with 0 nonzeros
+        a_ind += m_r*k_c;
+      }     
+   }
+}
+
+
+// packing B 
+void pack_ob_B_sp(float* B, float* B_p, char* nnz_outer, int* k_inds, char* loc_n, int* num_vec_tile,
+   int K, int N, int n1, int k_c, int n_c, int n_r, bool pad) {
+
+   int nnz_row, ind_blk, vec_cnt, outer_ind = 0, b_ind = 0, empty = 0;
+   float b_tmp = 0;
+
+   if(pad) {
+      for(int n3 = 0; n3 < n_c; n3 += n_r) {
+
+         ind_blk = 0;
+         empty = 0;
+         vec_cnt = 0;
+
+         for(int i = 0; i < k_c; i++) {
+
+            nnz_row = 0;
+
+            for(int j = 0; j < n_r; j++) {
+
+               if((n1 + n3 + j) >=  N) {
+                  B_p[b_ind + ind_blk] = 0.0;
+               } else {
+
+                  // a_tmp = A[m3*K + i + j*K];
+                  b_tmp = B[n3 + i*N + j];
+                  if(b_tmp != 0) {
+                     B_p[b_ind + ind_blk] = b_tmp;
+                     loc_n[b_ind + ind_blk++] = j;
+                     nnz_row++;
+                  }
+               }
+            }
+
+            if(nnz_row) {
+              k_inds[outer_ind] = i;
+              nnz_outer[outer_ind++] = nnz_row;
+              vec_cnt++;
+            } else {
+              empty++;
+            }           
+         }
+
+        *num_vec_tile++ = vec_cnt;
+        outer_ind += empty; // skip ahead over cols with 0 nonzeros
+        b_ind += k_c*n_r;
+        // num_vec_tile++;
+      }     
+   } 
+
+   else {
+      for(int n3 = 0; n3 < n_c; n3 += n_r) {
+
+         ind_blk = 0;
+         empty = 0;
+         vec_cnt = 0;
+
+         for(int i = 0; i < k_c; i++) {
+
+            nnz_row = 0;
+
+            for(int j = 0; j < n_r; j++) {
+
+                  // a_tmp = A[m3*K + i + j*K];
+               b_tmp = B[n3 + i*N + j];
+               if(b_tmp != 0) {
+                  B_p[b_ind + ind_blk] = b_tmp;
+                  loc_n[b_ind + ind_blk++] = j;
+                  nnz_row++;
+               }
+            }
+            
+            if(nnz_row) {
+              k_inds[outer_ind] = i;
+              nnz_outer[outer_ind++] = nnz_row;
+              vec_cnt++;
+            } else {
+              empty++;
+            }           
+         }
+
+
+        *num_vec_tile++ = vec_cnt;
+        outer_ind += empty; // skip ahead over cols with 0 nonzeros
+        b_ind += k_c*n_r;
+      }     
+   }
+}
+
+
+
+
+
 
 
 

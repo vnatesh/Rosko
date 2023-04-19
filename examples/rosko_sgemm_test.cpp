@@ -76,10 +76,10 @@ int main( int argc, char** argv ) {
 		
 		if(i < warmup) {
 			// diff_t += rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density, NULL, 0, NULL, 0, 1, 0, KMN, alg, 60, 974, 512);
-			float y = rosko_sgemm_online_BC(A, B, C, M, N, K, p, cake_cntx, density, NULL, 0, NULL, 0, 1, 0, KMN, alg, 30,440,1024);
+			float y = rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density, NULL, 0, NULL, 0, 1, 0, KMN, alg);
 			printf("sss %f\n", y);
 		} else {
-			float y = rosko_sgemm_online_BC(A, B, C, M, N, K, p, cake_cntx, density, NULL, 0, NULL, 0, 1, 0, KMN, alg, 30,440,1024);
+			float y = rosko_sgemm(A, B, C, M, N, K, p, cake_cntx, density, NULL, 0, NULL, 0, 1, 0, KMN, alg);
 			printf("sss %f\n", y);
 			diff_t += y;
 		}

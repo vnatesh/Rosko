@@ -115,7 +115,7 @@ def plot_rosko_vs_arm_dnn(fname = 'rosko_vs_arm_dlmc'):
 	#
 	plt.title('(b) Throughput for SpMM in\nTransformer Layers on ARM', fontsize = 24)
 	plt.xlabel("# of nonzeroes (log scale)", fontsize = 24)
-	# plt.xticks(fontsize = 16)
+	plt.xticks(fontsize = 16)
 	plt.yticks(fontsize = 16)
 	plt.ylabel("Throughput (GFLOPs/sec)", fontsize = 18)
 	plt.legend(loc = "upper left", prop={'size': 12})
@@ -137,7 +137,7 @@ def plot_rosko_vs_arm_dnn(fname = 'rosko_vs_arm_dlmc'):
 	#
 	plt.title('(a) DRAM IO for SpMM in\nTransformer Layers', fontsize = 24)
 	plt.xlabel("# of nonzeros (log10 scale)", fontsize = 24)
-	# plt.xticks(np.arange(3.5,5.6,0.5), fontsize = 16)
+	plt.xticks(fontsize = 16)
 	plt.yticks(fontsize = 16)
 	plt.ylabel("DRAM IO (GB)", fontsize = 24)
 	plt.legend(loc = "upper left", prop={'size': 12})
@@ -155,7 +155,7 @@ def plot_rosko_vs_arm_dnn(fname = 'rosko_vs_arm_dlmc'):
 	#
 	plt.title('(b) DRAM BW for SpMM in\nTransformer Layers', fontsize = 24)
 	plt.xlabel("# of nonzeros (log10 scale)", fontsize = 24)
-	# plt.xticks(np.arange(3.5,5.6,0.5), fontsize = 16)
+	plt.xticks(fontsize = 16)
 	plt.yticks(fontsize = 16)
 	plt.ylabel("DRAM BW (GB/sec)", fontsize = 24)
 	plt.legend(loc = "upper right", prop={'size': 12})
@@ -173,7 +173,7 @@ def plot_rosko_vs_arm_dnn(fname = 'rosko_vs_arm_dlmc'):
 	#
 	plt.title('(c) BW Required to Attain\nTarget Runtime', fontsize = 24)
 	plt.xlabel("Runtime (sec)", fontsize = 24)
-	# plt.xticks(np.arange(0,0.31,0.05), fontsize = 16)
+	plt.xticks(fontsize = 16)
 	plt.yticks(fontsize = 16)
 	plt.ylabel("DRAM BW (GB/sec)", fontsize = 24)
 	plt.legend(loc = "upper center", prop={'size': 12})

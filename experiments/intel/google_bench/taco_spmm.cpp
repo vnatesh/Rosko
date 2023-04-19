@@ -129,7 +129,8 @@ int main(int argc, char* argv[]) {
   // C(i,j) = (A(i,k) * B(k,j));
   // IndexStmt stmt = C.getAssignment().concretize();
   // stmt = stmt.parallelize(i, ParallelUnit::CPUThread, OutputRaceStrategy::NoRaces);
-
+  // see http://tensor-compiler.org/files/senanayake-meng-thesis-taco-scheduling.pdf
+  
   int CHUNK_SIZE = 8;
   int TILE_SIZE = 8;
   IndexVar i("i"), j("j"), k("k");

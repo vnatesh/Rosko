@@ -24,12 +24,12 @@ void schedule_KMN_sp_compressed(sp_pack_t* sp_pack, float* B_p, float* C, float*
 	int m1, n1, C_offset = 0;
 
     // rsc = 1; csc = m_r;
-	float* A_p = sp_pack->A_sp_p;
+	float* A_p = sp_pack->mat_sp_p;
 	char* nnz_outer = sp_pack->nnz_outer;
 	int* k_inds = sp_pack->k_inds;
-	char* loc_m = sp_pack->loc_m;
+	char* loc_m = sp_pack->loc;
 	int* nnz_tiles = sp_pack->nnz_tiles;
-	int* num_col_tile = sp_pack->num_col_tile;
+	int* num_vec_tile = sp_pack->num_vec_tile;
 
 
 	// printf("Mb = %d, Nb = %d, k_c = %d, k_c1 = %d, mc = %d, nc = %d, mc1 = %d, nc1 = %d\n", 
@@ -93,13 +93,13 @@ void schedule_KMN_sp_compressed(sp_pack_t* sp_pack, float* B_p, float* C, float*
 						for(m_reg = 0; m_reg < (m_c_t / m_r); m_reg++) {							
 
 							nnz_tile = nnz_tiles[tile_ind + m_reg];
-							num_col = num_col_tile[tile_ind + m_reg];
+							num_col = num_vec_tile[tile_ind + m_reg];
 
 							kernel_map_sp_new[m_map][n_map](
 									&A_p[nnz_tile], 
 									&B_p[b_ind + n_reg*k_c_t*n_r],
 									&C_p[core][n_reg*m_c_t*n_r + m_reg*m_r*n_r], 
-									m_r, n_r, num_col_tile[tile_ind + m_reg + 1] - num_col, 
+									m_r, n_r, num_vec_tile[tile_ind + m_reg + 1] - num_col, 
 									&nnz_outer[num_col],
 									&k_inds[num_col], 
 									&loc_m[nnz_tile]
@@ -309,10 +309,10 @@ void schedule_KMN_sp_online_BC(sp_pack_t* sp_pack, float* B, float* B_p, float* 
 	int lda = 1;
 
     // rsc = 1; csc = m_r;
-	float* A_p = sp_pack->A_sp_p;
+	float* A_p = sp_pack->mat_sp_p;
 	char* nnz_outer = sp_pack->nnz_outer;
 	int* k_inds = sp_pack->k_inds;
-	char* loc_m = sp_pack->loc_m;
+	char* loc_m = sp_pack->loc;
 
 
 	for(n = 0; n < Nb; n++) {
@@ -463,10 +463,10 @@ void schedule_KMN_sp_online_B(sp_pack_t* sp_pack, float* B, float* B_p, float* C
 	int lda = 1;
 
     // rsc = 1; csc = m_r;
-	float* A_p = sp_pack->A_sp_p;
+	float* A_p = sp_pack->mat_sp_p;
 	char* nnz_outer = sp_pack->nnz_outer;
 	int* k_inds = sp_pack->k_inds;
-	char* loc_m = sp_pack->loc_m;
+	char* loc_m = sp_pack->loc;
 
 
 	for(n = 0; n < Nb; n++) {
@@ -587,10 +587,10 @@ void schedule_KMN_sp(sp_pack_t* sp_pack, float* B_p, float* C, float** C_p, int 
 	int m1, n1, m_cb, n_c_t, p_used, core, C_offset = 0;
 
     // rsc = 1; csc = m_r;
-	float* A_p = sp_pack->A_sp_p;
+	float* A_p = sp_pack->mat_sp_p;
 	char* nnz_outer = sp_pack->nnz_outer;
 	int* k_inds = sp_pack->k_inds;
-	char* loc_m = sp_pack->loc_m;
+	char* loc_m = sp_pack->loc;
 
 
 	for(n = 0; n < Nb; n++) {
@@ -723,10 +723,10 @@ void schedule_MKN_sp(sp_pack_t* sp_pack, float* B_p, float* C_p, int M, int N, i
 	int m, k, n, m_start, m_end, m_inc, k_start, k_end, k_inc;
 	int k_cb, n_c_t, m_c_t, p_used, core;
 
-	float* A_p = sp_pack->A_sp_p;
+	float* A_p = sp_pack->mat_sp_p;
 	char* nnz_outer = sp_pack->nnz_outer;
 	int* k_inds = sp_pack->k_inds;
-	char* loc_m = sp_pack->loc_m;
+	char* loc_m = sp_pack->loc;
 
 
 	for(n = 0; n < Nb; n++) {
@@ -850,10 +850,10 @@ void schedule_NKM_sp(sp_pack_t* sp_pack, float* B_p, float* C_p, int M, int N, i
 	int m, k, n, n_start, n_end, n_inc, k_start, k_end, k_inc;
 	int k_cb, n_c_t, m_c_t, p_used, core;
 
-	float* A_p = sp_pack->A_sp_p;
+	float* A_p = sp_pack->mat_sp_p;
 	char* nnz_outer = sp_pack->nnz_outer;
 	int* k_inds = sp_pack->k_inds;
-	char* loc_m = sp_pack->loc_m;
+	char* loc_m = sp_pack->loc;
 
 
 	for(m = 0; m < Mb; m++) {

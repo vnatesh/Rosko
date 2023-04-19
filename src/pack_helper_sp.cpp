@@ -27,15 +27,17 @@ void pack_A_sp(float* A, float* A_p, int M, int K, int p,
 sp_pack_t* malloc_sp_pack(int M, int K, int nz, blk_dims_t* x, cake_cntx_t* cake_cntx) {
 
 	sp_pack_t* sp_pack = (sp_pack_t*) malloc(sizeof(sp_pack_t));
-	sp_pack->A_sp_p = (float*) calloc(nz, sizeof(float)); // storing only nonzeros of A                                        
-	sp_pack->loc_m = (char*) calloc(nz , sizeof(char)); // array for storing M dim C writeback location for each nnz in A
+	sp_pack->mat_sp_p = (float*) calloc(nz, sizeof(float)); // storing only nonzeros of A                                        
+	sp_pack->loc = (char*) calloc(nz , sizeof(char)); // array for storing M dim C writeback location for each nnz in A
 	           // each value ranges from 0 to mr-1
 	sp_pack->nnz_outer = (char*) calloc(nz , sizeof(char)); // storing number of nonzeros 
 	                                                 // in each outer prod col of A
 	sp_pack->k_inds = (int*) calloc(nz , sizeof(int)); // storing kc_ind 
 	                                                 // of each outer prod col of A
+
+	// int M_padded = M + ((M % cake_cntx->mr) ? (cake_cntx->mr - (M % cake_cntx->mr)) : 0);
 	sp_pack->nnz_tiles = (int*) calloc((x->M_padded / cake_cntx->mr)*x->Kb + 1 , sizeof(int)); 
-	sp_pack->num_col_tile = (int*) calloc((x->M_padded / cake_cntx->mr)*x->Kb + 1, sizeof(int)); 
+	sp_pack->num_vec_tile = (int*) calloc((x->M_padded / cake_cntx->mr)*x->Kb + 1, sizeof(int)); 
 	sp_pack->M = M;
 	sp_pack->K = K;
 	sp_pack->nnz = nz;
@@ -46,18 +48,18 @@ sp_pack_t* malloc_sp_pack(int M, int K, int nz, blk_dims_t* x, cake_cntx_t* cake
 
 
 void free_sp_pack(sp_pack_t* x) {
-	free(x->loc_m);
+	free(x->loc);
 	free(x->nnz_outer);
 	free(x->k_inds);
-	free(x->A_sp_p);
+	free(x->mat_sp_p);
 	free(x->nnz_tiles);
-	free(x->num_col_tile);
+	free(x->num_vec_tile);
 }
 
 
 
 // write matrix packed in rosko format to binary file
-// M,K,nnz,nnz_cols,ntiles,loc_m,nnz_outer,k_inds,A_sp_p,nnz_tiles,num_col_tile
+// M,K,nnz,nnz_cols,ntiles,loc_m,nnz_outer,k_inds,A_sp_p,nnz_tiles,num_vec_tile
 void sp_pack_to_file(sp_pack_t* sp_pack, char* fname) {
 
 	FILE *fptr = fopen(fname, "wb");
@@ -70,12 +72,12 @@ void sp_pack_to_file(sp_pack_t* sp_pack, char* fname) {
 	tmp[4] = sp_pack->ntiles;
 
 	fwrite(&tmp, sizeof(int), 5, fptr);
-	fwrite(sp_pack->loc_m, sizeof(char), sp_pack->nnz, fptr);
+	fwrite(sp_pack->loc, sizeof(char), sp_pack->nnz, fptr);
 	fwrite(sp_pack->nnz_outer, sizeof(char), sp_pack->nnz_cols, fptr);
 	fwrite(sp_pack->k_inds, sizeof(int), sp_pack->nnz_cols, fptr);
-	fwrite(sp_pack->A_sp_p, sizeof(float), sp_pack->nnz, fptr);
+	fwrite(sp_pack->mat_sp_p, sizeof(float), sp_pack->nnz, fptr);
 	fwrite(sp_pack->nnz_tiles, sizeof(int), sp_pack->ntiles, fptr);
-	fwrite(sp_pack->num_col_tile, sizeof(int), sp_pack->ntiles, fptr);
+	fwrite(sp_pack->num_vec_tile, sizeof(int), sp_pack->ntiles, fptr);
 
 	fclose(fptr);
 }
@@ -106,12 +108,12 @@ sp_pack_t* file_to_sp_pack(int N, int p, cake_cntx_t* cake_cntx, enum sched sch,
 	sp_pack->nnz_cols = tmp[3];
 	sp_pack->ntiles = tmp[4];
 
-	fread(sp_pack->loc_m, sizeof(char), sp_pack->nnz, fptr);
+	fread(sp_pack->loc, sizeof(char), sp_pack->nnz, fptr);
 	fread(sp_pack->nnz_outer, sizeof(char), sp_pack->nnz_cols, fptr);
 	fread(sp_pack->k_inds, sizeof(int), sp_pack->nnz_cols, fptr);
-	fread(sp_pack->A_sp_p, sizeof(float), sp_pack->nnz, fptr);
+	fread(sp_pack->mat_sp_p, sizeof(float), sp_pack->nnz, fptr);
 	fread(sp_pack->nnz_tiles, sizeof(int), sp_pack->ntiles, fptr);
-	fread(sp_pack->num_col_tile, sizeof(int), sp_pack->ntiles, fptr);
+	fread(sp_pack->num_vec_tile, sizeof(int), sp_pack->ntiles, fptr);
 	fclose(fptr);
 	free(x);
 	
@@ -172,8 +174,8 @@ float* file_to_mat(char* fname) {
 sp_pack_t* malloc_sp_pack2(int M, int K, cake_cntx_t* cake_cntx) {
 
 	sp_pack_t* sp_pack = (sp_pack_t*) malloc(sizeof(sp_pack_t));
-	sp_pack->A_sp_p = (float*) calloc((M*K), sizeof(float)); // storing only nonzeros of A                                        
-	sp_pack->loc_m = (char*) calloc((M*K), sizeof(char)); // array for storing M dim C writeback location for each nnz in A
+	sp_pack->mat_sp_p = (float*) calloc((M*K), sizeof(float)); // storing only nonzeros of A                                        
+	sp_pack->loc = (char*) calloc((M*K), sizeof(char)); // array for storing M dim C writeback location for each nnz in A
 	           // each value ranges from 0 to mr-1
 	sp_pack->nnz_outer = (char*) calloc(((M*K) / cake_cntx->mr), sizeof(char)); // storing number of nonzeros 
 	                                                 // in each outer prod col of A
@@ -191,7 +193,7 @@ sp_pack_t* malloc_sp_pack2(int M, int K, cake_cntx_t* cake_cntx) {
 // sp_pack_to_file2(sp_pack, cake_cntx, x->M_padded, K, fname);
 
 // write uncompressed matrix packed in rosko format to binary file
-// M,K,nnz,nnz_cols,ntiles,loc_m,nnz_outer,k_inds,A_sp_p,nnz_tiles,num_col_tile
+// M,K,nnz,nnz_cols,ntiles,loc_m,nnz_outer,k_inds,A_sp_p,nnz_tiles,num_vec_tile
 void sp_pack_to_file2(sp_pack_t* sp_pack, cake_cntx_t* cake_cntx, 
 	int M, int K, char* fname) {
 
@@ -204,10 +206,10 @@ void sp_pack_to_file2(sp_pack_t* sp_pack, cake_cntx_t* cake_cntx,
 	tmp[3] = cake_cntx->nr;
 
 	fwrite(&tmp, sizeof(int), 4, fptr);
-	fwrite(sp_pack->loc_m, sizeof(char), M*K, fptr);
+	fwrite(sp_pack->loc, sizeof(char), M*K, fptr);
 	fwrite(sp_pack->nnz_outer, sizeof(char), ((M*K) / cake_cntx->mr), fptr);
 	fwrite(sp_pack->k_inds, sizeof(int), ((M*K) / cake_cntx->mr), fptr);
-	fwrite(sp_pack->A_sp_p, sizeof(float), M*K, fptr);
+	fwrite(sp_pack->mat_sp_p, sizeof(float), M*K, fptr);
 
 	fclose(fptr);
 }
@@ -224,10 +226,10 @@ void file_to_sp_pack2(sp_pack_t* sp_pack, char* fname) {
 	sp_pack->mr = tmp[2];
 	sp_pack->nr = tmp[3];
 
-	fread(sp_pack->loc_m, sizeof(char),sp_pack->M*sp_pack->K, fptr);
+	fread(sp_pack->loc, sizeof(char),sp_pack->M*sp_pack->K, fptr);
 	fread(sp_pack->nnz_outer, sizeof(char), sp_pack->M*sp_pack->K / sp_pack->mr, fptr);
 	fread(sp_pack->k_inds, sizeof(int), sp_pack->M*sp_pack->K / sp_pack->mr, fptr);
-	fread(sp_pack->A_sp_p, sizeof(float), sp_pack->M*sp_pack->K, fptr);
+	fread(sp_pack->mat_sp_p, sizeof(float), sp_pack->M*sp_pack->K, fptr);
 	fclose(fptr);
 }
 

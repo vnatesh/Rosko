@@ -164,10 +164,10 @@ double rosko_sgemm(float* A, float* B, float* C, int M, int N, int K, int p,
 	times = diff_t;
 
 	if(!packedA) {
-		free(sp_pack->loc_m); 
+		free(sp_pack->loc); 
 		free(sp_pack->nnz_outer); 
 		free(sp_pack->k_inds); 
-		free(sp_pack->A_sp_p);
+		free(sp_pack->mat_sp_p);
 		free(sp_pack);
 	}
 
@@ -502,10 +502,10 @@ double rosko_sgemm_online_B(float* A, float* B, float* C, int M, int N, int K, i
 
 
 	if(!packedA) {
-		free(sp_pack->loc_m); 
+		free(sp_pack->loc); 
 		free(sp_pack->nnz_outer); 
 		free(sp_pack->k_inds); 
-		free(sp_pack->A_sp_p);
+		free(sp_pack->mat_sp_p);
 		free(sp_pack);
 	}
 
@@ -606,10 +606,10 @@ double rosko_sgemm_online_BC(float* A, float* B, float* C, int M, int N, int K, 
 	times = diff_t;
 
 	if(!packedA) {
-		free(sp_pack->loc_m); 
+		free(sp_pack->loc); 
 		free(sp_pack->nnz_outer); 
 		free(sp_pack->k_inds); 
-		free(sp_pack->A_sp_p);
+		free(sp_pack->mat_sp_p);
 		free(sp_pack);
 	}
 

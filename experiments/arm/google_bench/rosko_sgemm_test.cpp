@@ -86,7 +86,7 @@ int main( int argc, char** argv ) {
 		update_mr_nr(cake_cntx, 20, 72);
 		alg = 0;
 	} else {
-		update_mr_nr(cake_cntx, 8, 12);
+		update_mr_nr(cake_cntx, 20, 72);
 		alg = 2;
 	}
 
