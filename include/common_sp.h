@@ -13,8 +13,8 @@
 // sparse matrix handling
 
 typedef struct sp_pack_t {
-   char* loc; // nnz vals (8-bit) // M dim C writeback location for each nnz value in A (3-5 bits)
-   char* nnz_outer; // at most nnz vals (8-bit) // number of nnz in every outer prod vec (with len m_r or n_r);
+   unsigned char* loc; // nnz vals (8-bit) // M dim C writeback location for each nnz value in A (3-5 bits)
+   unsigned char* nnz_outer; // at most nnz vals (8-bit) // number of nnz in every outer prod vec (with len m_r or n_r);
    int* k_inds; // at most nnz vals // density-based reorder indices of A cols within a mrxkcxnr tile
    float* mat_sp_p; // nnz vals (32-bit) // sparse packed A (only storing nonzeros)
    int* nnz_tiles; // (M*K)/(mr*kc) vals // cum-sum number of nnz vals in each mr x kc tile of A

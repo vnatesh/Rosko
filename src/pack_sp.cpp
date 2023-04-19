@@ -99,13 +99,13 @@ void pack_A_sp_k_first(float* A, float* A_p, int M, int K, int p,
    int m, k, A_offset = 0, A_p_offset = 0, vec_cnt = 0;
    int m_cb, k_c_t, p_used, core;
 
-   char* nnz_outer = (char*) calloc(((x->M_padded*K) / m_r) , sizeof(char)); // storing number of nonzeros 
+   unsigned char* nnz_outer = (unsigned char*) calloc(((x->M_padded*K) / m_r) , sizeof(unsigned char)); // storing number of nonzeros 
                                                                           // in each outer prod col of A
 
    int* k_inds = (int*) calloc(((x->M_padded*K) / m_r) , sizeof(int)); // storing kc_ind 
                                                                           // of each outer prod col of A
 
-   char* loc_m = (char*) calloc(x->M_padded*K , sizeof(char)); // array for storing M dim C writeback location for each nnz in A
+   unsigned char* loc_m = (unsigned char*) calloc(x->M_padded*K , sizeof(unsigned char)); // array for storing M dim C writeback location for each nnz in A
                                     // each value ranges from 0 to mr-1
 
 
@@ -188,13 +188,13 @@ void pack_A_sp_crisko(float* A, float* A_p, int M, int K, int p,
    int m, k, A_offset = 0, A_p_offset = 0, vec_cnt = 0;
    int m_cb, k_c_t, p_used, core;
 
-   char* nnz_outer = (char*) calloc(((x->M_padded*K) / m_r) , sizeof(char)); // storing number of nonzeros 
+   unsigned char* nnz_outer = (unsigned char*) calloc(((x->M_padded*K) / m_r) , sizeof(unsigned char)); // storing number of nonzeros 
                                                                           // in each outer prod col of A
 
    int* k_inds = (int*) calloc(((x->M_padded*K) / m_r) , sizeof(int)); // storing kc_ind 
                                                                           // of each outer prod col of A
 
-   char* loc_m = (char*) calloc(x->M_padded*K , sizeof(char)); // array for storing M dim C writeback location for each nnz in A
+   unsigned char* loc_m = (unsigned char*) calloc(x->M_padded*K , sizeof(unsigned char)); // array for storing M dim C writeback location for each nnz in A
                                     // each value ranges from 0 to mr-1
 
    int* num_vec_tile = (int*) calloc((x->M_padded / m_r)*Kb + 1, sizeof(int)); // num of cols with nnz vals in each tile
@@ -274,13 +274,13 @@ void pack_B_sp_k_first(float* B, float* B_p, int K, int N, int p,
    int k_c_t, n_c_t, p_used, core;
    bool pad;
 
-   char* nnz_outer = (char*) calloc(((x->N_padded*K) / n_r) , sizeof(char)); // storing number of nonzeros 
+   unsigned char* nnz_outer = (unsigned char*) calloc(((x->N_padded*K) / n_r) , sizeof(unsigned char)); // storing number of nonzeros 
                                                                           // in each outer prod row of B
 
    int* k_inds = (int*) calloc(((x->N_padded*K) / n_r) , sizeof(int)); // storing kc_ind 
                                                                           // of each outer prod row of B
 
-   char* loc_n = (char*) calloc(x->N_padded*K , sizeof(char)); // array for storing M dim C writeback location for each nnz in B
+   unsigned char* loc_n = (unsigned char*) calloc(x->N_padded*K , sizeof(unsigned char)); // array for storing M dim C writeback location for each nnz in B
 
 
    int* num_vec_tile = (int*) calloc((x->N_padded / n_r)*Kb + 1, sizeof(int)); // num of rows with nnz vals in each tile
@@ -348,13 +348,13 @@ void pack_A_sp_m_first(float* A, float* A_p, int M, int K, int p,
    int m, k, A_offset = 0, A_p_offset = 0;
    int k_cb, m_c_t, p_used, core;
 
-   char* nnz_outer = (char*) calloc(((x->M_padded*K) / m_r) , sizeof(int)); // storing number of nonzeros 
+   unsigned char* nnz_outer = (unsigned char*) calloc(((x->M_padded*K) / m_r) , sizeof(int)); // storing number of nonzeros 
                                                                           // in each outer prod col of A
 
    int* k_inds = (int*) calloc(((x->M_padded*K) / m_r) , sizeof(int)); // storing kc_ind 
                                                                           // of each outer prod col of A
 
-   char* loc_m = (char*) calloc(x->M_padded*K , sizeof(int)); // array for storing M dim C writeback location for each nnz in A
+   unsigned char* loc_m = (unsigned char*) calloc(x->M_padded*K , sizeof(int)); // array for storing M dim C writeback location for each nnz in A
                                     // each value ranges from 0 to mr-1
 
    for(k = 0; k < Kb; k++) {
@@ -437,13 +437,13 @@ void pack_A_sp_n_first(float* A, float* A_p, int M, int K, int p,
    int k_cb, m_c_t, p_used, core;
 
 
-   char* nnz_outer = (char*) calloc(((x->M_padded*K) / m_r) , sizeof(int)); // storing number of nonzeros 
+   unsigned char* nnz_outer = (unsigned char*) calloc(((x->M_padded*K) / m_r) , sizeof(int)); // storing number of nonzeros 
                                                                           // in each outer prod col of A
 
    int* k_inds = (int*) calloc(((x->M_padded*K) / m_r) , sizeof(int)); // storing kc_ind 
                                                                           // of each outer prod col of A
 
-   char* loc_m = (char*) calloc(x->M_padded*K , sizeof(int)); // array for storing M dim C writeback location for each nnz in A
+   unsigned char* loc_m = (unsigned char*) calloc(x->M_padded*K , sizeof(int)); // array for storing M dim C writeback location for each nnz in A
                                     // each value ranges from 0 to mr-1
 
 

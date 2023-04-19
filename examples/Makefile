@@ -31,7 +31,7 @@ ifeq ($(UNAME_P),aarch64)
 	TARGETS = rosko_armv8
 	CFLAGS_tmp		  += -fopenmp
 else ifeq ($(UNAME_P),x86_64)
-	TARGETS = rosko_haswell
+	TARGETS = rosko_haswell crisko_haswell
 	CFLAGS_tmp		  += -O3 -g -mavx -mfma -fopenmp
 else
 	TARGETS = rosko_blis
@@ -56,6 +56,9 @@ rosko_armv8: $(wildcard *.h) $(wildcard *.c)
 
 rosko_haswell: $(wildcard *.h) $(wildcard *.c)
 	g++ $(CFLAGS) rosko_sgemm_test.cpp $(LIBS) -o rosko_sgemm_test
+
+crisko_haswell: $(wildcard *.h) $(wildcard *.c)
+	g++ $(CFLAGS) crisko_sgemm_test.cpp $(LIBS) -o crisko_sgemm_test
 
 clean:
 	rm -rf *.o *.so

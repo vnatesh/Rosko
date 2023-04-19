@@ -318,7 +318,7 @@ double rosko_sgemm_online(float* A, float* B, float* C, int M, int N, int K, int
 	long seconds, nanoseconds;
 	double diff_t, times;
 	float *A_p[p], *B_p, *C_p[p];
-	char *loc_m[p], *nnz_outer[p];
+	unsigned char *loc_m[p], *nnz_outer[p];
 	int *k_inds[p];
 
 	sch = KMN;
@@ -344,9 +344,9 @@ double rosko_sgemm_online(float* A, float* B, float* C, int M, int N, int K, int
 		}
 
 
-		loc_m[i] = (char*) calloc(x->m_c * x->k_c, sizeof(char));
+		loc_m[i] = (unsigned char*) calloc(x->m_c * x->k_c, sizeof(unsigned char));
 		k_inds[i] = (int*) calloc(x->m_c * x->k_c / cake_cntx->mr, sizeof(int));
-		nnz_outer[i] = (char*) calloc(x->m_c * x->k_c / cake_cntx->mr, sizeof(char));
+		nnz_outer[i] = (unsigned char*) calloc(x->m_c * x->k_c / cake_cntx->mr, sizeof(unsigned char));
 
 
 		// if(posix_memalign((void**) &loc_m[i], 64, x->m_c * x->k_c * sizeof(char))) {

@@ -5,7 +5,7 @@
 
 
 void csr_to_ob_A_sp(float* vals, int* colind_csr, int* rowptr_csr, int* nnz_tiles, int* num_vec_tile,
-   char* nnz_outer, int* k_inds, char* loc_m, float* A_p, int M, int m1, int m2, int k1,
+   unsigned char* nnz_outer, int* k_inds, unsigned char* loc_m, float* A_p, int M, int m1, int m2, int k1,
    int m_c, int k_c, int m_r, int nz_in, int col_tile_in, int* ret) {
          
 
@@ -110,7 +110,7 @@ void csr_to_ob_A_sp(float* vals, int* colind_csr, int* rowptr_csr, int* nnz_tile
 
 
 // packing without density-based reordering
-void pack_ob_A_sp(float* A, float* A_p, char* nnz_outer, int* k_inds, char* loc_m,
+void pack_ob_A_sp(float* A, float* A_p, unsigned char* nnz_outer, int* k_inds, unsigned char* loc_m,
    int M, int K, int m1, int m2, int m_c, int k_c, int m_r, bool pad) {
 
    int nnz_col, ind_blk, outer_ind = 0, a_ind = 0, empty = 0;
@@ -198,7 +198,7 @@ void pack_ob_A_sp(float* A, float* A_p, char* nnz_outer, int* k_inds, char* loc_
 
 
 // packing without density-based reordering
-void pack_ob_A_crisko(float* A, float* A_p, char* nnz_outer, int* k_inds, char* loc_m, int* num_vec_tile,
+void pack_ob_A_crisko(float* A, float* A_p, unsigned char* nnz_outer, int* k_inds, unsigned char* loc_m, int* num_vec_tile,
    int M, int K, int m1, int m2, int m_c, int k_c, int m_r, bool pad) {
 
    int nnz_col, ind_blk, vec_cnt, outer_ind = 0, a_ind = 0, empty = 0;
@@ -285,7 +285,7 @@ void pack_ob_A_crisko(float* A, float* A_p, char* nnz_outer, int* k_inds, char* 
 
 
 // packing B 
-void pack_ob_B_sp(float* B, float* B_p, char* nnz_outer, int* k_inds, char* loc_n, int* num_vec_tile,
+void pack_ob_B_sp(float* B, float* B_p, unsigned char* nnz_outer, int* k_inds, unsigned char* loc_n, int* num_vec_tile,
    int K, int N, int n1, int k_c, int n_c, int n_r, bool pad) {
 
    int nnz_row, ind_blk, vec_cnt, outer_ind = 0, b_ind = 0, empty = 0;
@@ -382,7 +382,7 @@ void pack_ob_B_sp(float* B, float* B_p, char* nnz_outer, int* k_inds, char* loc_
 
 //// packing with density-based reordering
 
-// void pack_ob_A_sp(float* A, float* A_p, char* nnz_outer, int* k_inds, char* loc_m, 
+// void pack_ob_A_sp(float* A, float* A_p, unsigned char* nnz_outer, int* k_inds, unsigned char* loc_m, 
 //    int M, int K, int m1, int m2, int m_c, int k_c, int m_r, bool pad) {
 
 //    int nnz_col, ind_blk, outer_ind = 0, a_ind = 0;
