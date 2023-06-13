@@ -4,12 +4,12 @@
 
 
 
-float cake_cpu_DRAM_accesses(int M1, int K1, int N1, int p, char* argv[]) {
+float cake_cpu_DRAM_accesses(int M1, int K1, int N1, int p, char* argv[], float type_size) {
 	
 
 	cake_cntx_t* cake_cntx = cake_query_cntx();
 	blk_dims_t* x = (blk_dims_t*) malloc(sizeof(blk_dims_t));
-	init_block_dims(M1, N1, K1, p, x, cake_cntx, KMN, argv);
+	init_block_dims(M1, N1, K1, p, x, cake_cntx, KMN, argv, type_size);
 
 	int mr = cake_cntx->mr, nr = cake_cntx->nr, mc = x->m_c, Mb = x->Mb, Nb = x->Nb, Kb = x->Kb;
 	float alpha = cake_cntx->alpha_n; 
@@ -20,7 +20,7 @@ float cake_cpu_DRAM_accesses(int M1, int K1, int N1, int p, char* argv[]) {
 	float M = (float) M1, K = (float) K1, N = (float) N1; 
 
 	// float dram_acc = ((( ((float) (M*N*K)) / (alpha*p*mc) + ((float) (M*N*K)) / (p*mc)) + 4.0*(M*N) + 2.0*(M*K + K*N)) / 1e9)*4.0;
-	float dram_acc = (((M*K*Nb + N*K*Mb) + 4.0*(M*N) + 2.0*(M*K + K*N)) / 1e9)*4.0;
+	float dram_acc = (((M*K*Nb + N*K*Mb) + 4.0*(M*N) + 2.0*(M*K + K*N)) / 1e9)*type_size;
 
  	free(x);
 	free(cake_cntx);
@@ -28,7 +28,7 @@ float cake_cpu_DRAM_accesses(int M1, int K1, int N1, int p, char* argv[]) {
 }
 
 
-float rosko_cpu_DRAM_accesses(int M1, int K1, int N1, int p, float d, char* argv[]) {
+float rosko_cpu_DRAM_accesses(int M1, int K1, int N1, int p, float d, char* argv[], float type_size) {
 	
 	int alg;
 	float dram_acc;
@@ -52,7 +52,7 @@ float rosko_cpu_DRAM_accesses(int M1, int K1, int N1, int p, float d, char* argv
 	}
 
 	blk_dims_t* x = (blk_dims_t*) malloc(sizeof(blk_dims_t));
-	init_sparse_block_dims(M1, N1, K1, p, x, cake_cntx, KMN, argv, d, 4, alg);
+	init_sparse_block_dims(M1, N1, K1, p, x, cake_cntx, KMN, argv, d, type_size, alg);
 	
 	int mr = cake_cntx->mr, nr = cake_cntx->nr;
 	int mc = x->m_c, kc = x->k_c, nc = x->n_c, Mb = x->Mb, Nb = x->Nb, Kb = x->Kb;
@@ -85,7 +85,7 @@ float rosko_cpu_DRAM_accesses(int M1, int K1, int N1, int p, float d, char* argv
 	// On systems with high DRAM BW, 
 	// We don't have to fit block in cache. We can use large blocks, allow cache misses and extra mem accesses
 	// and we can do this if there's enough dram BW.  
-	//IO Caused by read/write C, A/B reads during gemm, A metadata, and B/C packing
+	// IO Caused by read/write C, A/B reads during gemm, A metadata, and B/C packing
 	float dram_acc2 = (((2.5*d*M*K*Nb + N*K*Mb + 2.0*M*N*Kb) + 2.0*M*N + 2.0*K*N) / 1e9)*4.0; // intel
 
 
@@ -121,8 +121,8 @@ int main( int argc, char** argv ) {
 	sp = atof(argv[5]);
 	density = (100.0 - sp) / 100.0;
 
-	float rosko = rosko_cpu_DRAM_accesses(M, K, N, p, density, NULL);
-	// float cake = cake_cpu_DRAM_accesses(M, K, N, p, NULL);
+	float rosko = rosko_cpu_DRAM_accesses(M, K, N, p, density, NULL, 4);
+	// float cake = cake_cpu_DRAM_accesses(M, K, N, p, NULL, 4);
     char fname[50];
     snprintf(fname, sizeof(fname), "results");
     FILE *fp;
