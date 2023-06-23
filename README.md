@@ -17,7 +17,6 @@ Installation automatically downloads and installs the following tool/dependency 
 
 * `CAKE` 
 
-This repo is primarily for collating data and experiments for multiple architectures into a single location. The actual Rosko SIMD kernels are located in the CAKE_on_CPU library (in src/kernels).
 
 ## Docker Installation
 
