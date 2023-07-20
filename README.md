@@ -76,7 +76,7 @@ The experiments are organized in separate directories for each CPU architecture 
 
 ## Details
 See paper for more details.
-
+(<https://arxiv.org/pdf/2307.03930.pdf>).
 <!-- <p align = "center">
 <img  src="https://github.com/vnatesh/maestro/blob/master/images/cake_diagram.png" width="500">
 </p>
