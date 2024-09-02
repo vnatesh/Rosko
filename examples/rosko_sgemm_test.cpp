@@ -18,7 +18,6 @@ int main( int argc, char** argv ) {
 	p = atoi(argv[4]);
 	sp = atof(argv[5]);
 	ntrials = atoi(argv[6]);
-	alg = atoi(argv[7]);
 
 	printf("M = %d, K = %d, N = %d, cores = %d, sparsity = %f\n", M,K,N,p, ((float) sp) / 100.0);
 
@@ -34,13 +33,6 @@ int main( int argc, char** argv ) {
 	density = (100.0 - sp) / 100.0;
 
 	cake_cntx_t* cake_cntx = cake_query_cntx();
-    update_mr_nr(cake_cntx, 30, 128);
-
-	if(density > 0.05) {
-        alg = 0;
-    } else {
-        alg = 2;
-    }
 
 	char fname[50];
 	snprintf(fname, sizeof(fname), "results_new_sp");
