@@ -13,7 +13,8 @@ cd Rosko
 
 # install CAKE
 
-git clone https://github.com/vnatesh/CAKE_on_CPU.git
+#git clone https://github.com/vnatesh/CAKE_on_CPU.git (official repo, but not this fork)
+ git clone https://github.com/hidearmor/Rosko_jrya_mmhj.git
 cd CAKE_on_CPU
 source env.sh
 ./install.sh
