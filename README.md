@@ -6,15 +6,15 @@ This repository contains performance experiments of row-skipping outer product k
 ```bash
 # Download Rosko
 
-git clone https://github.com/vnatesh/Rosko.git
+# git clone https://github.com/vnatesh/Rosko.git (official repo, but not this fork)
+git clone https://github.com/hidearmor/Rosko_jrya_mmhj.git
 cd Rosko
 
 
 
 # install CAKE
 
-#git clone https://github.com/vnatesh/CAKE_on_CPU.git (official repo, but not this fork)
- git clone https://github.com/hidearmor/Rosko_jrya_mmhj.git
+git clone https://github.com/vnatesh/CAKE_on_CPU.git
 cd CAKE_on_CPU
 source env.sh
 ./install.sh
