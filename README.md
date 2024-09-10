@@ -1,6 +1,14 @@
 # Overview
 This repository contains performance experiments of row-skipping outer product kernels (Rosko) for sparse-dense matrix multiplication (spMM) on CPUs. Rosko uses the CAKE tiling and scheduling algorithm for efficient multicore parallelism and minimal DRAM bandwidth usage. Rosko kernels are written using SIMD intrinsics. They outperform Intel and ARM Dense GEMM and spMM libraries for matrices with sparsities ranging from 72% to 99.9%. 
 
+## Jonas native installation:
+
+the below stuff from Vikas is encapsulated in the following script, which also clean the directory from CAKE directory and C++ build before setting the whole thing up again:
+
+```bash
+./setup_jonas.sh
+```
+
 ## Native Installation
 
 ```bash
