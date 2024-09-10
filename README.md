@@ -75,22 +75,12 @@ sudo docker run --pid=host --cap-add=SYS_ADMIN --cap-add=SYS_PTRACE -it rosko_im
 
 In the `examples` directory, you will find a simple script `rosko_sgemm_test.cpp` that performs CAKE matrix multiplication on a random sparse MxK matrix and a dense KxN matrix, given M, K, and N values as command line arguments. To compile the script, simple type `make`and run the script as shown below. Make sure you have sourced the `env.sh` file before running. 
 
+# Run 20 trials of an SpMM example on 10 cores for multiplying a 3000x2000 Sparse matrix with 90% sparsity and a 2000x1000 dense matrix (M = 3000, K = 2000, N = 1000)
+ 
 ```bash
-~/Rosko/examples$ make
-g++ -I/home/vnatesh/Rosko/include -I/usr/local/include/blis rosko_sgemm_test.cpp -L/home/vnatesh/Rosko -lcake -o rosko_sgemm_test
-
-~/Rosko/examples$ ./rosko_sgemm_test 3 3 3
-M = 3, K = 3, N = 3
-0.546852	0.546852
--0.430778	-0.430778
--0.633527	-0.633527
--0.433842	-0.433842
-0.640107	0.640107
-0.383761	0.383761
--0.208048	-0.208048
--0.454641	-0.454641
-1.107274	1.107274
-CORRECT!
+cd examples
+make
+./rosko_sgemm_test 3000 2000 1000 10 90 20
 ```
 
 ## Running Experiments:
