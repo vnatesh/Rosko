@@ -75,13 +75,52 @@ sudo docker run --pid=host --cap-add=SYS_ADMIN --cap-add=SYS_PTRACE -it rosko_im
 
 In the `examples` directory, you will find a simple script `rosko_sgemm_test.cpp` that performs CAKE matrix multiplication on a random sparse MxK matrix and a dense KxN matrix, given M, K, and N values as command line arguments. To compile the script, simple type `make`and run the script as shown below. Make sure you have sourced the `env.sh` file before running. 
 
-# Run 20 trials of an SpMM example on 10 cores for multiplying a 3000x2000 Sparse matrix with 90% sparsity and a 2000x1000 dense matrix (M = 3000, K = 2000, N = 1000)
- 
+The script below runs 20 trials of an SpMM example on 8 cores for multiplying a 3000x2000 Sparse matrix with 90% sparsity and a 2000x1000 dense matrix (M = 3000, K = 2000, N = 1000)
+
 ```bash
-cd examples
-make
-./rosko_sgemm_test 3000 2000 1000 10 90 20
+(base) mmhj@DESKTOP-INVCLHF:~/ITU/Rosko_jrya_mmhj$ source ./env.sh
+(base) mmhj@DESKTOP-INVCLHF:~/ITU/Rosko_jrya_mmhj$ cd examples/
+(base) mmhj@DESKTOP-INVCLHF:~/ITU/Rosko_jrya_mmhj/examples$ make
+g++ -I/home/mmhj/ITU/Rosko_jrya_mmhj/include -I/home/mmhj/ITU/Rosko_jrya_mmhj/CAKE_on_CPU/include -O3 -g -mavx -mfma -fopenmp rosko_sgemm_test.cpp -L/home/mmhj/ITU/Rosko_jrya_mmhj -lrosko -L/home/mmhj/ITU/Rosko_jrya_mmhj/CAKE_on_CPU -lcake -o rosko_sgemm_test
+g++ -I/home/mmhj/ITU/Rosko_jrya_mmhj/include -I/home/mmhj/ITU/Rosko_jrya_mmhj/CAKE_on_CPU/include -O3 -g -mavx -mfma -fopenmp crisko_sgemm_test.cpp -L/home/mmhj/ITU/Rosko_jrya_mmhj -lrosko -L/home/mmhj/ITU/Rosko_jrya_mmhj/CAKE_on_CPU -lcake -o crisko_sgemm_test
+(base) mmhj@DESKTOP-INVCLHF:~/ITU/Rosko_jrya_mmhj/examples$ ./rosko_sgemm_test 3000 2000 1000 8 90 20
+M = 3000, K = 2000, N = 1000, cores = 8, sparsity = 0.900000
+alg = 0, 4194304
+sss 0.043422
+sss 0.037009
+sss 0.031292
+sss 0.031281
+sss 0.032200
+sss 0.032261
+sss 0.031886
+sss 0.032135
+sss 0.036221
+sss 0.034001
+sss 0.031604
+sss 0.032400
+sss 0.033888
+sss 0.031955
+sss 0.032900
+sss 0.031075
+sss 0.033897
+sss 0.031196
+sss 0.047687
+sss 0.030360
+sss 0.030745
+sss 0.031935
+sss 0.038252
+sss 0.031491
+sss 0.030727
+sss 0.040589
+sss 0.044013
+sss 0.048948
+sss 0.039204
+sss 0.032765
+0,90.000000,3000,2000,1000,0.035282
+CORRECT!
 ```
+
+
 
 ## Running Experiments:
 
