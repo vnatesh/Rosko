@@ -6,6 +6,7 @@
 
 int main( int argc, char** argv ) {
 
+	// MAYA Some code here likely needs fixing. Writes two headers to many in result_pack. I manually deleted them
 	int M, K, N, p, sp, nz, mr, nr, ntrials, store;
 	struct timespec start, end;
 	long seconds, nanoseconds;
@@ -32,7 +33,9 @@ int main( int argc, char** argv ) {
 
 
 	// measure MKL-CSR packing DRAM bw
-	double csr_time = mat_to_csr_file(A, M, K, argv[5], store);
+	// JONAS too many arguments
+	// double csr_time = mat_to_csr_file(A, M, K, argv[5], store);
+	double csr_time = mat_to_csr_file(A, M, K, argv[5]);
 	stat(argv[5], &buffer);
 	int csr_bytes = buffer.st_size;
 	csr = file_to_csr(argv[5]);
@@ -50,7 +53,9 @@ int main( int argc, char** argv ) {
 	sp_pack_t* sp_pack = (sp_pack_t*) malloc(sizeof(sp_pack_t));
 
 	clock_gettime(CLOCK_REALTIME, &start);
-	pack_A_sp_k_first(A, A_p, M, K, p, sp_pack, x, cake_cntx, store);
+	// JONAS too many arguments
+	// pack_A_sp_k_first(A, A_p, M, K, p, sp_pack, x, cake_cntx, store);
+	pack_A_sp_k_first(A, A_p, M, K, p, sp_pack, x, cake_cntx);
 	clock_gettime(CLOCK_REALTIME, &end);
 	seconds = end.tv_sec - start.tv_sec;
 	nanoseconds = end.tv_nsec - start.tv_nsec;
