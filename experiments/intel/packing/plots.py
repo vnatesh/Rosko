@@ -24,10 +24,8 @@ def plot_rosko_vs_intel_pack(fname = 'rosko_vs_intel_pack'):
 	#
 	plt.figure(figsize = (6,4))
 	for i in range(len(sparsity)):
-		q = (dft[(dft['algo'] == 'mkl time') & (dft['sp'] == str(sparsity[i])) & (dft['store'] == 0)]['bw'].values \
+		q = (dft[(dft['algo'] == 'mkl time') & (dft['sp'] == sparsity[i]) & (dft['store'] == 0)]['bw'].values \
 		+ dft[(dft['algo'] == 'mkl time') & (dft['sp'] == sparsity[i]) & (dft['store'] == 1)]['bw'].values) / 2.0
-		print("this is q: ", len(dft[(dft['algo'] == 'mkl time') & (dft['sp'] == str(sparsity[i])) & (dft['store'] == '0')]['bw'].values))
-		print("this is N: ", len(N))
 		plt.plot(N, q, label = labels[i*2], marker = markers[i], color = colors[0])
 		q = (dft[(dft['algo'] == 'rosko time') & (dft['sp'] == sparsity[i]) & (dft['store'] == 0)]['bw'].values \
 		+ dft[(dft['algo'] == 'rosko time') & (dft['sp'] == sparsity[i]) & (dft['store'] == 1)]['bw'].values) / 2.0
