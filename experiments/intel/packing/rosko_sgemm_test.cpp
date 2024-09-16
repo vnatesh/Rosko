@@ -6,7 +6,6 @@
 
 int main( int argc, char** argv ) {
 
-	// MAYA Some code here likely needs fixing. Writes two headers to many in result_pack. I manually deleted them
 	int M, K, N, p, sp, nz, mr, nr, ntrials, store;
 	struct timespec start, end;
 	long seconds, nanoseconds;
