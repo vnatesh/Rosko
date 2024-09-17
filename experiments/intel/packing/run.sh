@@ -1,13 +1,19 @@
 #!/bin/bash
-
-
 x=$PWD
+cd ../../../CAKE_on_CPU;
+source env.sh;
+cd ..;
+source env.sh;
+cd $x;
+
+echo $ROSKO_HOME;
+echo $CAKE_HOME;
 
 # compile mkl_sparse gemm test with Intel MKL
-cd /opt/intel/oneapi/mkl/2021.1.1/examples/sycl
-make sointel64 examples="spblas/sparse_gemm" sycl_devices=cpu
-cp _results/intel64_so_tbb/spblas/sparse_gemm.out $x
-cd $x
+# cd /opt/intel/oneapi/mkl/2021.1.1/examples/sycl
+# make sointel64 examples="spblas/sparse_gemm" sycl_devices=cpu
+# cp _results/intel64_so_tbb/spblas/sparse_gemm.out $x
+# cd $x
 
 
 # compile rosko

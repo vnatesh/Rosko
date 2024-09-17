@@ -20,7 +20,7 @@ i=0
 
 
 
-
+# this seems to be the input generation for plots in Figure 8c
 for sp in 80 85 90 95 98
 do
 	for p in 1 2 3 4 5 6 7 8 9 10
@@ -85,7 +85,7 @@ gcc -fopenmp -m64 -I${MKLROOT}/include mkl_sgemm_test.c -Wl,--no-as-needed \
 echo "algo,M,K,N,p,sp,time" >> results
 
 
-
+# this seems to be the input generation for Figure 8a 
 ./mkl_sgemm_test 9984 9984 9984 $NCORES $NTRIALS;
 
 for sp in 70 75 80 82 85 87 90 92 95 97 99 99.9

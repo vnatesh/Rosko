@@ -16,7 +16,9 @@ def plot_rosko_vs_intel_pack(fname = 'rosko_vs_intel_pack'):
 	labels = ['CSR 80%', 'Rosko 80%', 'CSR 87%', 'Rosko 87%', 'CSR 95%', 'Rosko 95%']
 	sparsity = [80, 87, 95]
 	# N = range(768+1024,9985,512)
-	N = range(256,9985,512)
+	# MAYA this range does not comply with the range on N in run.sh
+	# N = range(256,9985,512)
+	N = range(256, 10241, 512)
 	dft = pandas.read_csv('result_pack')
 	#
 	#
