@@ -1,0 +1,12 @@
+# Ignore C++ object files
+*.so
+*.o
+
+# Ignore the CAKE_on_CPU directory and all its contents
+CAKE_on_CPU/
+
+# Ignore the file 'rosko_kernels.h' in the '/include' directory
+/include/rosko_kernels.h
+
+# Ignore the file 'sparse.cpp' in the 'src/kernels/haswell' directory
+/src/kernels/haswell/sparse.cpp
